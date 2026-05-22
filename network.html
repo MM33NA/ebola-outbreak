@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ebola Outbreak 2026 — Transmission Network</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #ffffff;
+      --bg-2:     #f5f5f3;
+      --bg-3:     #eeecea;
+      --text:     #1a1a18;
+      --text-2:   #5f5e5a;
+      --text-3:   #88877f;
+      --border:   rgba(0,0,0,0.10);
+      --border-2: rgba(0,0,0,0.18);
+      --red:      #E24B4A;
+      --blue:     #378ADD;
+      --amber:    #BA7517;
+      --amber-bg: #faeeda;
+      --amber-bdr:#FAC775;
+      --radius:   8px;
+
+      --c-origin:  #E24B4A;
+      --c-hub:     #C0392B;
+      --c-export:  #E67E22;
+      --c-contact: #378ADD;
+      --c-alert:   #8E44AD;
+
+      --l-confirmed: #E24B4A;
+      --l-contact:   #378ADD;
+      --l-alert:     #8E44AD;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #1c1c1a;
+        --bg-2:     #252523;
+        --bg-3:     #2e2e2c;
+        --text:     #f0efea;
+        --text-2:   #b4b2a9;
+        --text-3:   #888780;
+        --border:   rgba(255,255,255,0.09);
+        --border-2: rgba(255,255,255,0.16);
+        --amber-bg: #412402;
+        --amber-bdr:#854F0B;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+    /* Header */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--text-3); text-decoration: none;
+      margin-bottom: 1.25rem;
+    }
+    .back-link:hover { color: var(--blue); }
+
+    .header-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 4px;
+    }
+    .header-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .header-sub { font-size: 13px; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.6; }
+
+    /* Legend */
+    .legend-grid {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      margin-bottom: 1.25rem;
+    }
+    .legend-group { display: flex; flex-direction: column; gap: 6px; }
+    .legend-group-title { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 2px; }
+    .legend-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-2); }
+    .legend-circle { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .legend-line { width: 22px; height: 2px; flex-shrink: 0; position: relative; }
+    .legend-line.dashed { background: repeating-linear-gradient(to right, currentColor 0, currentColor 4px, transparent 4px, transparent 8px); }
+    .legend-line.dotted { background: repeating-linear-gradient(to right, currentColor 0, currentColor 2px, transparent 2px, transparent 6px); }
+
+    /* Graph container */
+    .graph-card {
+      background: var(--bg-2);
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    #graph-svg {
+      width: 100%;
+      display: block;
+    }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--bg);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--radius);
+      padding: 10px 13px;
+      font-size: 12px;
+      color: var(--text);
+      max-width: 240px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      line-height: 1.55;
+    }
+    #tooltip .tt-label { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    #tooltip .tt-country { font-size: 11px; color: var(--text-3); margin-bottom: 6px; }
+    #tooltip .tt-detail { color: var(--text-2); }
+
+    /* Stats strip */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .stat {
+      background: var(--bg-2);
+      padding: 0.9rem 1rem;
+    }
+    .stat-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
+    .stat-value { font-size: 20px; font-weight: 600; color: var(--text); }
+    .stat-value.red { color: var(--red); }
+    .stat-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+    /* Note */
+    .note {
+      background: var(--amber-bg);
+      border: 0.5px solid var(--amber-bdr);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--amber);
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    /* Sources */
+    .sources { font-size: 12px; color: var(--text-3); margin-bottom: 0.5rem; }
+    .links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .links a {
+      font-size: 12px; color: var(--blue); text-decoration: none;
+      border: 0.5px solid var(--border); border-radius: var(--radius); padding: 5px 10px;
+    }
+    .links a:hover { background: var(--bg-2); text-decoration: underline; }
+
+    footer {
+      margin-top: 3rem; padding-top: 1.25rem;
+      border-top: 0.5px solid var(--border);
+      font-size: 11px; color: var(--text-3);
+    }
+
+    .loading { text-align: center; padding: 4rem; color: var(--text-3); font-size: 14px; }
+  </style>
+</head>
+<body>
+<main class="page">
+
+  <a class="back-link" href="./index.html">← Back to dashboard</a>
+
+  <p class="header-eyebrow">Case importation &amp; transmission network</p>
+  <h1 class="header-title">2026 Ebola Outbreak — Spread Map</h1>
+  <p class="header-sub">
+    Force-directed graph showing confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC.
+    Node size reflects relative case count. Hover any node for details.
+  </p>
+
+  <!-- Legend -->
+  <div class="legend-grid">
+    <div class="legend-group">
+      <p class="legend-group-title">Nodes</p>
+      <div class="legend-row"><span class="legend-circle" style="background:#C0392B"></span>Epicentre hub (Bunia)</div>
+      <div class="legend-row"><span class="legend-circle" style="background:#E24B4A"></span>Origin health zone (DRC)</div>
+      <div class="legend-row"><span class="legend-circle" style="background:#E67E22"></span>Confirmed export (cases)</div>
+      <div class="legend-row"><span class="legend-circle" style="background:#378ADD"></span>Contact movement (no cases)</div>
+      <div class="legend-row"><span class="legend-circle" style="background:#8E44AD"></span>Heightened screening</div>
+    </div>
+    <div class="legend-group">
+      <p class="legend-group-title">Links</p>
+      <div class="legend-row">
+        <span class="legend-line" style="background:#E24B4A; height:2px;"></span>
+        Confirmed case transmission
+      </div>
+      <div class="legend-row">
+        <span class="legend-line dashed" style="color:#378ADD; height:2px;"></span>
+        Contact/exposure transfer
+      </div>
+      <div class="legend-row">
+        <span class="legend-line dotted" style="color:#8E44AD; height:2px;"></span>
+        Alert / screening measure
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div id="stats-strip" class="stats-strip">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <!-- Graph -->
+  <div class="graph-card">
+    <svg id="graph-svg" viewBox="0 0 900 520" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <!-- Note -->
+  <p class="note">
+    <strong>Important:</strong> Germany and Czech Republic represent <strong>contact transfers</strong>, not confirmed Ebola cases — high-risk individuals were moved there for monitoring. The United States has no confirmed cases; enhanced airport screening was implemented as a precaution. Node sizes are proportional to confirmed case counts where available; DRC health zone figures are estimates based on WHO reporting. All data sourced from WHO DON602, May 17, 2026.
+  </p>
+
+  <p class="sources">Sources &amp; further reading:</p>
+  <div class="links">
+    <a href="https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON602" target="_blank" rel="noopener">WHO Disease Outbreak News ↗</a>
+    <a href="https://www.cdc.gov/ebola/situation-summary/index.html" target="_blank" rel="noopener">CDC Situation Summary ↗</a>
+  </div>
+
+  <footer>
+    Built with D3.js · Data: WHO DON602, May 17 2026 · Updated May 21, 2026 · Not a medical resource.
+  </footer>
+
+</main>
+
+<div id="tooltip">
+  <div class="tt-label" id="tt-label"></div>
+  <div class="tt-country" id="tt-country"></div>
+  <div class="tt-detail" id="tt-detail"></div>
+</div>
+
+<script>
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+const COLOR = {
+  origin:  '#E24B4A',
+  hub:     '#C0392B',
+  export:  '#E67E22',
+  contact: '#378ADD',
+  alert:   '#8E44AD',
+};
+const LINK_COLOR = {
+  confirmed: '#E24B4A',
+  contact:   '#378ADD',
+  alert:     '#8E44AD',
+};
+
+async function init() {
+  let data;
+  try {
+    const res = await fetch('./data.json');
+    data = await res.json();
+  } catch(e) {
+    document.getElementById('stats-strip').innerHTML = '<div class="loading">Could not load data.json</div>';
+    return;
+  }
+
+  const { summary, network, updated } = data;
+
+  // Stats strip
+  document.getElementById('stats-strip').innerHTML = `
+    <div class="stat"><p class="stat-label">Suspected cases</p><p class="stat-value">~${summary.suspectedCases.toLocaleString()}</p><p class="stat-sub">as of ${updated}</p></div>
+    <div class="stat"><p class="stat-label">Suspected deaths</p><p class="stat-value red">${summary.suspectedDeaths}</p><p class="stat-sub">as of ${updated}</p></div>
+    <div class="stat"><p class="stat-label">Confirmed (lab)</p><p class="stat-value">${summary.confirmedDRC}</p><p class="stat-sub">DRC + Uganda</p></div>
+    <div class="stat"><p class="stat-label">Countries affected</p><p class="stat-value">2</p><p class="stat-sub">DRC + Uganda</p></div>
+    <div class="stat"><p class="stat-label">Countries alerted</p><p class="stat-value">4</p><p class="stat-sub">+ Germany, Czech R., USA</p></div>
+  `;
+
+  buildGraph(network);
+}
+
+function buildGraph(network) {
+  const svg = d3.select('#graph-svg');
+  const W = 900, H = 520;
+
+  const tooltip = document.getElementById('tooltip');
+  const ttLabel  = document.getElementById('tt-label');
+  const ttCountry = document.getElementById('tt-country');
+  const ttDetail = document.getElementById('tt-detail');
+
+  // Deep-clone nodes & links for D3 mutation
+  const nodes = network.nodes.map(d => ({ ...d }));
+  const links = network.links.map(d => ({ ...d }));
+
+  // Scales
+  const maxCases = d3.max(nodes, d => d.cases) || 1;
+  const rScale = d3.scaleSqrt().domain([0, maxCases]).range([10, 36]);
+
+  // Defs — arrowheads per link type
+  const defs = svg.append('defs');
+  ['confirmed', 'contact', 'alert'].forEach(type => {
+    defs.append('marker')
+      .attr('id', `arrow-${type}`)
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 10)
+      .attr('refY', 0)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', LINK_COLOR[type])
+        .attr('opacity', 0.7);
+  });
+
+  // Background
+  svg.append('rect')
+    .attr('width', W).attr('height', H)
+    .attr('fill', isDark ? '#252523' : '#f5f5f3')
+    .attr('rx', 12);
+
+  // Subtle grid
+  const gridG = svg.append('g').attr('opacity', 0.12);
+  for (let x = 60; x < W; x += 80) {
+    gridG.append('line').attr('x1', x).attr('y1', 0).attr('x2', x).attr('y2', H)
+      .attr('stroke', isDark ? '#fff' : '#000').attr('stroke-width', 0.5);
+  }
+  for (let y = 60; y < H; y += 80) {
+    gridG.append('line').attr('x1', 0).attr('y1', y).attr('x2', W).attr('y2', y)
+      .attr('stroke', isDark ? '#fff' : '#000').attr('stroke-width', 0.5);
+  }
+
+  // Simulation
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(d => {
+      if (d.type === 'confirmed') return 160;
+      return 210;
+    }).strength(0.6))
+    .force('charge', d3.forceManyBody().strength(-600))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('collision', d3.forceCollide(d => rScale(d.cases) + 20))
+    .force('x', d3.forceX(W / 2).strength(0.04))
+    .force('y', d3.forceY(H / 2).strength(0.04));
+
+  // Links
+  const linkG = svg.append('g');
+  const linkEl = linkG.selectAll('line')
+    .data(links)
+    .join('line')
+      .attr('stroke', d => LINK_COLOR[d.type])
+      .attr('stroke-width', d => d.type === 'confirmed' ? 2.5 : 1.5)
+      .attr('stroke-opacity', 0.7)
+      .attr('stroke-dasharray', d => {
+        if (d.type === 'contact') return '6 4';
+        if (d.type === 'alert')   return '2 5';
+        return null;
+      })
+      .attr('marker-end', d => `url(#arrow-${d.type})`);
+
+  // Link labels
+  const linkLabelG = svg.append('g');
+  const linkLabelEl = linkLabelG.selectAll('text')
+    .data(links)
+    .join('text')
+      .attr('font-size', 9)
+      .attr('fill', d => LINK_COLOR[d.type])
+      .attr('opacity', 0.75)
+      .attr('text-anchor', 'middle')
+      .text(d => d.label);
+
+  // Nodes group
+  const nodeG = svg.append('g');
+  const nodeEl = nodeG.selectAll('g')
+    .data(nodes)
+    .join('g')
+      .attr('cursor', 'pointer')
+      .call(d3.drag()
+        .on('start', (event, d) => { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+        .on('drag',  (event, d) => { d.fx = event.x; d.fy = event.y; })
+        .on('end',   (event, d) => { if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; })
+      );
+
+  // Glow rings for hub + exports
+  nodeEl.filter(d => d.type === 'hub' || d.type === 'export')
+    .append('circle')
+      .attr('r', d => rScale(d.cases) + 8)
+      .attr('fill', 'none')
+      .attr('stroke', d => COLOR[d.type])
+      .attr('stroke-width', 1)
+      .attr('stroke-opacity', 0.3);
+
+  // Main circles
+  nodeEl.append('circle')
+    .attr('r', d => rScale(d.cases || 4))
+    .attr('fill', d => COLOR[d.type])
+    .attr('stroke', isDark ? '#1c1c1a' : '#fff')
+    .attr('stroke-width', 2.5);
+
+  // Case count inside node
+  nodeEl.filter(d => d.cases > 0)
+    .append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .attr('font-size', d => d.cases >= 100 ? 10 : 11)
+      .attr('font-weight', '600')
+      .attr('fill', '#fff')
+      .attr('pointer-events', 'none')
+      .text(d => d.cases >= 10 ? d.cases : d.cases);
+
+  // Node labels below
+  nodeEl.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', d => rScale(d.cases || 4) + 14)
+    .attr('font-size', 11)
+    .attr('font-weight', '500')
+    .attr('fill', isDark ? '#d0cfc8' : '#3a3a38')
+    .attr('pointer-events', 'none')
+    .text(d => d.label);
+
+  // Country label
+  nodeEl.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', d => rScale(d.cases || 4) + 26)
+    .attr('font-size', 9.5)
+    .attr('fill', isDark ? '#888780' : '#88877f')
+    .attr('pointer-events', 'none')
+    .text(d => d.country);
+
+  // Tooltip events
+  nodeEl
+    .on('mouseenter', (event, d) => {
+      ttLabel.textContent  = d.label;
+      ttCountry.textContent = d.country;
+      ttDetail.textContent = d.detail;
+      tooltip.style.opacity = '1';
+    })
+    .on('mousemove', event => {
+      tooltip.style.left = (event.clientX + 14) + 'px';
+      tooltip.style.top  = (event.clientY - 10) + 'px';
+    })
+    .on('mouseleave', () => {
+      tooltip.style.opacity = '0';
+    });
+
+  // Tick
+  sim.on('tick', () => {
+    const pad = 50;
+    nodes.forEach(d => {
+      d.x = Math.max(pad, Math.min(W - pad, d.x));
+      d.y = Math.max(pad, Math.min(H - pad, d.y));
+    });
+
+    linkEl
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => {
+        const r = rScale(d.target.cases || 4) + 8;
+        const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        return d.target.x - (dx / dist) * r;
+      })
+      .attr('y2', d => {
+        const r = rScale(d.target.cases || 4) + 8;
+        const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        return d.target.y - (dy / dist) * r;
+      });
+
+    linkLabelEl
+      .attr('x', d => (d.source.x + d.target.x) / 2)
+      .attr('y', d => (d.source.y + d.target.y) / 2 - 6);
+
+    nodeEl.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
