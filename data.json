@@ -39,9 +39,8 @@
       { "id": "rwampara",  "label": "Rwampara HZ",      "type": "origin",  "country": "DRC",          "cases": 120, "detail": "6 health areas affected · confirmed outbreak origin" },
       { "id": "mongbwalu", "label": "Mongbwalu HZ",     "type": "origin",  "country": "DRC",          "cases": 90,  "detail": "3 health areas affected · 4 HCWs dead by May 9" },
       { "id": "bunia",     "label": "Bunia HZ",         "type": "hub",     "country": "DRC",          "cases": 36,  "detail": "Regional commercial hub · first death Apr 24 · gateway to Uganda" },
-      { "id": "uganda",    "label": "Kampala, Uganda",  "type": "export",  "country": "Uganda",       "cases": 2,   "detail": "2 confirmed imported cases · 1 death · traced to DRC travellers" },
-      { "id": "germany",   "label": "Germany",          "type": "contact", "country": "Germany",      "cases": 0,   "detail": "High-risk contacts moved for monitoring · May 17 · no confirmed cases" },
-      { "id": "czech",     "label": "Czech Republic",   "type": "contact", "country": "Czech Rep.",   "cases": 0,   "detail": "High-risk contacts moved for monitoring · May 17 · no confirmed cases" },
+      { "id": "uganda",    "label": "Kampala, Uganda",  "type": "export",  "country": "Uganda",       "cases": 2,   "detail": "WHO Director-General declares PHEIC. Uganda confirms 2 imported cases from DRC in Kampala — first case was an elderly man admitted May 11, died May 14, confirmed May 15; second confirmed May 16. No licensed vaccine or therapeutics exist for Bundibugyo virus."},
+      { "id": "germany",   "label": "Germany",          "type": "contact", "country": "Germany",      "cases": 0,   "detail": "1 American healthcare worker + 6 high-risk contacts medically evacuated for treatment · May 17 · no confirmed cases" },
       { "id": "usa",       "label": "United States",    "type": "alert",   "country": "USA",          "cases": 0,   "detail": "Enhanced screening at entry points · May 18 · no confirmed cases · risk assessed as low" }
     ],
     "links": [
@@ -49,7 +48,6 @@
       { "source": "mongbwalu", "target": "bunia",   "type": "confirmed", "label": "Confirmed transmission" },
       { "source": "bunia",     "target": "uganda",  "type": "confirmed", "label": "Confirmed export · travellers" },
       { "source": "bunia",     "target": "germany", "type": "contact",   "label": "High-risk contacts transferred · May 17" },
-      { "source": "bunia",     "target": "czech",   "type": "contact",   "label": "High-risk contacts transferred · May 17" },
       { "source": "bunia",     "target": "usa",     "type": "alert",     "label": "Enhanced screening · no cases" }
     ]
   }

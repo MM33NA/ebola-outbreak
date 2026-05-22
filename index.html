@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2026 Ebola Outbreak Dashboard — DRC & Uganda</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -220,7 +219,7 @@ async function init() {
     </div>
 
     <div class="graph-card">
-      <svg id="graph-svg" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="graph-svg" viewBox="0 0 680 440" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
 
     <p class="note" style="margin-bottom:1.75rem;">
@@ -322,134 +321,82 @@ async function init() {
     }
   });
 
-  // ── NETWORK CHART ──
-  buildNetwork(network, isDark);
-}
+// Build Network Graph
+buildNetwork(network, isDark); 
 
-function buildNetwork(network, isDark) {
-  const COLOR = { origin: '#E24B4A', hub: '#C0392B', export: '#E67E22', contact: '#378ADD', alert: '#8E44AD' };
-  const LINK_COLOR = { confirmed: '#E24B4A', contact: '#378ADD', alert: '#8E44AD' };
+document.getElementById('graph-svg').innerHTML = `
+<defs>
+  <marker id="arrow-confirmed" viewBox="0 0 10 10" refX="8" refY="5" marketWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrow-contact" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="534AB7" stroke-width="1.5: stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      </defs>
 
-  const svg = d3.select('#graph-svg');
-  const W = 1000, H = 500;
+      <text font-size="11" fill="var(--text-3)" x="96" y="26" text-anchor="middle">DRC origin zones</text"
+        <text font-size="11" fill="var(--text-3" x="338" y="26" text-anchor="middle">Epicentre hub</text>
+        <text font-size="11" fill="var(--text-3)" x="574" y="26" text-anchor=middle">International spread</text>
 
-  const nodes = network.nodes.map(d => ({ ...d }));
-  const links = network.links.map(d => ({ ...d }));
+        <line x1="220" y1="18" x2="220" y2="420" stroke="rgba(0,0,0,0.08)" stroke-width="0.5" stroke-dasharray="4 4"/>
+        <line x1="458" y1="18" x2="458" y2="420" stroke="rgba(0,0,0,0.08)" stroke-width="0.5" stroke-dasharray="4 4"/>
 
-  const maxCases = d3.max(nodes, d => d.cases) || 1;
-  const rScale = d3.scaleSqrt().domain([0, maxCases]).range([10, 38]);
+        <path d="M 178 140 C 250 140, 268 210, 306 212" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
+<path d="M 178 300 C 250 300, 268 226, 306 224" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
+<path d="M 372 200 C 430 175, 476 162, 520 152" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
+<path d="M 372 222 C 430 250, 480 278, 520 288" fill="none" stroke="#185FA5" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#arrow-contact)"/>
+<path d="M 372 234 C 430 310, 482 356, 520 368" fill="none" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="2 5" marker-end="url(#arrow-alert)"/>
 
-  // Defs / arrowheads
-  const defs = svg.append('defs');
-  ['confirmed','contact','alert'].forEach(type => {
-    defs.append('marker')
-      .attr('id', `arr-${type}`)
-      .attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0)
-      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
-      .append('path').attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', LINK_COLOR[type]).attr('opacity', 0.7);
-  });
+<rect x="18"  y="100" width="160" height="80" rx="8" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" fill="#791F1F" x="98" y="122" text-anchor="middle" dominant-baseline="central">Rwampara HZ</text>
+<text font-size="11" fill="#A32D2D" x="98" y="140" text-anchor="middle" dominant-baseline="central">6 health areas · DRC</text>
+<line x1="18" y1="152" x2="178" y2="152" stroke="#F7C1C1" stroke-width="0.5"/>
+<text font-size="11" fill="#A32D2D" x="58"  y="168" text-anchor="middle" dominant-baseline="central">~120 cases</text>
+<text font-size="11" fill="#A32D2D" x="140" y="168" text-anchor="middle" dominant-baseline="central">est. 40+ deaths</text>
 
-  // Background
-  svg.append('rect').attr('width', W).attr('height', H)
-    .attr('fill', isDark ? '#252523' : '#f5f5f3').attr('rx', 12);
+<rect x="18"  y="260" width="160" height="80" rx="8" fill="#FCEBEB" stroke="#F7C1C1" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" fill="#791F1F" x="98" y="282" text-anchor="middle" dominant-baseline="central">Mongbwalu HZ</text>
+<text font-size="11" fill="#A32D2D" x="98" y="300" text-anchor="middle" dominant-baseline="central">3 health areas · DRC</text>
+<line x1="18" y1="312" x2="178" y2="312" stroke="#F7C1C1" stroke-width="0.5"/>
+<text font-size="11" fill="#A32D2D" x="58"  y="328" text-anchor="middle" dominant-baseline="central">~90 cases</text>
+<text font-size="11" fill="#A32D2D" x="140" y="328" text-anchor="middle" dominant-baseline="central">est. 30+ deaths</text>
 
-  // Subtle grid
-  const g = svg.append('g').attr('opacity', 0.10);
-  for (let x = 60; x < W; x += 80) g.append('line').attr('x1',x).attr('y1',0).attr('x2',x).attr('y2',H).attr('stroke', isDark?'#fff':'#000').attr('stroke-width',0.5);
-  for (let y = 60; y < H; y += 80) g.append('line').attr('x1',0).attr('y1',y).attr('x2',W).attr('y2',y).attr('stroke', isDark?'#fff':'#000').attr('stroke-width',0.5);
+<rect x="258" y="168" width="114" height="92" rx="10" fill="#FAECE7" stroke="#F0997B" stroke-width="0.8"/>
+<text font-size="12" font-weight="500" fill="#4A1B0C" x="315" y="192" text-anchor="middle" dominant-baseline="central">Bunia HZ</text>
+<text font-size="11" fill="#993C1D" x="315" y="210" text-anchor="middle" dominant-baseline="central">Epicentre · DRC</text>
+<line x1="258" y1="222" x2="372" y2="222" stroke="#F0997B" stroke-width="0.5"/>
+<text font-size="11" fill="#993C1D" x="295" y="240" text-anchor="middle" dominant-baseline="central">575 cases</text>
+<text font-size="11" fill="#993C1D" x="295" y="255" text-anchor="middle" dominant-baseline="central">148 deaths</text>
 
-  const sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.type === 'confirmed' ? 170 : 220).strength(0.6))
-    .force('charge', d3.forceManyBody().strength(-700))
-    .force('center', d3.forceCenter(W/2, H/2))
-    .force('collision', d3.forceCollide(d => rScale(d.cases) + 22))
-    .force('x', d3.forceX(W/2).strength(0.04))
-    .force('y', d3.forceY(H/2).strength(0.04));
+<rect x="520" y="112" width="148" height="80" rx="8" fill="#FAEEDA" stroke="#FAC775" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" fill="#412402" x="594" y="134" text-anchor="middle" dominant-baseline="central">Kampala, Uganda</text>
+<text font-size="11" fill="#854F0B" x="594" y="152" text-anchor="middle" dominant-baseline="central">Confirmed import</text>
+<line x1="520" y1="164" x2="668" y2="164" stroke="#FAC775" stroke-width="0.5"/>
+<text font-size="11" fill="#854F0B" x="560" y="180" text-anchor="middle" dominant-baseline="central">2 cases</text>
+<text font-size="11" fill="#854F0B" x="634" y="180" text-anchor="middle" dominant-baseline="central">1 death</text>
 
-  // Links
-  const linkEl = svg.append('g').selectAll('line').data(links).join('line')
-    .attr('stroke', d => LINK_COLOR[d.type])
-    .attr('stroke-width', d => d.type === 'confirmed' ? 2.5 : 1.5)
-    .attr('stroke-opacity', 0.7)
-    .attr('stroke-dasharray', d => d.type === 'contact' ? '6 4' : d.type === 'alert' ? '2 5' : null)
-    .attr('marker-end', d => `url(#arr-${d.type})`);
+<rect x="520" y="258" width="148" height="80" rx="8" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" fill="#042C53" x="594" y="280" text-anchor="middle" dominant-baseline="central">Germany</text>
+<text font-size="11" fill="#185FA5" x="594" y="298" text-anchor="middle" dominant-baseline="central">Medical evacuation</text>
+<line x1="520" y1="310" x2="668" y2="310" stroke="#B5D4F4" stroke-width="0.5"/>
+<text font-size="11" fill="#185FA5" x="560" y="326" text-anchor="middle" dominant-baseline="central">7 contacts</text>
+<text font-size="11" fill="#185FA5" x="634" y="326" text-anchor="middle" dominant-baseline="central">0 deaths</text>
 
-  // Link labels
-  const linkLabelEl = svg.append('g').selectAll('text').data(links).join('text')
-    .attr('font-size', 9).attr('fill', d => LINK_COLOR[d.type])
-    .attr('opacity', 0.7).attr('text-anchor', 'middle').text(d => d.label);
+<rect x="520" y="348" width="148" height="68" rx="8" fill="#EEEDFE" stroke="#CECBF6" stroke-width="0.5"/>
+<text font-size="12" font-weight="500" fill="#26215C" x="594" y="370" text-anchor="middle" dominant-baseline="central">United States</text>
+<text font-size="11" fill="#534AB7" x="594" y="388" text-anchor="middle" dominant-baseline="central">Enhanced screening</text>
+<line x1="520" y1="400" x2="668" y2="400" stroke="#CECBF6" stroke-width="0.5"/>
+<text font-size="11" fill="#534AB7" x="594" y="412" text-anchor="middle" dominant-baseline="central">0 cases · 0 deaths</text>
 
-  // Node groups
-  const nodeEl = svg.append('g').selectAll('g').data(nodes).join('g')
-    .attr('cursor', 'pointer')
-    .call(d3.drag()
-      .on('start', (e,d) => { if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
-      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
-      .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
-    );
+<line x1="30"  y1="408" x2="58"  y2="408" stroke="#A32D2D" stroke-width="1.8"/>
+<text font-size="11" fill="var(--text-3)" x="64"  y="412">Confirmed cases</text>
+<line x1="190" y1="408" x2="218" y2="408" stroke="#185FA5" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text font-size="11" fill="var(--text-3)" x="224" y="412">Contact transfer</text>
+<line x1="340" y1="408" x2="368" y2="408" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="2 5"/>
+<text font-size="11" fill="var(--text-3)" x="374" y="412">Alert / screening</text>
+`;
 
-  // Glow ring
-  nodeEl.filter(d => d.type==='hub'||d.type==='export')
-    .append('circle').attr('r', d => rScale(d.cases)+9)
-    .attr('fill','none').attr('stroke', d => COLOR[d.type])
-    .attr('stroke-width',1.2).attr('stroke-opacity',0.3);
 
-  // Main circle
-  nodeEl.append('circle')
-    .attr('r', d => rScale(d.cases||4))
-    .attr('fill', d => COLOR[d.type])
-    .attr('stroke', isDark ? '#1c1c1a' : '#fff')
-    .attr('stroke-width', 2.5);
-
-  // Case count text inside node
-  nodeEl.filter(d => d.cases > 0).append('text')
-    .attr('text-anchor','middle').attr('dominant-baseline','middle')
-    .attr('font-size', d => d.cases >= 100 ? 10 : 11)
-    .attr('font-weight','600').attr('fill','#fff').attr('pointer-events','none')
-    .text(d => d.cases);
-
-  // Node label below
-  nodeEl.append('text')
-    .attr('text-anchor','middle').attr('dy', d => rScale(d.cases||4)+14)
-    .attr('font-size',11).attr('font-weight','500')
-    .attr('fill', isDark ? '#d0cfc8' : '#3a3a38').attr('pointer-events','none')
-    .text(d => d.label);
-
-  // Country label
-  nodeEl.append('text')
-    .attr('text-anchor','middle').attr('dy', d => rScale(d.cases||4)+26)
-    .attr('font-size',9.5).attr('fill', isDark ? '#888780' : '#88877f')
-    .attr('pointer-events','none').text(d => d.country);
-
-  // Tooltip
-  const tooltip  = document.getElementById('tooltip');
-  const ttLabel  = document.getElementById('tt-label');
-  const ttCountry= document.getElementById('tt-country');
-  const ttDetail = document.getElementById('tt-detail');
-
-  nodeEl
-    .on('mouseenter', (e,d) => { ttLabel.textContent=d.label; ttCountry.textContent=d.country; ttDetail.textContent=d.detail; tooltip.style.opacity='1'; })
-    .on('mousemove',  e  => { tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px'; })
-    .on('mouseleave', ()  => { tooltip.style.opacity='0'; });
-
-  // Tick
-  sim.on('tick', () => {
-    const pad = 55;
-    nodes.forEach(d => { d.x=Math.max(pad,Math.min(W-pad,d.x)); d.y=Math.max(pad,Math.min(H-pad,d.y)); });
-
-    linkEl
-      .attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
-      .attr('x2', d => { const r=rScale(d.target.cases||4)+9, dx=d.target.x-d.source.x, dy=d.target.y-d.source.y, dist=Math.sqrt(dx*dx+dy*dy)||1; return d.target.x-(dx/dist)*r; })
-      .attr('y2', d => { const r=rScale(d.target.cases||4)+9, dx=d.target.x-d.source.x, dy=d.target.y-d.source.y, dist=Math.sqrt(dx*dx+dy*dy)||1; return d.target.y-(dy/dist)*r; });
-
-    linkLabelEl
-      .attr('x', d=>(d.source.x+d.target.x)/2)
-      .attr('y', d=>(d.source.y+d.target.y)/2-6);
-
-    nodeEl.attr('transform', d=>`translate(${d.x},${d.y})`);
-  });
-}
 
 init();
 </script>

@@ -1,4 +1,4 @@
-# 2026 Ebola Outbreak Dashboard
+  #### 2026 Ebola Outbreak Dashboard
 
 Interactive dashboard tracking the Bundibugyo Ebola outbreak in DRC & Uganda.
 
