@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2026 Ebola Outbreak Dashboard — DRC & Uganda</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,7 +26,6 @@
       --radius-md: 8px;
       --radius-lg: 12px;
     }
-
     @media (prefers-color-scheme: dark) {
       :root {
         --bg:        #1c1c1a;
@@ -50,38 +50,19 @@
       min-height: 100vh;
     }
 
-    .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    .page { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
 
+    /* Header */
     .header { margin-bottom: 1.75rem; }
-    .header-eyebrow {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 4px;
-    }
+    .header-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
     .header-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .header-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .badge {
-      font-size: 11px;
-      color: var(--text-3);
-      background: var(--bg-2);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 3px 9px;
-    }
+    .badge { font-size: 11px; color: var(--text-3); background: var(--bg-2); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 3px 9px; }
     .badge-red { color: #A32D2D; background: #FCEBEB; border-color: #F7C1C1; }
-    @media (prefers-color-scheme: dark) {
-      .badge-red { color: #F09595; background: #501313; border-color: #791F1F; }
-    }
+    @media (prefers-color-scheme: dark) { .badge-red { color: #F09595; background: #501313; border-color: #791F1F; } }
 
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-bottom: 1.75rem;
-    }
+    /* Metrics */
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.75rem; }
     .metric { background: var(--bg-2); border-radius: var(--radius-md); padding: 1rem; }
     .metric-label { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
     .metric-value { font-size: 26px; font-weight: 600; color: var(--text); }
@@ -89,87 +70,69 @@
     .metric-value.amber { color: var(--amber); }
     .metric-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
 
+    /* Section */
     .section-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; }
+    .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 2rem 0; }
 
+    /* Legend (line chart) */
     .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; color: var(--text-2); }
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
+    /* Charts */
     .chart-wrap { position: relative; width: 100%; height: 300px; margin-bottom: 1.75rem; }
 
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 1.75rem; }
-    th {
-      text-align: left;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 6px 10px;
-      border-bottom: 0.5px solid var(--border);
+    /* Network legend */
+    .net-legend { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 1rem; }
+    .net-legend-group { display: flex; flex-direction: column; gap: 5px; }
+    .net-legend-title { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 2px; }
+    .net-legend-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-2); }
+    .net-legend-circle { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .net-legend-line { width: 22px; height: 2px; flex-shrink: 0; }
+
+    /* Network graph card */
+    .graph-card { background: var(--bg-2); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+    #graph-svg { width: 100%; display: block; }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed; pointer-events: none;
+      background: var(--bg); border: 0.5px solid var(--border-2);
+      border-radius: var(--radius-md); padding: 10px 13px;
+      font-size: 12px; color: var(--text); max-width: 240px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      opacity: 0; transition: opacity 0.15s; z-index: 100; line-height: 1.55;
     }
+    #tooltip .tt-label { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    #tooltip .tt-country { font-size: 11px; color: var(--text-3); margin-bottom: 6px; }
+    #tooltip .tt-detail { color: var(--text-2); }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 1.75rem; }
+    th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; border-bottom: 0.5px solid var(--border); }
     td { padding: 8px 10px; color: var(--text); border-bottom: 0.5px solid var(--border); }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg-2); }
 
-    .timeline {
-      border-left: 2px solid var(--border-2);
-      margin-left: 8px;
-      padding-left: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 1.75rem;
-    }
+    /* Timeline */
+    .timeline { border-left: 2px solid var(--border-2); margin-left: 8px; padding-left: 16px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 1.75rem; }
     .tl-item { position: relative; }
-    .tl-dot {
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      background: var(--border-2);
-      position: absolute;
-      left: -21px; top: 5px;
-    }
+    .tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-2); position: absolute; left: -21px; top: 5px; }
     .tl-dot.red { background: var(--red); }
     .tl-date { font-size: 11px; color: var(--text-3); margin-bottom: 2px; }
     .tl-desc { font-size: 13px; color: var(--text); }
 
-    .note {
-      background: var(--amber-bg);
-      border: 0.5px solid var(--amber-bdr);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      font-size: 12px;
-      color: var(--amber);
-      margin-bottom: 1.25rem;
-      line-height: 1.6;
-    }
+    /* Note */
+    .note { background: var(--amber-bg); border: 0.5px solid var(--amber-bdr); border-radius: var(--radius-md); padding: 12px 14px; font-size: 12px; color: var(--amber); margin-bottom: 1.25rem; line-height: 1.6; }
 
+    /* Sources */
     .sources { font-size: 12px; color: var(--text-3); margin-bottom: 0.5rem; }
     .links { display: flex; gap: 10px; flex-wrap: wrap; }
-    .links a {
-      font-size: 12px;
-      color: var(--blue);
-      text-decoration: none;
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 5px 10px;
-    }
+    .links a { font-size: 12px; color: var(--blue); text-decoration: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 5px 10px; }
     .links a:hover { background: var(--bg-2); text-decoration: underline; }
 
-    footer {
-      margin-top: 3rem;
-      padding-top: 1.25rem;
-      border-top: 0.5px solid var(--border);
-      font-size: 11px;
-      color: var(--text-3);
-    }
-
-    .loading {
-      text-align: center;
-      padding: 4rem 0;
-      color: var(--text-3);
-      font-size: 14px;
-    }
+    footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); font-size: 11px; color: var(--text-3); }
+    .loading { text-align: center; padding: 4rem 0; color: var(--text-3); font-size: 14px; }
 
     @media (max-width: 500px) {
       .header-title { font-size: 18px; }
@@ -182,7 +145,12 @@
   <div id="app"><div class="loading">Loading outbreak data…</div></div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<div id="tooltip">
+  <div class="tt-label" id="tt-label"></div>
+  <div class="tt-country" id="tt-country"></div>
+  <div class="tt-detail" id="tt-detail"></div>
+</div>
+
 <script>
 async function init() {
   let data;
@@ -191,15 +159,14 @@ async function init() {
     if (!res.ok) throw new Error('fetch failed');
     data = await res.json();
   } catch (e) {
-    document.getElementById('app').innerHTML =
-      '<div class="loading">Could not load data.json. Make sure it is in the same folder.</div>';
+    document.getElementById('app').innerHTML = '<div class="loading">Could not load data.json. Make sure it is in the same folder.</div>';
     return;
   }
 
-  const { summary, timeline, healthZones, events, updated } = data;
+  const { summary, timeline, healthZones, events, network, updated } = data;
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
   document.getElementById('app').innerHTML = `
-
     <div class="header">
       <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>
       <h1 class="header-title">2026 Ebola Outbreak — DRC &amp; Uganda</h1>
@@ -210,64 +177,72 @@ async function init() {
     </div>
 
     <div class="metrics">
-      <div class="metric">
-        <p class="metric-label">Suspected cases</p>
-        <p class="metric-value">~${summary.suspectedCases.toLocaleString()}</p>
-        <p class="metric-sub">as of ${updated}</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Suspected deaths</p>
-        <p class="metric-value red">${summary.suspectedDeaths.toLocaleString()}</p>
-        <p class="metric-sub">as of ${updated}</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Confirmed (DRC)</p>
-        <p class="metric-value">${summary.confirmedDRC}</p>
-        <p class="metric-sub">lab-confirmed</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Case fatality rate</p>
-        <p class="metric-value amber">~${summary.cfrPercent}%</p>
-        <p class="metric-sub">25–50% est. for Bundibugyo</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Uganda cases</p>
-        <p class="metric-value">${summary.ugandaCases}</p>
-        <p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p>
-      </div>
+      <div class="metric"><p class="metric-label">Suspected cases</p><p class="metric-value">~${summary.suspectedCases.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
+      <div class="metric"><p class="metric-label">Suspected deaths</p><p class="metric-value red">${summary.suspectedDeaths.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
+      <div class="metric"><p class="metric-label">Confirmed (lab)</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
+      <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
+      <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
     </div>
 
+    <hr class="section-divider">
+
+    <!-- LINE CHART -->
     <p class="section-title">Outbreak progression</p>
     <div class="legend">
       <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span>Suspected cases</span>
       <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span>Suspected deaths</span>
     </div>
     <div class="chart-wrap">
-      <canvas id="mainChart" role="img"
-        aria-label="Line chart showing cumulative suspected Ebola cases and deaths from April to May 2026.">
-      </canvas>
+      <canvas id="mainChart" role="img" aria-label="Line chart showing cumulative suspected Ebola cases and deaths from April to May 2026."></canvas>
     </div>
 
+    <hr class="section-divider">
+
+    <!-- NETWORK CHART -->
+    <p class="section-title">Transmission &amp; importation network</p>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:1rem;line-height:1.6;">
+      Shows confirmed case transmission chains and contact movements from the epicentre in Ituri Province, DRC. Node size reflects case count. Drag nodes to explore. Hover for details.
+    </p>
+
+    <div class="net-legend">
+      <div class="net-legend-group">
+        <p class="net-legend-title">Nodes</p>
+        <div class="net-legend-row"><span class="net-legend-circle" style="background:#C0392B"></span>Epicentre hub (Bunia)</div>
+        <div class="net-legend-row"><span class="net-legend-circle" style="background:#E24B4A"></span>Origin health zone (DRC)</div>
+        <div class="net-legend-row"><span class="net-legend-circle" style="background:#E67E22"></span>Confirmed export (cases)</div>
+        <div class="net-legend-row"><span class="net-legend-circle" style="background:#378ADD"></span>Contact transfer (no cases)</div>
+        <div class="net-legend-row"><span class="net-legend-circle" style="background:#8E44AD"></span>Heightened screening</div>
+      </div>
+      <div class="net-legend-group">
+        <p class="net-legend-title">Links</p>
+        <div class="net-legend-row"><span class="net-legend-line" style="background:#E24B4A;height:2px;"></span>Confirmed transmission</div>
+        <div class="net-legend-row"><span class="net-legend-line" style="background:repeating-linear-gradient(to right,#378ADD 0,#378ADD 4px,transparent 4px,transparent 8px);height:2px;"></span>Contact transfer</div>
+        <div class="net-legend-row"><span class="net-legend-line" style="background:repeating-linear-gradient(to right,#8E44AD 0,#8E44AD 2px,transparent 2px,transparent 6px);height:2px;"></span>Alert / screening</div>
+      </div>
+    </div>
+
+    <div class="graph-card">
+      <svg id="graph-svg" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <p class="note" style="margin-bottom:1.75rem;">
+      <strong>Network note:</strong> Germany and Czech Republic represent <strong>contact transfers</strong>, not confirmed Ebola cases. The United States has no confirmed cases; enhanced airport screening was implemented as a precaution. Node sizes are proportional to confirmed/suspected case counts where known.
+    </p>
+
+    <hr class="section-divider">
+
+    <!-- TABLE -->
     <p class="section-title">Affected health zones (DRC, Ituri Province)</p>
     <table>
-      <thead>
-        <tr>
-          <th>Health zone</th>
-          <th>Health areas affected</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Health zone</th><th>Health areas affected</th><th>Status</th></tr></thead>
       <tbody>
-        ${healthZones.map(z => `
-          <tr>
-            <td>${z.name}</td>
-            <td>${z.areasAffected ?? '—'}</td>
-            <td>${z.status}</td>
-          </tr>
-        `).join('')}
+        ${healthZones.map(z => `<tr><td>${z.name}</td><td>${z.areasAffected ?? '—'}</td><td>${z.status}</td></tr>`).join('')}
       </tbody>
     </table>
 
+    <hr class="section-divider">
+
+    <!-- TIMELINE -->
     <p class="section-title">Key events</p>
     <div class="timeline">
       ${events.map(e => `
@@ -280,17 +255,8 @@ async function init() {
     </div>
 
     <p class="note">
-      <strong>Data caveat:</strong> All case and death figures are suspected/reported totals.
-      The true number of infections likely considerably exceeds official estimates due to the remote location,
-      ongoing armed conflict in Ituri, limited laboratory capacity, and high population mobility.
-      Early pre-declaration figures (Apr 20, May 5) are partially reconstructed from reporting.
-      Sources: WHO Disease Outbreak News (DON602), CDC Situation Summary, Al Jazeera / WHO press conference May 20, 2026.
+      <strong>Data caveat:</strong> All case and death figures are suspected/reported totals. The true number of infections likely considerably exceeds official estimates due to the remote location, ongoing armed conflict in Ituri, limited laboratory capacity, and high population mobility. Sources: WHO Disease Outbreak News (DON602), CDC Situation Summary, May 2026.
     </p>
-
-    <p class="section-title">More analysis</p>
-    <div class="links" style="margin-bottom:1.5rem;">
-      <a href="./network.html" style="background:var(--blue);color:#fff;border-color:var(--blue);">🔗 View transmission network chart →</a>
-    </div>
 
     <p class="sources">Sources &amp; further reading:</p>
     <div class="links">
@@ -301,12 +267,11 @@ async function init() {
     </div>
 
     <footer>
-      Built with Chart.js · Data sourced from WHO &amp; CDC · Last updated ${updated} ·
-      This is not a medical resource — consult official health authorities for guidance.
+      Built with Chart.js &amp; D3.js · Data: WHO &amp; CDC · Last updated ${updated} · Not a medical resource — consult official health authorities for guidance.
     </footer>
   `;
 
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // ── LINE CHART ──
   const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
   const tickColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
 
@@ -320,33 +285,25 @@ async function init() {
           data: timeline.map(d => d.cases),
           borderColor: '#378ADD',
           backgroundColor: isDark ? 'rgba(55,138,221,0.12)' : 'rgba(55,138,221,0.08)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 5,
+          fill: true, tension: 0.35, pointRadius: 5,
           pointBackgroundColor: '#378ADD',
           pointBorderColor: isDark ? '#1c1c1a' : '#ffffff',
-          pointBorderWidth: 2,
-          borderWidth: 2,
+          pointBorderWidth: 2, borderWidth: 2,
         },
         {
           label: 'Suspected deaths',
           data: timeline.map(d => d.deaths),
           borderColor: '#E24B4A',
           backgroundColor: isDark ? 'rgba(226,75,74,0.10)' : 'rgba(226,75,74,0.06)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 5,
+          fill: true, tension: 0.35, pointRadius: 5,
           pointBackgroundColor: '#E24B4A',
           pointBorderColor: isDark ? '#1c1c1a' : '#ffffff',
-          pointBorderWidth: 2,
-          borderWidth: 2,
-          borderDash: [5, 3],
+          pointBorderWidth: 2, borderWidth: 2, borderDash: [5, 3],
         }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
@@ -354,29 +311,145 @@ async function init() {
           callbacks: {
             label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}`,
             footer: items => {
-              const c = items[0]?.parsed.y;
-              const d = items[1]?.parsed.y;
+              const c = items[0]?.parsed.y, d = items[1]?.parsed.y;
               if (c && d) return `CFR: ${Math.round((d / c) * 100)}%`;
             }
           }
         }
       },
       scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 11 }, autoSkip: false }
-        },
-        y: {
-          grid: { color: gridColor },
-          ticks: {
-            color: tickColor,
-            font: { size: 11 },
-            callback: v => v >= 1000 ? (v / 1000) + 'k' : v
-          },
-          beginAtZero: true
-        }
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, autoSkip: false } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: v => v >= 1000 ? (v/1000)+'k' : v }, beginAtZero: true }
       }
     }
+  });
+
+  // ── NETWORK CHART ──
+  buildNetwork(network, isDark);
+}
+
+function buildNetwork(network, isDark) {
+  const COLOR = { origin: '#E24B4A', hub: '#C0392B', export: '#E67E22', contact: '#378ADD', alert: '#8E44AD' };
+  const LINK_COLOR = { confirmed: '#E24B4A', contact: '#378ADD', alert: '#8E44AD' };
+
+  const svg = d3.select('#graph-svg');
+  const W = 900, H = 480;
+
+  const nodes = network.nodes.map(d => ({ ...d }));
+  const links = network.links.map(d => ({ ...d }));
+
+  const maxCases = d3.max(nodes, d => d.cases) || 1;
+  const rScale = d3.scaleSqrt().domain([0, maxCases]).range([10, 38]);
+
+  // Defs / arrowheads
+  const defs = svg.append('defs');
+  ['confirmed','contact','alert'].forEach(type => {
+    defs.append('marker')
+      .attr('id', `arr-${type}`)
+      .attr('viewBox', '0 -5 10 10').attr('refX', 10).attr('refY', 0)
+      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
+      .append('path').attr('d', 'M0,-5L10,0L0,5')
+      .attr('fill', LINK_COLOR[type]).attr('opacity', 0.7);
+  });
+
+  // Background
+  svg.append('rect').attr('width', W).attr('height', H)
+    .attr('fill', isDark ? '#252523' : '#f5f5f3').attr('rx', 12);
+
+  // Subtle grid
+  const g = svg.append('g').attr('opacity', 0.10);
+  for (let x = 60; x < W; x += 80) g.append('line').attr('x1',x).attr('y1',0).attr('x2',x).attr('y2',H).attr('stroke', isDark?'#fff':'#000').attr('stroke-width',0.5);
+  for (let y = 60; y < H; y += 80) g.append('line').attr('x1',0).attr('y1',y).attr('x2',W).attr('y2',y).attr('stroke', isDark?'#fff':'#000').attr('stroke-width',0.5);
+
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.type === 'confirmed' ? 170 : 220).strength(0.6))
+    .force('charge', d3.forceManyBody().strength(-700))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide(d => rScale(d.cases) + 22))
+    .force('x', d3.forceX(W/2).strength(0.04))
+    .force('y', d3.forceY(H/2).strength(0.04));
+
+  // Links
+  const linkEl = svg.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke', d => LINK_COLOR[d.type])
+    .attr('stroke-width', d => d.type === 'confirmed' ? 2.5 : 1.5)
+    .attr('stroke-opacity', 0.7)
+    .attr('stroke-dasharray', d => d.type === 'contact' ? '6 4' : d.type === 'alert' ? '2 5' : null)
+    .attr('marker-end', d => `url(#arr-${d.type})`);
+
+  // Link labels
+  const linkLabelEl = svg.append('g').selectAll('text').data(links).join('text')
+    .attr('font-size', 9).attr('fill', d => LINK_COLOR[d.type])
+    .attr('opacity', 0.7).attr('text-anchor', 'middle').text(d => d.label);
+
+  // Node groups
+  const nodeEl = svg.append('g').selectAll('g').data(nodes).join('g')
+    .attr('cursor', 'pointer')
+    .call(d3.drag()
+      .on('start', (e,d) => { if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+    );
+
+  // Glow ring
+  nodeEl.filter(d => d.type==='hub'||d.type==='export')
+    .append('circle').attr('r', d => rScale(d.cases)+9)
+    .attr('fill','none').attr('stroke', d => COLOR[d.type])
+    .attr('stroke-width',1.2).attr('stroke-opacity',0.3);
+
+  // Main circle
+  nodeEl.append('circle')
+    .attr('r', d => rScale(d.cases||4))
+    .attr('fill', d => COLOR[d.type])
+    .attr('stroke', isDark ? '#1c1c1a' : '#fff')
+    .attr('stroke-width', 2.5);
+
+  // Case count text inside node
+  nodeEl.filter(d => d.cases > 0).append('text')
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('font-size', d => d.cases >= 100 ? 10 : 11)
+    .attr('font-weight','600').attr('fill','#fff').attr('pointer-events','none')
+    .text(d => d.cases);
+
+  // Node label below
+  nodeEl.append('text')
+    .attr('text-anchor','middle').attr('dy', d => rScale(d.cases||4)+14)
+    .attr('font-size',11).attr('font-weight','500')
+    .attr('fill', isDark ? '#d0cfc8' : '#3a3a38').attr('pointer-events','none')
+    .text(d => d.label);
+
+  // Country label
+  nodeEl.append('text')
+    .attr('text-anchor','middle').attr('dy', d => rScale(d.cases||4)+26)
+    .attr('font-size',9.5).attr('fill', isDark ? '#888780' : '#88877f')
+    .attr('pointer-events','none').text(d => d.country);
+
+  // Tooltip
+  const tooltip  = document.getElementById('tooltip');
+  const ttLabel  = document.getElementById('tt-label');
+  const ttCountry= document.getElementById('tt-country');
+  const ttDetail = document.getElementById('tt-detail');
+
+  nodeEl
+    .on('mouseenter', (e,d) => { ttLabel.textContent=d.label; ttCountry.textContent=d.country; ttDetail.textContent=d.detail; tooltip.style.opacity='1'; })
+    .on('mousemove',  e  => { tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px'; })
+    .on('mouseleave', ()  => { tooltip.style.opacity='0'; });
+
+  // Tick
+  sim.on('tick', () => {
+    const pad = 55;
+    nodes.forEach(d => { d.x=Math.max(pad,Math.min(W-pad,d.x)); d.y=Math.max(pad,Math.min(H-pad,d.y)); });
+
+    linkEl
+      .attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
+      .attr('x2', d => { const r=rScale(d.target.cases||4)+9, dx=d.target.x-d.source.x, dy=d.target.y-d.source.y, dist=Math.sqrt(dx*dx+dy*dy)||1; return d.target.x-(dx/dist)*r; })
+      .attr('y2', d => { const r=rScale(d.target.cases||4)+9, dx=d.target.x-d.source.x, dy=d.target.y-d.source.y, dist=Math.sqrt(dx*dx+dy*dy)||1; return d.target.y-(dy/dist)*r; });
+
+    linkLabelEl
+      .attr('x', d=>(d.source.x+d.target.x)/2)
+      .attr('y', d=>(d.source.y+d.target.y)/2-6);
+
+    nodeEl.attr('transform', d=>`translate(${d.x},${d.y})`);
   });
 }
 
