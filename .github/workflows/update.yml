@@ -1,0 +1,41 @@
+name: Daily data update
+
+on:
+  schedule:
+    # Runs every day at 08:00 UTC (WHO/CDC usually update in the morning)
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    # Allows you to trigger manually from the GitHub Actions tab
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # needed to commit data.json back to the repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python scrape.py
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          # Only commit if data.json actually changed
+          git diff --cached --quiet || git commit -m "Auto-update: outbreak data $(date +'%Y-%m-%d')"
+
+      - name: Push changes
+        run: git push
