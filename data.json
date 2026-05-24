@@ -1,54 +1,202 @@
 {
-  "updated": "2026-05-21",
+  "updated": "2026-05-23",
   "summary": {
-    "suspectedCases": 575,
-    "suspectedDeaths": 148,
-    "confirmedDRC": 51,
+    "suspectedCases": 746,
+    "suspectedDeaths": 176,
+    "confirmedDRC": 83,
     "ugandaCases": 2,
     "ugandaDeaths": 1,
-    "cfrPercent": 26,
+    "cfrPercent": 24,
     "healthZones": 11
   },
   "timeline": [
-    { "date": "Apr 24", "cases": 1,   "deaths": 1  },
-    { "date": "May 5",  "cases": 50,  "deaths": 15 },
-    { "date": "May 15", "cases": 246, "deaths": 80 },
-    { "date": "May 16", "cases": 248, "deaths": 81 },
-    { "date": "May 19", "cases": 543, "deaths": 131 },
-    { "date": "May 21", "cases": 575, "deaths": 148 }
+    {
+      "date": "Apr 24",
+      "cases": 1,
+      "deaths": 1
+    },
+    {
+      "date": "May 5",
+      "cases": 50,
+      "deaths": 15
+    },
+    {
+      "date": "May 15",
+      "cases": 246,
+      "deaths": 80
+    },
+    {
+      "date": "May 16",
+      "cases": 248,
+      "deaths": 81
+    },
+    {
+      "date": "May 19",
+      "cases": 543,
+      "deaths": 131
+    },
+    {
+      "date": "May 21",
+      "cases": 575,
+      "deaths": 148
+    },
+    {
+      "date": "May 23",
+      "cases": 746,
+      "deaths": 176
+    }
   ],
   "healthZones": [
-    { "name": "Rwampara",             "areasAffected": 6,    "status": "Confirmed" },
-    { "name": "Mongbwalu",            "areasAffected": 3,    "status": "Confirmed" },
-    { "name": "Bunia",                "areasAffected": null, "status": "Confirmed" },
-    { "name": "North Kivu + others",  "areasAffected": null, "status": "Under investigation" }
+    {
+      "name": "Rwampara",
+      "areasAffected": 6,
+      "status": "Confirmed"
+    },
+    {
+      "name": "Mongbwalu",
+      "areasAffected": 3,
+      "status": "Confirmed"
+    },
+    {
+      "name": "Bunia",
+      "areasAffected": null,
+      "status": "Confirmed"
+    },
+    {
+      "name": "North Kivu + others",
+      "areasAffected": null,
+      "status": "Under investigation"
+    }
   ],
   "events": [
-    { "date": "April 24, 2026",  "red": false, "desc": "First known suspected case — a health worker — reports onset of symptoms including fever, hemorrhaging, vomiting and intense malaise. The case died at a medical centre in Bunia." },
-    { "date": "May 5, 2026",     "red": false, "desc": "WHO alerted of a high-mortality outbreak of unknown illness in Mongbwalu Health Zone, Ituri Province, DRC. Four health workers died within 4 days." },
-    { "date": "May 13, 2026",    "red": false, "desc": "Rapid response team investigation in Mongbwalu and Rwampara health zones confirms Bundibugyo virus disease (BVD) caused by Bundibugyo virus (BDBV)." },
-    { "date": "May 14, 2026",    "red": false, "desc": "INRB Kinshasa analyzed 13 blood samples from Rwampara Health Zone, Ituri Province." },
-    { "date": "May 15, 2026",    "red": true,  "desc": "Laboratory analysis confirmed BVD in 8 of 13 samples. DRC Ministry of Health officially declares the 17th Ebola outbreak. 246 suspected cases and 80 deaths across Rwampara (6 health areas), Mongbwalu (3 health areas), and Bunia. Uganda also confirms an imported case from DRC." },
-    { "date": "May 16, 2026",    "red": true,  "desc": "WHO Director-General declares a Public Health Emergency of International Concern (PHEIC) under IHR. Uganda confirms 2 imported cases from DRC in Kampala including 1 death. No licensed vaccine or therapeutics exist for Bundibugyo virus." },
-    { "date": "May 17, 2026",    "red": true,  "desc": "High-risk contacts associated with DRC exposure moved to Germany and Czech Republic for monitoring and care." },
-    { "date": "May 18, 2026",    "red": true,  "desc": "US CDC and DHS implement proactive public health measures including enhanced travel screening and entry restrictions to prevent Ebola from entering the United States." },
-    { "date": "May 21, 2026",    "red": true,  "desc": "WHO reports 575 suspected cases and 148 suspected deaths. 51 confirmed cases including 2 in Uganda (1 death) in people who travelled from DRC." }
+    {
+      "date": "April 24, 2026",
+      "red": false,
+      "desc": "First known suspected case \u2014 a health worker \u2014 reports onset of symptoms including fever, hemorrhaging, vomiting and intense malaise. The case died at a medical centre in Bunia."
+    },
+    {
+      "date": "May 5, 2026",
+      "red": false,
+      "desc": "WHO alerted of a high-mortality outbreak of unknown illness in Mongbwalu Health Zone, Ituri Province, DRC. Four health workers died within 4 days."
+    },
+    {
+      "date": "May 13, 2026",
+      "red": false,
+      "desc": "Rapid response team investigation in Mongbwalu and Rwampara health zones confirms Bundibugyo virus disease (BVD) caused by Bundibugyo virus (BDBV)."
+    },
+    {
+      "date": "May 14, 2026",
+      "red": false,
+      "desc": "INRB Kinshasa analyzed 13 blood samples from Rwampara Health Zone, Ituri Province."
+    },
+    {
+      "date": "May 15, 2026",
+      "red": true,
+      "desc": "Laboratory analysis confirmed BVD in 8 of 13 samples. DRC Ministry of Health officially declares the 17th Ebola outbreak. 246 suspected cases and 80 deaths across Rwampara (6 health areas), Mongbwalu (3 health areas), and Bunia. Uganda also confirms an imported case from DRC."
+    },
+    {
+      "date": "May 16, 2026",
+      "red": true,
+      "desc": "WHO Director-General declares a Public Health Emergency of International Concern (PHEIC) under IHR. Uganda confirms 2 imported cases from DRC in Kampala including 1 death. No licensed vaccine or therapeutics exist for Bundibugyo virus."
+    },
+    {
+      "date": "May 17, 2026",
+      "red": true,
+      "desc": "High-risk contacts associated with DRC exposure moved to Germany and Czech Republic for monitoring and care."
+    },
+    {
+      "date": "May 18, 2026",
+      "red": true,
+      "desc": "US CDC and DHS implement proactive public health measures including enhanced travel screening and entry restrictions to prevent Ebola from entering the United States."
+    },
+    {
+      "date": "May 21, 2026",
+      "red": true,
+      "desc": "WHO reports 575 suspected cases and 148 suspected deaths. 51 confirmed cases including 2 in Uganda (1 death) in people who travelled from DRC."
+    }
   ],
   "network": {
     "nodes": [
-      { "id": "rwampara",  "label": "Rwampara HZ",      "type": "origin",  "country": "DRC",          "cases": 120, "detail": "6 health areas affected · confirmed outbreak origin" },
-      { "id": "mongbwalu", "label": "Mongbwalu HZ",     "type": "origin",  "country": "DRC",          "cases": 90,  "detail": "3 health areas affected · 4 HCWs dead by May 9" },
-      { "id": "bunia",     "label": "Bunia HZ",         "type": "hub",     "country": "DRC",          "cases": 36,  "detail": "Regional commercial hub · first death Apr 24 · gateway to Uganda" },
-      { "id": "uganda",    "label": "Kampala, Uganda",  "type": "export",  "country": "Uganda",       "cases": 2,   "detail": "WHO Director-General declares PHEIC. Uganda confirms 2 imported cases from DRC in Kampala — first case was an elderly man admitted May 11, died May 14, confirmed May 15; second confirmed May 16. No licensed vaccine or therapeutics exist for Bundibugyo virus."},
-      { "id": "germany",   "label": "Germany",          "type": "contact", "country": "Germany",      "cases": 0,   "detail": "1 American healthcare worker + 6 high-risk contacts medically evacuated for treatment · May 17 · no confirmed cases" },
-      { "id": "usa",       "label": "United States",    "type": "alert",   "country": "USA",          "cases": 0,   "detail": "Enhanced screening at entry points · May 18 · no confirmed cases · risk assessed as low" }
+      {
+        "id": "rwampara",
+        "label": "Rwampara HZ",
+        "type": "origin",
+        "country": "DRC",
+        "cases": 120,
+        "detail": "6 health areas affected \u00b7 confirmed outbreak origin"
+      },
+      {
+        "id": "mongbwalu",
+        "label": "Mongbwalu HZ",
+        "type": "origin",
+        "country": "DRC",
+        "cases": 90,
+        "detail": "3 health areas affected \u00b7 4 HCWs dead by May 9"
+      },
+      {
+        "id": "bunia",
+        "label": "Bunia HZ",
+        "type": "hub",
+        "country": "DRC",
+        "cases": 36,
+        "detail": "Regional commercial hub \u00b7 first death Apr 24 \u00b7 gateway to Uganda"
+      },
+      {
+        "id": "uganda",
+        "label": "Kampala, Uganda",
+        "type": "export",
+        "country": "Uganda",
+        "cases": 2,
+        "detail": "WHO Director-General declares PHEIC. Uganda confirms 2 imported cases from DRC in Kampala \u2014 first case was an elderly man admitted May 11, died May 14, confirmed May 15; second confirmed May 16. No licensed vaccine or therapeutics exist for Bundibugyo virus."
+      },
+      {
+        "id": "germany",
+        "label": "Germany",
+        "type": "contact",
+        "country": "Germany",
+        "cases": 0,
+        "detail": "1 American healthcare worker + 6 high-risk contacts medically evacuated for treatment \u00b7 May 17 \u00b7 no confirmed cases"
+      },
+      {
+        "id": "usa",
+        "label": "United States",
+        "type": "alert",
+        "country": "USA",
+        "cases": 0,
+        "detail": "Enhanced screening at entry points \u00b7 May 18 \u00b7 no confirmed cases \u00b7 risk assessed as low"
+      }
     ],
     "links": [
-      { "source": "rwampara",  "target": "bunia",   "type": "confirmed", "label": "Confirmed transmission" },
-      { "source": "mongbwalu", "target": "bunia",   "type": "confirmed", "label": "Confirmed transmission" },
-      { "source": "bunia",     "target": "uganda",  "type": "confirmed", "label": "Confirmed export · travellers" },
-      { "source": "bunia",     "target": "germany", "type": "contact",   "label": "High-risk contacts transferred · May 17" },
-      { "source": "bunia",     "target": "usa",     "type": "alert",     "label": "Enhanced screening · no cases" }
+      {
+        "source": "rwampara",
+        "target": "bunia",
+        "type": "confirmed",
+        "label": "Confirmed transmission"
+      },
+      {
+        "source": "mongbwalu",
+        "target": "bunia",
+        "type": "confirmed",
+        "label": "Confirmed transmission"
+      },
+      {
+        "source": "bunia",
+        "target": "uganda",
+        "type": "confirmed",
+        "label": "Confirmed export \u00b7 travellers"
+      },
+      {
+        "source": "bunia",
+        "target": "germany",
+        "type": "contact",
+        "label": "High-risk contacts transferred \u00b7 May 17"
+      },
+      {
+        "source": "bunia",
+        "target": "usa",
+        "type": "alert",
+        "label": "Enhanced screening \u00b7 no cases"
+      }
     ]
   }
 }
