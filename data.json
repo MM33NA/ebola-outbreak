@@ -1,12 +1,12 @@
 {
-  "updated": "2026-05-23",
+  "updated": "2026-05-24",
   "summary": {
-    "suspectedCases": 746,
-    "suspectedDeaths": 176,
-    "confirmedDRC": 83,
+    "suspectedCases": 904,
+    "suspectedDeaths": 119,
+    "confirmedDRC": 101,
     "ugandaCases": 2,
     "ugandaDeaths": 1,
-    "cfrPercent": 24,
+    "cfrPercent": 13,
     "healthZones": 11
   },
   "timeline": [
@@ -44,6 +44,11 @@
       "date": "May 23",
       "cases": 746,
       "deaths": 176
+    },
+    {
+      "date": "May 24",
+      "cases": 904,
+      "deaths": 119
     }
   ],
   "healthZones": [
