@@ -429,7 +429,7 @@ function buildNetwork(network, isDark, divColor) {
     if (type==='contact') el.setAttribute('stroke-dasharray','6 4');
     if (type==='alert')   el.setAttribute('stroke-dasharray','2 5');
     el.setAttribute('marker-end',`url(#arr-${type})`);
-    svg.insertBefore(el, svg.firstChild);
+    svg.appendChild(el);
   }
 
   // Background
