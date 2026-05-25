@@ -7,47 +7,21 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #ffffff;
-      --bg-2:      #f5f5f3;
-      --text:      #1a1a18;
-      --text-2:    #5f5e5a;
-      --text-3:    #88877f;
-      --border:    rgba(0,0,0,0.10);
-      --border-2:  rgba(0,0,0,0.18);
-      --blue:      #378ADD;
-      --red:       #E24B4A;
-      --amber:     #BA7517;
-      --amber-bg:  #faeeda;
-      --amber-bdr: #FAC775;
-      --radius-md: 8px;
+      --bg: #ffffff; --bg-2: #f5f5f3; --text: #1a1a18; --text-2: #5f5e5a;
+      --text-3: #88877f; --border: rgba(0,0,0,0.10); --border-2: rgba(0,0,0,0.18);
+      --blue: #378ADD; --red: #E24B4A; --amber: #BA7517;
+      --amber-bg: #faeeda; --amber-bdr: #FAC775; --radius-md: 8px;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg:        #1c1c1a;
-        --bg-2:      #252523;
-        --text:      #f0efea;
-        --text-2:    #b4b2a9;
-        --text-3:    #888780;
-        --border:    rgba(255,255,255,0.09);
-        --border-2:  rgba(255,255,255,0.16);
-        --amber-bg:  #412402;
-        --amber-bdr: #854F0B;
+        --bg: #1c1c1a; --bg-2: #252523; --text: #f0efea; --text-2: #b4b2a9;
+        --text-3: #888780; --border: rgba(255,255,255,0.09); --border-2: rgba(255,255,255,0.16);
+        --amber-bg: #412402; --amber-bdr: #854F0B;
       }
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      font-size: 15px;
-      line-height: 1.6;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; background: var(--bg); color: var(--text); min-height: 100vh; }
     .page { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-
     .header { margin-bottom: 1.75rem; }
     .header-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
     .header-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
@@ -55,23 +29,26 @@
     .badge { font-size: 11px; color: var(--text-3); background: var(--bg-2); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 3px 9px; }
     .badge-red { color: #A32D2D; background: #FCEBEB; border-color: #F7C1C1; }
     @media (prefers-color-scheme: dark) { .badge-red { color: #F09595; background: #501313; border-color: #791F1F; } }
-
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.75rem; }
     .metric { background: var(--bg-2); border-radius: var(--radius-md); padding: 1rem; }
     .metric-label { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
     .metric-value { font-size: 26px; font-weight: 600; color: var(--text); }
-    .metric-value.red   { color: var(--red); }
+    .metric-value.red { color: var(--red); }
     .metric-value.amber { color: var(--amber); }
     .metric-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
-
     .section-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; }
     .section-sub { font-size: 13px; color: var(--text-2); margin-bottom: 1rem; line-height: 1.6; }
     .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 2rem 0; }
 
+    /* Toggle */
+    .chart-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .toggle-group { display: flex; background: var(--bg-2); border: 0.5px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .toggle-btn { font-size: 12px; padding: 5px 12px; border: none; background: transparent; color: var(--text-2); cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .toggle-btn.active { background: var(--blue); color: #fff; }
+
     .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; color: var(--text-2); }
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
-
     .chart-wrap { position: relative; width: 100%; height: 300px; margin-bottom: 1.75rem; }
 
     .graph-card { background: var(--bg-2); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
@@ -91,19 +68,13 @@
     .tl-desc { font-size: 13px; color: var(--text); }
 
     .note { background: var(--amber-bg); border: 0.5px solid var(--amber-bdr); border-radius: var(--radius-md); padding: 12px 14px; font-size: 12px; color: var(--amber); margin-bottom: 1.25rem; line-height: 1.6; }
-
     .sources { font-size: 12px; color: var(--text-3); margin-bottom: 0.5rem; }
     .links { display: flex; gap: 10px; flex-wrap: wrap; }
     .links a { font-size: 12px; color: var(--blue); text-decoration: none; border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 5px 10px; }
     .links a:hover { background: var(--bg-2); text-decoration: underline; }
-
     footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); font-size: 11px; color: var(--text-3); }
     .loading { text-align: center; padding: 4rem 0; color: var(--text-3); font-size: 14px; }
-
-    @media (max-width: 500px) {
-      .header-title { font-size: 18px; }
-      .metric-value { font-size: 22px; }
-    }
+    @media (max-width: 500px) { .header-title { font-size: 18px; } .metric-value { font-size: 22px; } }
   </style>
 </head>
 <body>
@@ -112,6 +83,96 @@
 </main>
 
 <script>
+let chartInstance = null;
+let currentMode = 'cumulative';
+let chartTimeline = [];
+
+function buildDailyData(timeline) {
+  return timeline.map((pt, i) => ({
+    date:   pt.date,
+    cases:  i === 0 ? pt.cases  : Math.max(0, pt.cases  - timeline[i-1].cases),
+    deaths: i === 0 ? pt.deaths : Math.max(0, pt.deaths - timeline[i-1].deaths),
+  }));
+}
+
+function renderChart(mode) {
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+
+  const source = mode === 'cumulative' ? chartTimeline : buildDailyData(chartTimeline);
+
+  const config = {
+    type: mode === 'daily' ? 'bar' : 'line',
+    data: {
+      labels: source.map(d => d.date),
+      datasets: [
+        {
+          label: mode === 'cumulative' ? 'Suspected cases' : 'New cases',
+          data: source.map(d => d.cases),
+          borderColor: '#378ADD',
+          backgroundColor: mode === 'daily' ? 'rgba(55,138,221,0.7)' : (isDark ? 'rgba(55,138,221,0.12)' : 'rgba(55,138,221,0.08)'),
+          fill: mode !== 'daily',
+          tension: 0.35,
+          pointRadius: mode === 'daily' ? 0 : 5,
+          pointBackgroundColor: '#378ADD',
+          pointBorderColor: isDark ? '#1c1c1a' : '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2,
+          borderRadius: mode === 'daily' ? 4 : 0,
+          order: 1,
+        },
+        {
+          label: mode === 'cumulative' ? 'Suspected deaths' : 'New deaths',
+          data: source.map(d => d.deaths),
+          borderColor: '#E24B4A',
+          backgroundColor: mode === 'daily' ? 'rgba(226,75,74,0.75)' : (isDark ? 'rgba(226,75,74,0.10)' : 'rgba(226,75,74,0.06)'),
+          fill: mode !== 'daily',
+          tension: 0.35,
+          pointRadius: mode === 'daily' ? 0 : 5,
+          pointBackgroundColor: '#E24B4A',
+          pointBorderColor: isDark ? '#1c1c1a' : '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2,
+          borderDash: mode === 'daily' ? [] : [5, 3],
+          borderRadius: mode === 'daily' ? 4 : 0,
+          order: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}`,
+            footer: items => {
+              const c = items[0]?.parsed.y, d = items[1]?.parsed.y;
+              if (c && d && mode === 'cumulative') return `CFR: ${Math.round((d/c)*100)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, autoSkip: false },
+             stacked: mode === 'daily' },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 },
+             callback: v => v >= 1000 ? (v/1000)+'k' : v }, beginAtZero: true,
+             stacked: mode === 'daily' }
+      }
+    }
+  };
+
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+  chartInstance = new Chart(document.getElementById('mainChart'), config);
+}
+
 async function init() {
   let data;
   try {
@@ -119,19 +180,21 @@ async function init() {
     if (!res.ok) throw new Error('fetch failed');
     data = await res.json();
   } catch (e) {
-    document.getElementById('app').innerHTML = '<div class="loading">Could not load data.json. Make sure it is in the same folder.</div>';
+    document.getElementById('app').innerHTML = '<div class="loading">Could not load data.json.</div>';
     return;
   }
 
-  const { summary, timeline, healthZones, events, updated } = data;
+  const { summary, timeline, healthZones, events, network, updated } = data;
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  chartTimeline = timeline;
 
   document.getElementById('app').innerHTML = `
     <div class="header">
       <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>
       <h1 class="header-title">2026 Ebola Outbreak — DRC &amp; Uganda</h1>
       <div class="header-meta">
+        <span class="badge badge-red">Bundibugyo virus · No vaccine or treatment</span>
         <span class="badge">Data: WHO / CDC · Updated ${updated}</span>
       </div>
     </div>
@@ -142,38 +205,43 @@ async function init() {
       <div class="metric"><p class="metric-label">Confirmed (lab)</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
       <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
       <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
-
     </div>
 
     <hr class="section-divider">
 
-    <p class="section-title">Outbreak progression</p>
+    <div class="chart-header">
+      <p class="section-title" style="margin:0;">Outbreak progression</p>
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
+        <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
+      </div>
+    </div>
     <div class="legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span>Suspected cases</span>
-      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span>Suspected deaths</span>
+      <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span><span id="legend-cases">Suspected cases</span></span>
+      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span><span id="legend-deaths">Suspected deaths</span></span>
     </div>
     <div class="chart-wrap">
-      <canvas id="mainChart" role="img" aria-label="Line chart showing cumulative suspected Ebola cases and deaths from April to May 2026."></canvas>
+      <canvas id="mainChart" role="img"></canvas>
     </div>
 
     <hr class="section-divider">
 
     <p class="section-title">Transmission &amp; importation network</p>
-    <p class="section-sub">Confirmed case transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
+    <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
 
     <div class="graph-card">
       <svg id="graph-svg" viewBox="0 0 680 440" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
 
     <p class="note" style="margin-bottom:1.75rem;">
-      <strong>Network note:</strong> Germany represents a <strong>contact transfer</strong>, not confirmed Ebola cases — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases; enhanced airport screening was implemented as a precaution. DRC health zone case figures are estimates based on WHO reporting proportions.
+      <strong>Network note:</strong> Germany represents a <strong>contact transfer</strong> — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases; enhanced airport screening was a precaution. DRC health zone figures are estimates.
     </p>
 
     <hr class="section-divider">
 
-    <p class="section-title">Affected health zones (DRC, Ituri Province)</p>
+    <p class="section-title">Affected provinces &amp; health zones (DRC)</p>
     <table>
-      <thead><tr><th>Health zone</th><th>Health areas affected</th><th>Status</th></tr></thead>
+      <thead><tr><th>Location</th><th>Health areas affected</th><th>Status</th></tr></thead>
       <tbody>
         ${healthZones.map(z => `<tr><td>${z.name}</td><td>${z.areasAffected ?? '—'}</td><td>${z.status}</td></tr>`).join('')}
       </tbody>
@@ -193,7 +261,7 @@ async function init() {
     </div>
 
     <p class="note">
-      <strong>Data caveat:</strong> All case and death figures are suspected/reported totals. The true number of infections likely considerably exceeds official estimates due to the remote location, ongoing armed conflict in Ituri, limited laboratory capacity, and high population mobility. Sources: WHO Disease Outbreak News (DON602), CDC Situation Summary, May 2026.
+      <strong>Data caveat:</strong> All figures are suspected/reported totals from WHO and CDC. True case counts likely exceed official estimates due to remote location, armed conflict, and limited lab capacity.
     </p>
 
     <p class="sources">Sources &amp; further reading:</p>
@@ -205,138 +273,223 @@ async function init() {
     </div>
 
     <footer>
- Not a medical resource — consult official health authorities for guidance.
+      Built with Chart.js · Data: WHO &amp; CDC · Last updated ${updated} · Not a medical resource.
     </footer>
   `;
 
-  // ── LINE CHART ──
-  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
-  const tickColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+  // ── Line chart ──
+  renderChart('cumulative');
 
-  new Chart(document.getElementById('mainChart'), {
-    type: 'line',
-    data: {
-      labels: timeline.map(d => d.date),
-      datasets: [
-        {
-          label: 'Suspected cases',
-          data: timeline.map(d => d.cases),
-          borderColor: '#378ADD',
-          backgroundColor: isDark ? 'rgba(55,138,221,0.12)' : 'rgba(55,138,221,0.08)',
-          fill: true, tension: 0.35, pointRadius: 5,
-          pointBackgroundColor: '#378ADD',
-          pointBorderColor: isDark ? '#1c1c1a' : '#ffffff',
-          pointBorderWidth: 2, borderWidth: 2,
-        },
-        {
-          label: 'Suspected deaths',
-          data: timeline.map(d => d.deaths),
-          borderColor: '#E24B4A',
-          backgroundColor: isDark ? 'rgba(226,75,74,0.10)' : 'rgba(226,75,74,0.06)',
-          fill: true, tension: 0.35, pointRadius: 5,
-          pointBackgroundColor: '#E24B4A',
-          pointBorderColor: isDark ? '#1c1c1a' : '#ffffff',
-          pointBorderWidth: 2, borderWidth: 2, borderDash: [5, 3],
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}`,
-            footer: items => {
-              const c = items[0]?.parsed.y, d = items[1]?.parsed.y;
-              if (c && d) return `CFR: ${Math.round((d / c) * 100)}%`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, autoSkip: false } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: v => v >= 1000 ? (v/1000)+'k' : v }, beginAtZero: true }
-      }
-    }
+  // ── Network chart (reads from data.json) ──
+  buildNetwork(network, isDark, divColor);
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-cumulative').classList.toggle('active', mode === 'cumulative');
+  document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
+  document.getElementById('legend-cases').textContent  = mode === 'cumulative' ? 'Suspected cases'  : 'New cases';
+  document.getElementById('legend-deaths').textContent = mode === 'cumulative' ? 'Suspected deaths' : 'New deaths';
+  renderChart(mode);
+}
+
+function buildNetwork(network, isDark, divColor) {
+  const C = {
+    origin:  { fill: isDark?'#501313':'#FCEBEB', stroke: isDark?'#791F1F':'#F7C1C1', title: isDark?'#F09595':'#791F1F', text: isDark?'#F09595':'#A32D2D', line: isDark?'#791F1F':'#F7C1C1' },
+    hub:     { fill: isDark?'#4A1B0C':'#FAECE7', stroke: isDark?'#993C1D':'#F0997B', title: isDark?'#F5C4B3':'#4A1B0C', text: isDark?'#F0997B':'#993C1D', line: isDark?'#993C1D':'#F0997B' },
+    export:  { fill: isDark?'#412402':'#FAEEDA', stroke: isDark?'#854F0B':'#FAC775', title: isDark?'#FAC775':'#412402', text: isDark?'#EF9F27':'#854F0B', line: isDark?'#854F0B':'#FAC775' },
+    contact: { fill: isDark?'#042C53':'#E6F1FB', stroke: isDark?'#185FA5':'#B5D4F4', title: isDark?'#B5D4F4':'#042C53', text: isDark?'#85B7EB':'#185FA5', line: isDark?'#185FA5':'#B5D4F4' },
+    alert:   { fill: isDark?'#26215C':'#EEEDFE', stroke: isDark?'#534AB7':'#CECBF6', title: isDark?'#CECBF6':'#26215C', text: isDark?'#AFA9EC':'#534AB7', line: isDark?'#534AB7':'#CECBF6' },
+  };
+  const LC = { confirmed:'#A32D2D', contact:'#185FA5', alert:'#534AB7' };
+  const tCol = isDark?'#888780':'#88877f';
+
+  // Map nodes for quick lookup
+  const nodeMap = {};
+  network.nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Fixed positions — left: origins, centre: hub, right: international
+  // auto-space right column based on count
+  const rightNodes = network.nodes.filter(n => n.type === 'export' || n.type === 'contact' || n.type === 'alert');
+  const rightY = (i) => 80 + i * (280 / Math.max(rightNodes.length - 1, 1));
+  rightNodes.forEach((n, i) => { n._x = 530; n._y = rightY(i); });
+
+  const leftNodes = network.nodes.filter(n => n.type === 'origin');
+  leftNodes.forEach((n, i) => { n._x = 20; n._y = 120 + i * 170; });
+
+  const hubNode = network.nodes.find(n => n.type === 'hub');
+  if (hubNode) { hubNode._x = 263; hubNode._y = 185; }
+
+  const svg = document.getElementById('graph-svg');
+
+  // Tooltip setup
+  const tooltip = document.createElement('div');
+  Object.assign(tooltip.style, {
+    position:'fixed', pointerEvents:'none', background: isDark?'#252523':'#fff',
+    border:`0.5px solid ${isDark?'rgba(255,255,255,0.16)':'rgba(0,0,0,0.18)'}`,
+    borderRadius:'8px', padding:'10px 13px', fontSize:'12px',
+    color: isDark?'#f0efea':'#1a1a18', maxWidth:'240px',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.12)', opacity:'0',
+    transition:'opacity 0.15s', zIndex:'100', lineHeight:'1.55'
+  });
+  document.body.appendChild(tooltip);
+
+  function node(n) {
+    const c = C[n.type] || C.origin;
+    const x = n._x, y = n._y;
+    const w = 160, h = 80;
+    const cx = x + w/2;
+
+    // Card
+    rect(x, y, w, h, 8, c.fill, c.stroke, n.type==='hub' ? 0.8 : 0.5);
+    text(cx, y+22, n.label, 12, 500, c.title, 'middle');
+    text(cx, y+38, n.country, 11, 400, c.text, 'middle');
+    line(x, y+50, x+w, y+50, c.line, 0.5);
+    text(cx - 30, y+65, `${n.cases > 0 ? n.cases.toLocaleString() : '0'} cases`, 11, 400, c.text, 'middle');
+    text(cx + 38, y+65, `${n.deaths > 0 ? n.deaths : '0'} deaths`, 11, 400, c.text, 'middle');
+
+    // Hover target
+    const r = svgEl('rect');
+    r.setAttribute('x', x); r.setAttribute('y', y);
+    r.setAttribute('width', w); r.setAttribute('height', h);
+    r.setAttribute('rx', 8); r.setAttribute('fill', 'transparent');
+    r.style.cursor = 'default';
+    r.addEventListener('mouseenter', e => {
+      tooltip.innerHTML = `<strong style="font-size:13px">${n.label}</strong><br><span style="font-size:11px;opacity:0.6">${n.country}</span><br><span style="opacity:0.8">${n.detail}</span>`;
+      tooltip.style.opacity = '1';
+    });
+    r.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX+14)+'px';
+      tooltip.style.top  = (e.clientY-10)+'px';
+    });
+    r.addEventListener('mouseleave', () => tooltip.style.opacity='0');
+    svg.appendChild(r);
+  }
+
+  function svgEl(tag) {
+    return document.createElementNS('http://www.w3.org/2000/svg', tag);
+  }
+
+  function rect(x, y, w, h, rx, fill, stroke, sw) {
+    const el = svgEl('rect');
+    el.setAttribute('x', x); el.setAttribute('y', y);
+    el.setAttribute('width', w); el.setAttribute('height', h);
+    el.setAttribute('rx', rx); el.setAttribute('fill', fill);
+    el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw);
+    svg.appendChild(el);
+  }
+
+  function text(x, y, content, size, weight, fill, anchor) {
+    const el = svgEl('text');
+    el.setAttribute('x', x); el.setAttribute('y', y);
+    el.setAttribute('font-size', size); el.setAttribute('font-weight', weight);
+    el.setAttribute('fill', fill); el.setAttribute('text-anchor', anchor||'start');
+    el.setAttribute('dominant-baseline', 'central');
+    el.setAttribute('pointer-events', 'none');
+    el.textContent = content;
+    svg.appendChild(el);
+  }
+
+  function line(x1, y1, x2, y2, stroke, sw) {
+    const el = svgEl('line');
+    el.setAttribute('x1',x1); el.setAttribute('y1',y1);
+    el.setAttribute('x2',x2); el.setAttribute('y2',y2);
+    el.setAttribute('stroke',stroke); el.setAttribute('stroke-width',sw);
+    svg.appendChild(el);
+  }
+
+  function arrow(id, color) {
+    const defs = svg.querySelector('defs') || (() => { const d=svgEl('defs'); svg.appendChild(d); return d; })();
+    const m = svgEl('marker');
+    m.setAttribute('id', id); m.setAttribute('viewBox','0 0 10 10');
+    m.setAttribute('refX','8'); m.setAttribute('refY','5');
+    m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6');
+    m.setAttribute('orient','auto-start-reverse');
+    const p = svgEl('path');
+    p.setAttribute('d','M2 1L8 5L2 9'); p.setAttribute('fill','none');
+    p.setAttribute('stroke',color); p.setAttribute('stroke-width','1.5');
+    p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round');
+    m.appendChild(p); defs.appendChild(m);
+  }
+
+  function arc(sx, sy, tx, ty, type) {
+    // Adjust start/end to card edges
+    const sw = 160, sh = 80;
+    const scx = sx+sw/2, scy = sy+sh/2;
+    const tcx = tx+sw/2, tcy = ty+sh/2;
+    // Exit right edge of source, enter left edge of target
+    const x1 = sx+sw, y1 = scy;
+    const x2 = tx,    y2 = tcy;
+    const mx = (x1+x2)/2;
+    const el = svgEl('path');
+    el.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+    el.setAttribute('fill','none');
+    el.setAttribute('stroke', LC[type]);
+    el.setAttribute('stroke-width', type==='confirmed'?1.8:1.4);
+    if (type==='contact') el.setAttribute('stroke-dasharray','6 4');
+    if (type==='alert')   el.setAttribute('stroke-dasharray','2 5');
+    el.setAttribute('marker-end',`url(#arr-${type})`);
+    svg.insertBefore(el, svg.firstChild);
+  }
+
+  // Background
+  const bg = svgEl('rect');
+  bg.setAttribute('width','680'); bg.setAttribute('height','440');
+  bg.setAttribute('fill', isDark?'#252523':'#f5f5f3'); bg.setAttribute('rx','12');
+  svg.innerHTML = '';
+  svg.appendChild(bg);
+
+  // Column labels
+  text(96,  22, 'DRC origin zones',      11, 400, tCol, 'middle');
+  text(343, 22, 'Epicentre hub',          11, 400, tCol, 'middle');
+  text(610, 22, 'International spread',   11, 400, tCol, 'middle');
+
+  // Dividers
+  line(220,18,220,422, divColor, 0.5);
+  const d2 = svgEl('line');
+  d2.setAttribute('x1','460'); d2.setAttribute('y1','18');
+  d2.setAttribute('x2','460'); d2.setAttribute('y2','422');
+  d2.setAttribute('stroke', divColor); d2.setAttribute('stroke-width','0.5');
+  d2.setAttribute('stroke-dasharray','4 4');
+  svg.appendChild(d2);
+  const d1 = svgEl('line');
+  d1.setAttribute('x1','220'); d1.setAttribute('y1','18');
+  d1.setAttribute('x2','220'); d1.setAttribute('y2','422');
+  d1.setAttribute('stroke', divColor); d1.setAttribute('stroke-width','0.5');
+  d1.setAttribute('stroke-dasharray','4 4');
+  svg.appendChild(d1);
+
+  // Arrows
+  ['confirmed','contact','alert'].forEach(t => arrow(`arr-${t}`, LC[t]));
+
+  // Draw arcs first (behind nodes)
+  network.links.forEach(lk => {
+    const s = nodeMap[lk.source], t = nodeMap[lk.target];
+    if (s && t) arc(s._x, s._y, t._x, t._y, lk.type);
   });
 
-  // ── NETWORK CHART (fixed layout, no D3) ──
-  document.getElementById('graph-svg').innerHTML = `
-    <defs>
-      <marker id="arrow-confirmed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M2 1L8 5L2 9" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </marker>
-      <marker id="arrow-contact" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </marker>
-      <marker id="arrow-alert" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M2 1L8 5L2 9" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </marker>
-    </defs>
+  // Draw nodes
+  network.nodes.forEach(n => node(n));
 
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="96"  y="26" text-anchor="middle">DRC origin zones</text>
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="338" y="26" text-anchor="middle">Epicentre hub</text>
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="574" y="26" text-anchor="middle">International spread</text>
-
-    <line x1="220" y1="18" x2="220" y2="422" stroke="${divColor}" stroke-width="0.5" stroke-dasharray="4 4"/>
-    <line x1="458" y1="18" x2="458" y2="422" stroke="${divColor}" stroke-width="0.5" stroke-dasharray="4 4"/>
-
-    <path d="M 178 140 C 250 140, 268 210, 306 212" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
-    <path d="M 178 300 C 250 300, 268 226, 306 224" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
-    <path d="M 372 200 C 430 175, 476 162, 520 152" fill="none" stroke="#A32D2D" stroke-width="1.8" marker-end="url(#arrow-confirmed)"/>
-    <path d="M 372 222 C 430 250, 480 278, 520 288" fill="none" stroke="#185FA5" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#arrow-contact)"/>
-    <path d="M 372 234 C 430 310, 482 356, 520 368" fill="none" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="2 5" marker-end="url(#arrow-alert)"/>
-
-    <rect x="18"  y="100" width="160" height="80" rx="8" fill="${isDark ? '#501313' : '#FCEBEB'}" stroke="${isDark ? '#791F1F' : '#F7C1C1'}" stroke-width="0.5"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#F09595' : '#791F1F'}" x="98" y="122" text-anchor="middle" dominant-baseline="central">Rwampara HZ</text>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="98" y="140" text-anchor="middle" dominant-baseline="central">6 health areas · DRC</text>
-    <line x1="18" y1="152" x2="178" y2="152" stroke="${isDark ? '#791F1F' : '#F7C1C1'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="58"  y="168" text-anchor="middle" dominant-baseline="central">~120 cases</text>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="140" y="168" text-anchor="middle" dominant-baseline="central">est. 40+ deaths</text>
-
-    <rect x="18"  y="260" width="160" height="80" rx="8" fill="${isDark ? '#501313' : '#FCEBEB'}" stroke="${isDark ? '#791F1F' : '#F7C1C1'}" stroke-width="0.5"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#F09595' : '#791F1F'}" x="98" y="282" text-anchor="middle" dominant-baseline="central">Mongbwalu HZ</text>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="98" y="300" text-anchor="middle" dominant-baseline="central">3 health areas · DRC</text>
-    <line x1="18" y1="312" x2="178" y2="312" stroke="${isDark ? '#791F1F' : '#F7C1C1'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="58"  y="328" text-anchor="middle" dominant-baseline="central">~90 cases</text>
-    <text font-size="11" fill="${isDark ? '#F09595' : '#A32D2D'}" x="140" y="328" text-anchor="middle" dominant-baseline="central">est. 30+ deaths</text>
-
-    <rect x="258" y="160" width="114" height="100" rx="10" fill="${isDark ? '#4A1B0C' : '#FAECE7'}" stroke="${isDark ? '#993C1D' : '#F0997B'}" stroke-width="0.8"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#F5C4B3' : '#4A1B0C'}" x="315" y="186" text-anchor="middle" dominant-baseline="central">Bunia HZ</text>
-    <text font-size="11" fill="${isDark ? '#F0997B' : '#993C1D'}" x="315" y="204" text-anchor="middle" dominant-baseline="central">Epicentre · DRC</text>
-    <line x1="258" y1="216" x2="372" y2="216" stroke="${isDark ? '#993C1D' : '#F0997B'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#F0997B' : '#993C1D'}" x="315" y="234" text-anchor="middle" dominant-baseline="central">575 cases</text>
-    <text font-size="11" fill="${isDark ? '#F0997B' : '#993C1D'}" x="315" y="250" text-anchor="middle" dominant-baseline="central">148 deaths</text>
-
-    <rect x="520" y="112" width="148" height="80" rx="8" fill="${isDark ? '#412402' : '#FAEEDA'}" stroke="${isDark ? '#854F0B' : '#FAC775'}" stroke-width="0.5"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#FAC775' : '#412402'}" x="594" y="134" text-anchor="middle" dominant-baseline="central">Kampala, Uganda</text>
-    <text font-size="11" fill="${isDark ? '#EF9F27' : '#854F0B'}" x="594" y="152" text-anchor="middle" dominant-baseline="central">Confirmed import</text>
-    <line x1="520" y1="164" x2="668" y2="164" stroke="${isDark ? '#854F0B' : '#FAC775'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#EF9F27' : '#854F0B'}" x="560" y="180" text-anchor="middle" dominant-baseline="central">2 cases</text>
-    <text font-size="11" fill="${isDark ? '#EF9F27' : '#854F0B'}" x="634" y="180" text-anchor="middle" dominant-baseline="central">1 death</text>
-
-    <rect x="520" y="258" width="148" height="80" rx="8" fill="${isDark ? '#042C53' : '#E6F1FB'}" stroke="${isDark ? '#185FA5' : '#B5D4F4'}" stroke-width="0.5"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#B5D4F4' : '#042C53'}" x="594" y="280" text-anchor="middle" dominant-baseline="central">Germany</text>
-    <text font-size="11" fill="${isDark ? '#85B7EB' : '#185FA5'}" x="594" y="298" text-anchor="middle" dominant-baseline="central">Medical evacuation</text>
-    <line x1="520" y1="310" x2="668" y2="310" stroke="${isDark ? '#185FA5' : '#B5D4F4'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#85B7EB' : '#185FA5'}" x="560" y="326" text-anchor="middle" dominant-baseline="central">7 contacts</text>
-    <text font-size="11" fill="${isDark ? '#85B7EB' : '#185FA5'}" x="634" y="326" text-anchor="middle" dominant-baseline="central">0 deaths</text>
-
-    <rect x="520" y="348" width="148" height="68" rx="8" fill="${isDark ? '#26215C' : '#EEEDFE'}" stroke="${isDark ? '#534AB7' : '#CECBF6'}" stroke-width="0.5"/>
-    <text font-size="12" font-weight="500" fill="${isDark ? '#CECBF6' : '#26215C'}" x="594" y="370" text-anchor="middle" dominant-baseline="central">United States</text>
-    <text font-size="11" fill="${isDark ? '#AFA9EC' : '#534AB7'}" x="594" y="388" text-anchor="middle" dominant-baseline="central">Enhanced screening</text>
-    <line x1="520" y1="400" x2="668" y2="400" stroke="${isDark ? '#534AB7' : '#CECBF6'}" stroke-width="0.5"/>
-    <text font-size="11" fill="${isDark ? '#AFA9EC' : '#534AB7'}" x="594" y="412" text-anchor="middle" dominant-baseline="central">0 cases · 0 deaths</text>
-
-    <line x1="30"  y1="430" x2="58"  y2="430" stroke="#A32D2D" stroke-width="1.8"/>
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="64"  y="434">Confirmed cases</text>
-    <line x1="196" y1="430" x2="224" y2="430" stroke="#185FA5" stroke-width="1.4" stroke-dasharray="6 4"/>
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="230" y="434">Contact transfer</text>
-    <line x1="354" y1="430" x2="382" y2="430" stroke="#534AB7" stroke-width="1.2" stroke-dasharray="2 5"/>
-    <text font-size="11" fill="${isDark ? '#888780' : '#88877f'}" x="388" y="434">Alert / screening</text>
-  `;
+  // Legend
+  const ly = 428;
+  line(20, ly, 48, ly, '#A32D2D', 1.8);
+  text(54,  ly, 'Confirmed cases', 11, 400, tCol, 'start');
+  line(180, ly, 208, ly, '#185FA5', 1.4);
+  const dl = svgEl('line');
+  dl.setAttribute('x1','180'); dl.setAttribute('y1', ly);
+  dl.setAttribute('x2','208'); dl.setAttribute('y2', ly);
+  dl.setAttribute('stroke','#185FA5'); dl.setAttribute('stroke-width','1.4');
+  dl.setAttribute('stroke-dasharray','6 4');
+  svg.appendChild(dl);
+  text(214, ly, 'Contact transfer', 11, 400, tCol, 'start');
+  const al = svgEl('line');
+  al.setAttribute('x1','338'); al.setAttribute('y1', ly);
+  al.setAttribute('x2','366'); al.setAttribute('y2', ly);
+  al.setAttribute('stroke','#534AB7'); al.setAttribute('stroke-width','1.2');
+  al.setAttribute('stroke-dasharray','2 5');
+  svg.appendChild(al);
+  text(372, ly, 'Alert / screening', 11, 400, tCol, 'start');
 }
 
 init();

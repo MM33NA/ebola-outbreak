@@ -13,18 +13,21 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-CDC_URL  = "https://www.cdc.gov/ebola/situation-summary/index.html"
+CDC_URL   = "https://www.cdc.gov/ebola/situation-summary/index.html"
 DATA_FILE = Path(__file__).parent / "data.json"
-HEADERS  = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+HEADERS   = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
 
 def extract_number(pattern, text, default=0):
     m = re.search(pattern, text, re.IGNORECASE)
     if m:
-        try:
-            return int(m.group(1).replace(",", ""))
-        except ValueError:
-            pass
+        # Return first non-None group
+        for g in m.groups():
+            if g is not None:
+                try:
+                    return int(g.replace(",", ""))
+                except ValueError:
+                    pass
     return default
 
 
@@ -38,26 +41,77 @@ def scrape_cdc():
         resp = requests.get(CDC_URL, headers=HEADERS, timeout=20)
         resp.raise_for_status()
     except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"ERROR fetching page: {e}")
         return None
 
     text = BeautifulSoup(resp.text, "html.parser").get_text(" ", strip=True)
     print(f"Page fetched — {len(text):,} chars")
 
-    suspected = extract_number(r"(\d[\d,]*)\s+suspected cases", text)
-    confirmed = extract_number(r"(\d[\d,]*)\s+confirmed cases", text)
-    deaths    = extract_number(r"(\d[\d,]*)\s+(?:suspected\s+)?deaths", text)
-    uganda    = extract_number(r"(\d[\d,]*)\s+cases?.{0,60}Uganda", text)
-    u_deaths  = extract_number(r"Uganda.{0,120}(\d)\s+death", text)
+    # ── Suspected cases ───────────────────────────────────────────────────
+    # e.g. "reports of 575 suspected cases"
+    # or   "744 suspected cases"
+    suspected = extract_number(
+        r"(\d[\d,]*)\s+suspected cases", text
+    )
 
-    m = re.search(r"(?:As of|Updated?)[,:]?\s+([A-Z][a-z]+ \d{1,2},?\s+\d{4})", text, re.IGNORECASE)
+    # ── Confirmed cases ───────────────────────────────────────────────────
+    # e.g. "83 confirmed cases" or "8 laboratory-confirmed cases"
+    confirmed = extract_number(
+        r"(\d[\d,]*)\s+(?:laboratory-)?confirmed cases", text
+    )
+
+    # ── Deaths ────────────────────────────────────────────────────────────
+    # e.g. "176 suspected deaths" or "148 suspected deaths"
+    deaths = extract_number(
+        r"(\d[\d,]*)\s+suspected deaths", text
+    )
+
+    # ── Uganda cases ──────────────────────────────────────────────────────
+    # CDC format: "Uganda: A total of 5 confirmed cases and 1 confirmed death"
+    # Also handles: "5 cases related to the DRC outbreak also have been reported in Uganda"
+    uganda_cases = extract_number(
+        r"Uganda[:\s]+A total of (\d+) confirmed cases", text
+    )
+    if uganda_cases == 0:
+        uganda_cases = extract_number(
+            r"(\d+)\s+cases?.{0,80}reported in Uganda", text
+        )
+    if uganda_cases == 0:
+        uganda_cases = extract_number(
+            r"(\d+)\s+confirmed cases.{0,40}Uganda", text
+        )
+
+    # ── Uganda deaths ─────────────────────────────────────────────────────
+    # CDC format: "Uganda: A total of 5 confirmed cases and 1 confirmed death"
+    uganda_deaths = extract_number(
+        r"Uganda[:\s]+A total of \d+ confirmed cases and (\d+) confirmed death", text
+    )
+    if uganda_deaths == 0:
+        uganda_deaths = extract_number(
+            r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?death", text
+        )
+
+    # ── Update date ───────────────────────────────────────────────────────
+    # CDC writes "May 16, 2026" or "As of May 23, 2026"
+    m = re.search(
+        r"(?:As of\s+)?([A-Z][a-z]+ \d{1,2},\s*\d{4})",
+        text, re.IGNORECASE
+    )
     try:
-        updated = datetime.strptime(m.group(1).replace(",", ""), "%B %d %Y").strftime("%Y-%m-%d") if m else today_str()
+        updated = datetime.strptime(
+            m.group(1).replace(",", ""), "%B %d %Y"
+        ).strftime("%Y-%m-%d") if m else today_str()
     except Exception:
         updated = today_str()
 
-    result = dict(suspected=suspected, confirmed=confirmed,
-                  deaths=deaths, uganda=uganda, u_deaths=u_deaths, updated=updated)
+    result = dict(
+        suspected=suspected,
+        confirmed=confirmed,
+        deaths=deaths,
+        uganda_cases=uganda_cases,
+        uganda_deaths=uganda_deaths,
+        updated=updated
+    )
     print(f"Extracted: {result}")
     return result
 
@@ -74,33 +128,56 @@ def update_json(s):
         print(f"No new data ({s['updated']}). Skipping.")
         return False
 
-    data["summary"]["suspectedCases"]  = s["suspected"] or data["summary"]["suspectedCases"]
-    data["summary"]["suspectedDeaths"] = s["deaths"]    or data["summary"]["suspectedDeaths"]
-    data["summary"]["confirmedDRC"]    = s["confirmed"] or data["summary"]["confirmedDRC"]
-    data["summary"]["ugandaCases"]     = s["uganda"]    or data["summary"]["ugandaCases"]
-    data["summary"]["ugandaDeaths"]    = s["u_deaths"]  or data["summary"]["ugandaDeaths"]
+    # ── Update summary ────────────────────────────────────────────────────
+    sm = data["summary"]
+    if s["suspected"]    > 0: sm["suspectedCases"]  = s["suspected"]
+    if s["deaths"]       > 0: sm["suspectedDeaths"] = s["deaths"]
+    if s["confirmed"]    > 0: sm["confirmedDRC"]    = s["confirmed"]
+    if s["uganda_cases"] > 0: sm["ugandaCases"]     = s["uganda_cases"]
+    if s["uganda_deaths"]> 0: sm["ugandaDeaths"]    = s["uganda_deaths"]
 
-    if data["summary"]["suspectedCases"] > 0:
-        data["summary"]["cfrPercent"] = round(
-            data["summary"]["suspectedDeaths"] / data["summary"]["suspectedCases"] * 100
-        )
+    if sm["suspectedCases"] > 0:
+        sm["cfrPercent"] = round(sm["suspectedDeaths"] / sm["suspectedCases"] * 100)
 
     data["updated"] = s["updated"]
 
-    label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
+    # ── Append timeline point ─────────────────────────────────────────────
+    try:
+        label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
+    except ValueError:
+        # Windows doesn't support %-d — use %d and strip leading zero
+        label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %d").replace(" 0", " ")
+
     existing = {p["date"] for p in data["timeline"]}
     if label not in existing:
         data["timeline"].append({
             "date":   label,
-            "cases":  data["summary"]["suspectedCases"],
-            "deaths": data["summary"]["suspectedDeaths"],
+            "cases":  sm["suspectedCases"],
+            "deaths": sm["suspectedDeaths"],
         })
         print(f"Timeline point added: {label}")
+
+    # ── Update network nodes ──────────────────────────────────────────────
+    # Keep network node data in sync with summary
+    for node in data.get("network", {}).get("nodes", []):
+        if node["id"] == "uganda":
+            node["cases"]  = sm["ugandaCases"]
+            node["detail"] = (
+                f"{sm['ugandaCases']} confirmed cases · "
+                f"{sm['ugandaDeaths']} death · Kampala · traced to DRC travellers"
+            )
+        if node["id"] == "bunia":
+            node["cases"]  = sm["suspectedCases"]
+            node["detail"] = (
+                f"Regional commercial hub · {sm['suspectedCases']} suspected cases · "
+                f"{sm['suspectedDeaths']} deaths"
+            )
 
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
 
     print(f"data.json updated -> {s['updated']}")
+    print(f"Cases: {sm['suspectedCases']}  Deaths: {sm['suspectedDeaths']}  Uganda: {sm['ugandaCases']}")
     return True
 
 
@@ -114,7 +191,8 @@ def main():
         sys.exit(1)
 
     if scraped["suspected"] == 0 and scraped["deaths"] == 0:
-        print("WARNING: All zeros — CDC page structure may have changed. Check scrape.py patterns.")
+        print("WARNING: All zeros — CDC page structure may have changed.")
+        print("Check scrape.py regex patterns.")
         sys.exit(1)
 
     update_json(scraped)
