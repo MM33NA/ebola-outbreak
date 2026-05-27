@@ -230,7 +230,7 @@ async function init() {
     <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
 
     <div class="graph-card">
-      <svg id="graph-svg" viewBox="0 0 680 440" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="graph-svg" viewBox="0 0 680 500" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
 
     <p class="note" style="margin-bottom:1.75rem;">
@@ -300,8 +300,9 @@ function buildNetwork(network, isDark, divColor) {
     export:  { fill: isDark?'#412402':'#FAEEDA', stroke: isDark?'#854F0B':'#FAC775', title: isDark?'#FAC775':'#412402', text: isDark?'#EF9F27':'#854F0B', line: isDark?'#854F0B':'#FAC775' },
     contact: { fill: isDark?'#042C53':'#E6F1FB', stroke: isDark?'#185FA5':'#B5D4F4', title: isDark?'#B5D4F4':'#042C53', text: isDark?'#85B7EB':'#185FA5', line: isDark?'#185FA5':'#B5D4F4' },
     alert:   { fill: isDark?'#26215C':'#EEEDFE', stroke: isDark?'#534AB7':'#CECBF6', title: isDark?'#CECBF6':'#26215C', text: isDark?'#AFA9EC':'#534AB7', line: isDark?'#534AB7':'#CECBF6' },
+    suspect: { fill: isDark?'#2C1A04':'#FFF4E6', stroke: isDark?'#8A4E0A':'#FFBB70', title: isDark?'#FFBB70':'#5A2D00', text: isDark?'#FFA040':'#8A4E0A', line: isDark?'#8A4E0A':'#FFBB70' },
   };
-  const LC = { confirmed:'#A32D2D', contact:'#185FA5', alert:'#534AB7' };
+  const LC = { confirmed:'#A32D2D', contact:'#185FA5', alert:'#534AB7', suspect:'#E67E22' };
   const tCol = isDark?'#888780':'#88877f';
 
   // Map nodes for quick lookup
@@ -310,7 +311,7 @@ function buildNetwork(network, isDark, divColor) {
 
   // Fixed positions — left: origins, centre: hub, right: international
   // auto-space right column based on count
-  const rightNodes = network.nodes.filter(n => n.type === 'export' || n.type === 'contact' || n.type === 'alert');
+  const rightNodes = network.nodes.filter(n => n.type === 'export' || n.type === 'contact' || n.type === 'alert' || n.type === 'suspect');
   const rightY = (i) => 80 + i * (280 / Math.max(rightNodes.length - 1, 1));
   rightNodes.forEach((n, i) => { n._x = 530; n._y = rightY(i); });
 
@@ -345,8 +346,13 @@ function buildNetwork(network, isDark, divColor) {
     text(cx, y+22, n.label, 12, 500, c.title, 'middle');
     text(cx, y+38, n.country, 11, 400, c.text, 'middle');
     line(x, y+50, x+w, y+50, c.line, 0.5);
-    text(cx - 30, y+65, `${n.cases > 0 ? n.cases.toLocaleString() : '0'} cases`, 11, 400, c.text, 'middle');
-    text(cx + 38, y+65, `${n.deaths > 0 ? n.deaths : '0'} deaths`, 11, 400, c.text, 'middle');
+    if (n.cases === -1) {
+      // Origin zones — CDC doesn't report per-zone breakdown
+      text(cx, y+65, 'Part of DRC total', 10, 400, c.text, 'middle');
+    } else {
+      text(cx - 30, y+65, `${n.cases > 0 ? n.cases.toLocaleString() : '0'} cases`, 11, 400, c.text, 'middle');
+      text(cx + 38, y+65, `${n.deaths > 0 ? n.deaths : '0'} deaths`, 11, 400, c.text, 'middle');
+    }
 
     // Hover target
     const r = svgEl('rect');
@@ -428,13 +434,14 @@ function buildNetwork(network, isDark, divColor) {
     el.setAttribute('stroke-width', type==='confirmed'?1.8:1.4);
     if (type==='contact') el.setAttribute('stroke-dasharray','6 4');
     if (type==='alert')   el.setAttribute('stroke-dasharray','2 5');
+    if (type==='suspect') el.setAttribute('stroke-dasharray','4 3');
     el.setAttribute('marker-end',`url(#arr-${type})`);
     svg.appendChild(el);
   }
 
   // Background
   const bg = svgEl('rect');
-  bg.setAttribute('width','680'); bg.setAttribute('height','440');
+  bg.setAttribute('width','680'); bg.setAttribute('height','500');
   bg.setAttribute('fill', isDark?'#252523':'#f5f5f3'); bg.setAttribute('rx','12');
   svg.innerHTML = '';
   svg.appendChild(bg);
@@ -445,22 +452,22 @@ function buildNetwork(network, isDark, divColor) {
   text(610, 22, 'International spread',   11, 400, tCol, 'middle');
 
   // Dividers
-  line(220,18,220,422, divColor, 0.5);
+  line(220,18,220,490, divColor, 0.5);
   const d2 = svgEl('line');
   d2.setAttribute('x1','460'); d2.setAttribute('y1','18');
-  d2.setAttribute('x2','460'); d2.setAttribute('y2','422');
+  d2.setAttribute('x2','460'); d2.setAttribute('y2','490');
   d2.setAttribute('stroke', divColor); d2.setAttribute('stroke-width','0.5');
   d2.setAttribute('stroke-dasharray','4 4');
   svg.appendChild(d2);
   const d1 = svgEl('line');
   d1.setAttribute('x1','220'); d1.setAttribute('y1','18');
-  d1.setAttribute('x2','220'); d1.setAttribute('y2','422');
+  d1.setAttribute('x2','220'); d1.setAttribute('y2','490');
   d1.setAttribute('stroke', divColor); d1.setAttribute('stroke-width','0.5');
   d1.setAttribute('stroke-dasharray','4 4');
   svg.appendChild(d1);
 
   // Arrows
-  ['confirmed','contact','alert'].forEach(t => arrow(`arr-${t}`, LC[t]));
+  ['confirmed','contact','alert','suspect'].forEach(t => arrow(`arr-${t}`, LC[t]));
 
   // Draw arcs first (behind nodes)
   network.links.forEach(lk => {
@@ -472,7 +479,7 @@ function buildNetwork(network, isDark, divColor) {
   network.nodes.forEach(n => node(n));
 
   // Legend
-  const ly = 428;
+  const ly = 488;
   line(20, ly, 48, ly, '#A32D2D', 1.8);
   text(54,  ly, 'Confirmed cases', 11, 400, tCol, 'start');
   line(180, ly, 208, ly, '#185FA5', 1.4);
