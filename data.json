@@ -1,13 +1,13 @@
 {
-  "updated": "2026-05-24",
+  "updated": "2026-05-27",
   "summary": {
-    "suspectedCases": 906,
-    "suspectedDeaths": 223,
-    "confirmedDRC": 105,
-    "confirmedDeaths": 10,
-    "ugandaCases": 7,
+    "suspectedCases": 1077,
+    "suspectedDeaths": 246,
+    "confirmedDRC": 121,
+    "confirmedDeaths": 17,
+    "ugandaCases": 5,
     "ugandaDeaths": 1,
-    "cfrPercent": 25
+    "cfrPercent": 23
   },
   "timeline": [
     {
@@ -49,6 +49,11 @@
       "date": "May 24",
       "cases": 906,
       "deaths": 223
+    },
+    {
+      "date": "May 27",
+      "cases": 1077,
+      "deaths": 246
     }
   ],
   "healthZones": [
@@ -170,18 +175,18 @@
         "label": "Bunia HZ",
         "type": "hub",
         "country": "DRC \u00b7 Ituri",
-        "cases": 906,
-        "deaths": 223,
-        "detail": "Epicentre hub \u00b7 906 suspected cases \u00b7 223 suspected deaths \u00b7 3 provinces confirmed"
+        "cases": 1077,
+        "deaths": 246,
+        "detail": "Epicentre hub \u00b7 1077 suspected cases \u00b7 246 suspected deaths \u00b7 3 provinces confirmed"
       },
       {
         "id": "uganda",
         "label": "Kampala, Uganda",
         "type": "export",
         "country": "Uganda",
-        "cases": 7,
+        "cases": 5,
         "deaths": 1,
-        "detail": "7 confirmed cases \u00b7 1 death \u00b7 Kampala \u00b7 all linked to DRC travellers"
+        "detail": "5 confirmed cases \u00b7 1 death \u00b7 Kampala \u00b7 all linked to DRC travellers"
       },
       {
         "id": "italy",
