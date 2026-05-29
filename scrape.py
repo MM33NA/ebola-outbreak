@@ -102,7 +102,7 @@ def update_json(s):
 
     current = data["summary"]
 
-    print("Overhauling pipeline integration details...")
+    print("Syncing data.json with raw epidemiological reporting curves...")
 
     # ── 1. Update Global KPI Summary Blocks ───────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
@@ -120,20 +120,17 @@ def update_json(s):
 
     data["updated"] = s["updated"]
 
-    # ── 2. Format Timeline Entries Without Chart Drops ───────────────────
+    # ── 2. Format Timeline Entries (True Raw Data Sequence) ───────────────
     try:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
     except ValueError:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %d").replace(" 0", " ")
 
-    # OPTION 2 LOGIC: Prevent cumulative charts from dipping backwards if data gets reclassified
-    historical_cases_peak = max([p["cases"] for p in data["timeline"]]) if data["timeline"] else 0
-    historical_deaths_peak = max([p["deaths"] for p in data["timeline"]]) if data["timeline"] else 0
+    # Keep original Suspected fields active for your cumulative line chart sequence
+    cases_value = s["suspected"] if s["suspected"] > 0 else current["suspectedCases"]
+    deaths_value = s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"]
 
-    cases_value = max(s["suspected"] if s["suspected"] > 0 else current["suspectedCases"], historical_cases_peak)
-    deaths_value = max(s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"], historical_deaths_peak)
-
-    # Segments dedicated specifically to mapping your Stacked Bar Chart values
+    # Structural country breakouts required to render the Stacked Bar Chart component
     drc_seg = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
     uganda_seg = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
 
@@ -174,9 +171,8 @@ def update_json(s):
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"data.json successfully saved and streamlined for all charts.")
+    print(f"data.json successfully written with true raw data updates.")
     return True
-
 
 def main():
     print("=" * 40)
