@@ -142,25 +142,30 @@ def update_json(s):
 
     existing = {p["date"]: i for i, p in enumerate(data["timeline"])}
     
-    # Isolate variables to ensure data types remain uniform numbers
-    cases_val = s["suspected"] if s["suspected"] > 0 else current["suspectedCases"]
-    deaths_val = s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"]
+    # CALCULATE VALUE FOR LINE CHART (Confirmed Total: 125 DRC + 7 Uganda = 132)
+    total_confirmed = s["confirmed"] + s["uganda_cases"] if s["confirmed"] > 0 else current["confirmedDRC"]
+    
+    # If you prefer to keep suspected cases but want to stop the dip (Option 2), 
+    # uncomment the line below and comment out the total_confirmed assignment above:
+    # total_confirmed = max(s["suspected"], max([p["cases"] for p in data["timeline"]]) if data["timeline"] else 0)
+
+    total_deaths = s["confirmed_deaths"] + s["uganda_deaths"] if s["confirmed_deaths"] > 0 else (current["confirmedDeaths"] + current["ugandaDeaths"])
     
     drc_confirmed = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
     uganda_confirmed = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
 
-    # Append structural keys so stacked bar logic doesn't throw null errors
+    # Append structural keys so chart engines don't throw null errors
     if label in existing:
         idx = existing[label]
-        data["timeline"][idx]["cases"] = cases_val
-        data["timeline"][idx]["deaths"] = deaths_val
+        data["timeline"][idx]["cases"] = total_confirmed
+        data["timeline"][idx]["deaths"] = total_deaths
         data["timeline"][idx]["drcConfirmed"] = drc_confirmed
         data["timeline"][idx]["ugandaConfirmed"] = uganda_confirmed
     else:
         data["timeline"].append({
             "date": label,
-            "cases": cases_val,
-            "deaths": deaths_val,
+            "cases": total_confirmed,
+            "deaths": total_deaths,
             "drcConfirmed": drc_confirmed,
             "ugandaConfirmed": uganda_confirmed
         })
@@ -188,7 +193,6 @@ def update_json(s):
 
     print(f"data.json updated completely -> {s['updated']}")
     return True
-
 
 def main():
     print("=" * 40)
