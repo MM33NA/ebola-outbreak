@@ -115,7 +115,7 @@ def update_json(s):
 
     current = data["summary"]
 
-    print(f"Forcing update to data.json with combined metrics...")
+    print(f"Syncing data.json with dashboard visual chart components...")
 
     # ── Update summary metrics safely ─────────────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
@@ -124,31 +124,45 @@ def update_json(s):
     if s["uganda_cases"]     > 0: current["ugandaCases"]      = s["uganda_cases"]
     if s["uganda_deaths"]    > 0: current["ugandaDeaths"]     = s["uganda_deaths"]
 
-    # FORCE INTEGRATION: Force the combined total (125 + 7 = 132) into the key your frontend reads
+    # Map the combined confirmed total safely to the key your KPI card reads
     if s["confirmed"] > 0:
         current["confirmedDRC"] = s["confirmed"] + s["uganda_cases"]
 
-    # Calculate CFR based on suspected cases
+    # Calculate CFR based on suspected numbers
     if current["suspectedCases"] > 0:
         current["cfrPercent"] = round((current["suspectedDeaths"] / current["suspectedCases"]) * 100)
 
     data["updated"] = s["updated"]
 
-    # ── Append or update timeline point ──────────────────────────────────
+    # ── Map Timeline Labels ──────────────────────────────────────────────
     try:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
     except ValueError:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %d").replace(" 0", " ")
 
     existing = {p["date"]: i for i, p in enumerate(data["timeline"])}
+    
+    # Isolate variables to ensure data types remain uniform numbers
+    cases_val = s["suspected"] if s["suspected"] > 0 else current["suspectedCases"]
+    deaths_val = s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"]
+    
+    drc_confirmed = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
+    uganda_confirmed = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
+
+    # Append structural keys so stacked bar logic doesn't throw null errors
     if label in existing:
-        data["timeline"][existing[label]]["cases"]  = current["suspectedCases"]
-        data["timeline"][existing[label]]["deaths"] = current["suspectedDeaths"]
+        idx = existing[label]
+        data["timeline"][idx]["cases"] = cases_val
+        data["timeline"][idx]["deaths"] = deaths_val
+        data["timeline"][idx]["drcConfirmed"] = drc_confirmed
+        data["timeline"][idx]["ugandaConfirmed"] = uganda_confirmed
     else:
         data["timeline"].append({
-            "date":   label,
-            "cases":  current["suspectedCases"],
-            "deaths": current["suspectedDeaths"],
+            "date": label,
+            "cases": cases_val,
+            "deaths": deaths_val,
+            "drcConfirmed": drc_confirmed,
+            "ugandaConfirmed": uganda_confirmed
         })
 
     # ── Update network nodes ──────────────────────────────────────────────
@@ -172,7 +186,7 @@ def update_json(s):
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"data.json successfully updated -> {s['updated']}")
+    print(f"data.json updated completely -> {s['updated']}")
     return True
 
 
