@@ -202,7 +202,10 @@ async function init() {
     <div class="metrics">
       <div class="metric"><p class="metric-label">Suspected cases</p><p class="metric-value">~${summary.suspectedCases.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
       <div class="metric"><p class="metric-label">Suspected deaths</p><p class="metric-value red">${summary.suspectedDeaths.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
-      <div class="metric"><p class="metric-label">Confirmed (lab)</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
+      <div class="metric"><p class="metric-label">Confirmed cases (lab)</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
+      
+      <div class="metric"><p class="metric-label">Confirmed deaths (lab)</p><p class="metric-value red">${summary.confirmedDeaths + (summary.ugandaDeaths || 0)}</p><p class="metric-sub">DRC + Uganda</p></div>
+      
       <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
       <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
     </div>
