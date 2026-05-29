@@ -3,10 +3,10 @@
   "summary": {
     "suspectedCases": 906,
     "suspectedDeaths": 223,
-    "confirmedDRC": 132,
+    "confirmedDRC": 134,
     "confirmedDeaths": 17,
-    "ugandaCases": 7,
-    "ugandaDeaths": 1,
+    "ugandaCases": 9,
+    "ugandaDeaths": 2,
     "cfrPercent": 25
   },
   "timeline": [
@@ -57,10 +57,10 @@
     },
     {
       "date": "May 29",
-      "cases": 906,
-      "deaths": 223,
+      "cases": 134,
+      "deaths": 19,
       "drcConfirmed": 125,
-      "ugandaConfirmed": 7
+      "ugandaConfirmed": 9
     }
   ],
   "healthZones": [
@@ -191,9 +191,9 @@
         "label": "Kampala, Uganda",
         "type": "export",
         "country": "Uganda",
-        "cases": 7,
-        "deaths": 1,
-        "detail": "7 confirmed cases \u00b7 1 confirmed death \u00b7 Kampala \u00b7 5 linked to first 2 cases"
+        "cases": 9,
+        "deaths": 2,
+        "detail": "9 confirmed cases \u00b7 2 confirmed death \u00b7 Kampala \u00b7 5 linked to first 2 cases"
       },
       {
         "id": "italy",
