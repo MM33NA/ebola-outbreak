@@ -5,7 +5,7 @@
     "suspectedDeaths": 223,
     "confirmedDRC": 125,
     "confirmedDeaths": 17,
-    "ugandaCases": 5,
+    "ugandaCases": 7,
     "ugandaDeaths": 7,
     "cfrPercent": 25
   },
@@ -189,9 +189,9 @@
         "label": "Kampala, Uganda",
         "type": "export",
         "country": "Uganda",
-        "cases": 5,
+        "cases": 7,
         "deaths": 7,
-        "detail": "5 confirmed cases \u00b7 7 death \u00b7 Kampala \u00b7 all linked to DRC travellers"
+        "detail": "7 confirmed cases \u00b7 7 death \u00b7 Kampala \u00b7 all linked to DRC travellers"
       },
       {
         "id": "italy",
