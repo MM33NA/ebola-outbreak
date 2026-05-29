@@ -46,44 +46,31 @@ def scrape_cdc():
     text = BeautifulSoup(resp.text, "html.parser").get_text(" ", strip=True)
     print(f"Page fetched — {len(text):,} chars")
 
-    # ── Suspected cases ───────────────────────────────────────────────────
+    # ── Text Processing Fallbacks (Optimized for May 29 Layout) ───────────
     suspected = extract_number(r"(\d[\d,]*)\s+suspected cases", text)
     if suspected == 0:
         suspected = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+suspected", text)
 
-    # ── Confirmed cases ───────────────────────────────────────────────────
     confirmed = extract_number(r"(\d[\d,]*)\s+confirmed cases", text)
     if confirmed == 0:
         confirmed = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+confirmed", text)
 
-    # ── Suspected deaths ──────────────────────────────────────────────────
     suspected_deaths = extract_number(r"(\d[\d,]*)\s+suspected deaths", text)
     if suspected_deaths == 0:
         suspected_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+suspected\s+deaths?", text)
 
-    # ── Confirmed deaths ──────────────────────────────────────────────────
     confirmed_deaths = extract_number(r"(\d[\d,]*)\s+confirmed deaths", text)
     if confirmed_deaths == 0:
         confirmed_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+confirmed\s+deaths?", text)
 
-    # ── Uganda cases ──────────────────────────────────────────────────────
     uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+confirmed cases", text)
     if uganda_cases == 0:
         uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
-    if uganda_cases == 0:
-        words = {"one":1,"two":2,"three":3,"four":4,"five":5,"six":6,"seven":7,"eight":8,"nine":9,"ten":10}
-        m = re.search(r"(one|two|three|four|five|six|seven|eight|nine|ten)\s+cases?.{0,80}Uganda", text, re.IGNORECASE)
-        if m:
-            uganda_cases = words.get(m.group(1).lower(), 0)
 
-    # ── Uganda deaths ─────────────────────────────────────────────────────
-    uganda_deaths = extract_number(
-        r"Uganda[:\s]+(?:A total of\s+)?\d+\s+confirmed cases\s+(?:and\s+)?(\d+)\s+confirmed death", text
-    )
+    uganda_deaths = extract_number(r"Uganda[:\s]+(?:A total of\s+)?\d+\s+confirmed cases\s+(?:and\s+)?(\d+)\s+confirmed death", text)
     if uganda_deaths == 0:
         uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?deaths?", text)
 
-    # ── Update date ───────────────────────────────────────────────────────
     m = re.search(r"As of\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})", text, re.IGNORECASE)
     try:
         updated = datetime.strptime(
@@ -115,62 +102,58 @@ def update_json(s):
 
     current = data["summary"]
 
-    print(f"Syncing data.json with dashboard visual chart components...")
+    print("Overhauling pipeline integration details...")
 
-    # ── Update summary metrics safely ─────────────────────────────────────
+    # ── 1. Update Global KPI Summary Blocks ───────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
     if s["suspected_deaths"] > 0: current["suspectedDeaths"]  = s["suspected_deaths"]
     if s["confirmed_deaths"] > 0: current["confirmedDeaths"]  = s["confirmed_deaths"]
     if s["uganda_cases"]     > 0: current["ugandaCases"]      = s["uganda_cases"]
     if s["uganda_deaths"]    > 0: current["ugandaDeaths"]     = s["uganda_deaths"]
 
-    # Map the combined confirmed total safely to the key your KPI card reads
+    # Synchronize the main Lab Confirmed card to display 132 (125 + 7)
     if s["confirmed"] > 0:
         current["confirmedDRC"] = s["confirmed"] + s["uganda_cases"]
 
-    # Calculate CFR based on suspected numbers
     if current["suspectedCases"] > 0:
         current["cfrPercent"] = round((current["suspectedDeaths"] / current["suspectedCases"]) * 100)
 
     data["updated"] = s["updated"]
 
-    # ── Map Timeline Labels ──────────────────────────────────────────────
+    # ── 2. Format Timeline Entries Without Chart Drops ───────────────────
     try:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
     except ValueError:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %d").replace(" 0", " ")
 
+    # OPTION 2 LOGIC: Prevent cumulative charts from dipping backwards if data gets reclassified
+    historical_cases_peak = max([p["cases"] for p in data["timeline"]]) if data["timeline"] else 0
+    historical_deaths_peak = max([p["deaths"] for p in data["timeline"]]) if data["timeline"] else 0
+
+    cases_value = max(s["suspected"] if s["suspected"] > 0 else current["suspectedCases"], historical_cases_peak)
+    deaths_value = max(s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"], historical_deaths_peak)
+
+    # Segments dedicated specifically to mapping your Stacked Bar Chart values
+    drc_seg = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
+    uganda_seg = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
+
     existing = {p["date"]: i for i, p in enumerate(data["timeline"])}
-    
-    # CALCULATE VALUE FOR LINE CHART (Confirmed Total: 125 DRC + 7 Uganda = 132)
-    total_confirmed = s["confirmed"] + s["uganda_cases"] if s["confirmed"] > 0 else current["confirmedDRC"]
-    
-    # If you prefer to keep suspected cases but want to stop the dip (Option 2), 
-    # uncomment the line below and comment out the total_confirmed assignment above:
-    # total_confirmed = max(s["suspected"], max([p["cases"] for p in data["timeline"]]) if data["timeline"] else 0)
-
-    total_deaths = s["confirmed_deaths"] + s["uganda_deaths"] if s["confirmed_deaths"] > 0 else (current["confirmedDeaths"] + current["ugandaDeaths"])
-    
-    drc_confirmed = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
-    uganda_confirmed = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
-
-    # Append structural keys so chart engines don't throw null errors
     if label in existing:
         idx = existing[label]
-        data["timeline"][idx]["cases"] = total_confirmed
-        data["timeline"][idx]["deaths"] = total_deaths
-        data["timeline"][idx]["drcConfirmed"] = drc_confirmed
-        data["timeline"][idx]["ugandaConfirmed"] = uganda_confirmed
+        data["timeline"][idx]["cases"] = cases_value
+        data["timeline"][idx]["deaths"] = deaths_value
+        data["timeline"][idx]["drcConfirmed"] = drc_seg
+        data["timeline"][idx]["ugandaConfirmed"] = uganda_seg
     else:
         data["timeline"].append({
             "date": label,
-            "cases": total_confirmed,
-            "deaths": total_deaths,
-            "drcConfirmed": drc_confirmed,
-            "ugandaConfirmed": uganda_confirmed
+            "cases": cases_value,
+            "deaths": deaths_value,
+            "drcConfirmed": drc_seg,
+            "ugandaConfirmed": uganda_seg
         })
 
-    # ── Update network nodes ──────────────────────────────────────────────
+    # ── 3. Map Node Configurations ────────────────────────────────────────
     for node in data.get("network", {}).get("nodes", []):
         if node["id"] == "uganda":
             node["cases"]  = current["ugandaCases"]
@@ -191,8 +174,9 @@ def update_json(s):
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"data.json updated completely -> {s['updated']}")
+    print(f"data.json successfully saved and streamlined for all charts.")
     return True
+
 
 def main():
     print("=" * 40)
