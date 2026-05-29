@@ -55,16 +55,22 @@ def scrape_cdc():
     confirmed = extract_number(r"(\d[\d,]*)\s+confirmed cases", text)
 
     # ── Suspected deaths ──────────────────────────────────────────────────
-    # CDC: "119 suspected deaths"
+    # CDC: "119 suspected deaths" or "906 suspected cases (223 deaths)"
     suspected_deaths = extract_number(r"(\d[\d,]*)\s+suspected deaths", text)
+    if suspected_deaths == 0:
+        suspected_deaths = extract_number(r"suspected cases\s*\(\s*(\d[\d,]*)\s+deaths?\s*\)", text)
 
     # ── Confirmed deaths ──────────────────────────────────────────────────
-    # CDC: "10 confirmed deaths"
+    # CDC: "10 confirmed deaths" or "105 confirmed cases (10 deaths)"
     confirmed_deaths = extract_number(r"(\d[\d,]*)\s+confirmed deaths", text)
+    if confirmed_deaths == 0:
+        confirmed_deaths = extract_number(r"confirmed cases\s*\(\s*(\d[\d,]*)\s+deaths?\s*\)", text)
 
     # ── Uganda cases ──────────────────────────────────────────────────────
-    # CDC: "Uganda: A total of 5 confirmed cases and 1 confirmed death"
+    # CDC: Supports "A total of 5 confirmed cases" or "Uganda: 7 confirmed cases"
     uganda_cases = extract_number(r"Uganda[:\s]+A total of (\d+) confirmed cases", text)
+    if uganda_cases == 0:
+        uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+(?:confirmed\s+)?cases?", text)
     if uganda_cases == 0:
         uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
     # Handle written numbers e.g. "Five cases ... Uganda"
@@ -75,15 +81,14 @@ def scrape_cdc():
             uganda_cases = words.get(m.group(1).lower(), 0)
 
     # ── Uganda deaths ─────────────────────────────────────────────────────
-    # CDC: "Uganda: A total of 5 confirmed cases and 1 confirmed death"
+    # CDC: Matches "1 confirmed death" or "1 death"
     uganda_deaths = extract_number(
         r"Uganda[:\s]+A total of \d+ confirmed cases and (\d+) confirmed death", text
     )
     if uganda_deaths == 0:
-        uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?death", text)
+        uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?deaths?", text)
 
     # ── Update date ───────────────────────────────────────────────────────
-    # Require "As of" prefix to avoid picking up metadata dates
     m = re.search(r"As of\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})", text, re.IGNORECASE)
     try:
         updated = datetime.strptime(
@@ -115,11 +120,14 @@ def update_json(s):
 
     current = data["summary"]
 
-    # Update if numbers changed OR date changed
+    # Update if ANY trackable numbers changed OR date changed
     numbers_changed = (
         (s["suspected"]       > 0 and s["suspected"]       != current.get("suspectedCases", 0)) or
         (s["suspected_deaths"]> 0 and s["suspected_deaths"] != current.get("suspectedDeaths", 0)) or
-        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0))
+        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0)) or
+        (s["confirmed_deaths"]> 0 and s["confirmed_deaths"] != current.get("confirmedDeaths", 0)) or
+        (s["uganda_cases"]    > 0 and s["uganda_cases"]    != current.get("ugandaCases", 0)) or
+        (s["uganda_deaths"]   > 0 and s["uganda_deaths"]   != current.get("ugandaDeaths", 0))
     )
     date_changed = data.get("updated") != s["updated"]
 
