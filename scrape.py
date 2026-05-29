@@ -115,20 +115,7 @@ def update_json(s):
 
     current = data["summary"]
 
-    # Update if numbers changed OR date changed
-    numbers_changed = (
-        (s["suspected"]       > 0 and s["suspected"]       != current.get("suspectedCases", 0)) or
-        (s["suspected_deaths"]> 0 and s["suspected_deaths"] != current.get("suspectedDeaths", 0)) or
-        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0)) or
-        (s["uganda_cases"]    > 0 and s["uganda_cases"]     != current.get("ugandaCases", 0))
-    )
-    date_changed = data.get("updated") != s["updated"]
-
-    if not numbers_changed and not date_changed:
-        print(f"No changes detected. Skipping.")
-        return False
-
-    print(f"Changes detected — updating data.json")
+    print(f"Forcing update to data.json with combined metrics...")
 
     # ── Update summary metrics safely ─────────────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
@@ -137,7 +124,7 @@ def update_json(s):
     if s["uganda_cases"]     > 0: current["ugandaCases"]      = s["uganda_cases"]
     if s["uganda_deaths"]    > 0: current["ugandaDeaths"]     = s["uganda_deaths"]
 
-    # FORCE INTEGRATION: Force the combined total into the exact key your frontend reads
+    # FORCE INTEGRATION: Force the combined total (125 + 7 = 132) into the key your frontend reads
     if s["confirmed"] > 0:
         current["confirmedDRC"] = s["confirmed"] + s["uganda_cases"]
 
