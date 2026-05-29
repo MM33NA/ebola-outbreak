@@ -47,7 +47,6 @@ def scrape_cdc():
     print(f"Page fetched — {len(text):,} chars")
 
     # ── Suspected cases ───────────────────────────────────────────────────
-    # Robust matching for suspected cases in DRC
     suspected = extract_number(r"(\d[\d,]*)\s+suspected cases", text)
     if suspected == 0:
         suspected = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+suspected", text)
@@ -68,7 +67,6 @@ def scrape_cdc():
         confirmed_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+confirmed\s+deaths?", text)
 
     # ── Uganda cases ──────────────────────────────────────────────────────
-    # Updated to handle "7 confirmed cases" dynamically
     uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+confirmed cases", text)
     if uganda_cases == 0:
         uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
@@ -121,26 +119,31 @@ def update_json(s):
     numbers_changed = (
         (s["suspected"]       > 0 and s["suspected"]       != current.get("suspectedCases", 0)) or
         (s["suspected_deaths"]> 0 and s["suspected_deaths"] != current.get("suspectedDeaths", 0)) or
-        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0))
+        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0)) or
+        (s["uganda_cases"]    > 0 and s["uganda_cases"]     != current.get("ugandaCases", 0))
     )
     date_changed = data.get("updated") != s["updated"]
 
     if not numbers_changed and not date_changed:
-        print(f"No changes detected. Cases: {s['suspected']}  Deaths: {s['suspected_deaths']}. Skipping.")
+        print(f"No changes detected. Skipping.")
         return False
 
     print(f"Changes detected — updating data.json")
 
-    # ── Update summary ────────────────────────────────────────────────────
+    # ── Update summary metrics safely ─────────────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
     if s["suspected_deaths"] > 0: current["suspectedDeaths"]  = s["suspected_deaths"]
-    if s["confirmed"]        > 0: current["confirmedDRC"]     = s["confirmed"]
     if s["confirmed_deaths"] > 0: current["confirmedDeaths"]  = s["confirmed_deaths"]
     if s["uganda_cases"]     > 0: current["ugandaCases"]      = s["uganda_cases"]
     if s["uganda_deaths"]    > 0: current["ugandaDeaths"]     = s["uganda_deaths"]
 
+    # FORCE INTEGRATION: Force the combined total into the exact key your frontend reads
+    if s["confirmed"] > 0:
+        current["confirmedDRC"] = s["confirmed"] + s["uganda_cases"]
+
+    # Calculate CFR based on suspected cases
     if current["suspectedCases"] > 0:
-        current["cfrPercent"] = round(current["suspectedDeaths"] / current["suspectedCases"] * 100)
+        current["cfrPercent"] = round((current["suspectedDeaths"] / current["suspectedCases"]) * 100)
 
     data["updated"] = s["updated"]
 
@@ -154,14 +157,12 @@ def update_json(s):
     if label in existing:
         data["timeline"][existing[label]]["cases"]  = current["suspectedCases"]
         data["timeline"][existing[label]]["deaths"] = current["suspectedDeaths"]
-        print(f"Timeline point updated: {label}")
     else:
         data["timeline"].append({
             "date":   label,
             "cases":  current["suspectedCases"],
             "deaths": current["suspectedDeaths"],
         })
-        print(f"Timeline point added: {label}")
 
     # ── Update network nodes ──────────────────────────────────────────────
     for node in data.get("network", {}).get("nodes", []):
@@ -170,7 +171,8 @@ def update_json(s):
             node["deaths"] = current["ugandaDeaths"]
             node["detail"] = (
                 f"{current['ugandaCases']} confirmed cases · "
-                f"{current['ugandaDeaths']} death · Kampala · all linked to DRC travellers"
+                f"{current['ugandaDeaths']} confirmed death · Kampala · "
+                f"5 linked to first 2 cases"
             )
         if node["id"] == "bunia":
             node["cases"]  = current["suspectedCases"]
@@ -183,10 +185,7 @@ def update_json(s):
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"data.json updated -> {s['updated']}")
-    print(f"Suspected: {current['suspectedCases']} cases  {current['suspectedDeaths']} deaths")
-    print(f"Confirmed: {current['confirmedDRC']} cases  {current.get('confirmedDeaths', '?')} deaths")
-    print(f"Uganda: {current['ugandaCases']} cases  {current['ugandaDeaths']} deaths")
+    print(f"data.json successfully updated -> {s['updated']}")
     return True
 
 
@@ -201,7 +200,6 @@ def main():
 
     if scraped["suspected"] == 0 and scraped["suspected_deaths"] == 0:
         print("WARNING: All zeros — CDC page structure may have changed.")
-        print("Check scrape.py regex patterns.")
         sys.exit(1)
 
     update_json(scraped)
