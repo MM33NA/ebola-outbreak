@@ -47,33 +47,31 @@ def scrape_cdc():
     print(f"Page fetched — {len(text):,} chars")
 
     # ── Suspected cases ───────────────────────────────────────────────────
-    # CDC: "DRC: A total of 904 suspected cases"
+    # Robust matching for suspected cases in DRC
     suspected = extract_number(r"(\d[\d,]*)\s+suspected cases", text)
+    if suspected == 0:
+        suspected = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+suspected", text)
 
     # ── Confirmed cases ───────────────────────────────────────────────────
-    # CDC: "101 confirmed cases"
     confirmed = extract_number(r"(\d[\d,]*)\s+confirmed cases", text)
+    if confirmed == 0:
+        confirmed = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+confirmed", text)
 
     # ── Suspected deaths ──────────────────────────────────────────────────
-    # CDC: "119 suspected deaths" or "906 suspected cases (223 deaths)"
     suspected_deaths = extract_number(r"(\d[\d,]*)\s+suspected deaths", text)
     if suspected_deaths == 0:
-        suspected_deaths = extract_number(r"suspected cases\s*\(\s*(\d[\d,]*)\s+deaths?\s*\)", text)
+        suspected_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+suspected\s+deaths?", text)
 
     # ── Confirmed deaths ──────────────────────────────────────────────────
-    # CDC: "10 confirmed deaths" or "105 confirmed cases (10 deaths)"
     confirmed_deaths = extract_number(r"(\d[\d,]*)\s+confirmed deaths", text)
     if confirmed_deaths == 0:
-        confirmed_deaths = extract_number(r"confirmed cases\s*\(\s*(\d[\d,]*)\s+deaths?\s*\)", text)
+        confirmed_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+confirmed\s+deaths?", text)
 
     # ── Uganda cases ──────────────────────────────────────────────────────
-    # CDC: Supports "A total of 5 confirmed cases" or "Uganda: 7 confirmed cases"
-    uganda_cases = extract_number(r"Uganda[:\s]+A total of (\d+) confirmed cases", text)
-    if uganda_cases == 0:
-        uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+(?:confirmed\s+)?cases?", text)
+    # Updated to handle "7 confirmed cases" dynamically
+    uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+confirmed cases", text)
     if uganda_cases == 0:
         uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
-    # Handle written numbers e.g. "Five cases ... Uganda"
     if uganda_cases == 0:
         words = {"one":1,"two":2,"three":3,"four":4,"five":5,"six":6,"seven":7,"eight":8,"nine":9,"ten":10}
         m = re.search(r"(one|two|three|four|five|six|seven|eight|nine|ten)\s+cases?.{0,80}Uganda", text, re.IGNORECASE)
@@ -81,9 +79,8 @@ def scrape_cdc():
             uganda_cases = words.get(m.group(1).lower(), 0)
 
     # ── Uganda deaths ─────────────────────────────────────────────────────
-    # CDC: Matches "1 confirmed death" or "1 death"
     uganda_deaths = extract_number(
-        r"Uganda[:\s]+A total of \d+ confirmed cases and (\d+) confirmed death", text
+        r"Uganda[:\s]+(?:A total of\s+)?\d+\s+confirmed cases\s+(?:and\s+)?(\d+)\s+confirmed death", text
     )
     if uganda_deaths == 0:
         uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?deaths?", text)
@@ -120,14 +117,11 @@ def update_json(s):
 
     current = data["summary"]
 
-    # Update if ANY trackable numbers changed OR date changed
+    # Update if numbers changed OR date changed
     numbers_changed = (
         (s["suspected"]       > 0 and s["suspected"]       != current.get("suspectedCases", 0)) or
         (s["suspected_deaths"]> 0 and s["suspected_deaths"] != current.get("suspectedDeaths", 0)) or
-        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0)) or
-        (s["confirmed_deaths"]> 0 and s["confirmed_deaths"] != current.get("confirmedDeaths", 0)) or
-        (s["uganda_cases"]    > 0 and s["uganda_cases"]    != current.get("ugandaCases", 0)) or
-        (s["uganda_deaths"]   > 0 and s["uganda_deaths"]   != current.get("ugandaDeaths", 0))
+        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0))
     )
     date_changed = data.get("updated") != s["updated"]
 
