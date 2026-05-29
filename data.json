@@ -58,7 +58,9 @@
     {
       "date": "May 29",
       "cases": 906,
-      "deaths": 223
+      "deaths": 223,
+      "drcConfirmed": 125,
+      "ugandaConfirmed": 7
     }
   ],
   "healthZones": [
