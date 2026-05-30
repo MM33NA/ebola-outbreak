@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-29",
+  "updated": "2026-05-30",
   "summary": {
     "suspectedCases": 906,
     "suspectedDeaths": 223,
@@ -57,6 +57,13 @@
     },
     {
       "date": "May 29",
+      "cases": 906,
+      "deaths": 223,
+      "drcConfirmed": 125,
+      "ugandaConfirmed": 9
+    },
+    {
+      "date": "May 30",
       "cases": 906,
       "deaths": 223,
       "drcConfirmed": 125,
