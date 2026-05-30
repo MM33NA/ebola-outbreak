@@ -212,39 +212,32 @@ async function init() {
 
     <hr class="section-divider">
 
-    <div class="chart-header">
-      <p class="section-title" style="margin:0;">Outbreak Progression </p>
-      <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
-        <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
-      </div>
-    </div>
-    <div class="legend">
+  <div class="chart-section-wrapper" style="margin-bottom: 24px;">
+  
+  <div class="chart-introduction" style="margin-bottom: 16px;">
+    <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
+    <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 750px; font-style: regular;">
+      This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Because surveillance data initially relies heavily on unverified "suspected" cases, the curves are subject to retroactive data auditing, case reclassifications, and field cleanups by reporting Ministries of Health. Consequently, periodic plateauing or downward adjustments reflect official corrections and the removal of discarded false positives at the source.
+    </p>
+  </div>
+
+  <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div class="legend" style="margin: 0;">
       <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span><span id="legend-cases">Suspected cases</span></span>
       <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span><span id="legend-deaths">Suspected deaths</span></span>
     </div>
-    <div class="chart-wrap">
-      <canvas id="mainChart" role="img"></canvas>
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
+      <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
     </div>
+  </div>
 
-    <p style="font-size: 12px; color: #666; margin: 12px 0 0 0; font-style: italic; line-height: 1.4;">
-      *Note: Timeline data reflects raw CDC situation summaries, automatically extracted live as they are published. Periodic downward fluctuations indicate retroactive data cleaning, case reclassifications, or discarded false positives by reporting Ministries of Health.
-    </p>
+  <div class="chart-wrap">
+    <canvas id="mainChart" role="img"></canvas>
+  </div>
 
-    <hr class="section-divider">
-
-    <p class="section-title">Transmission &amp; importation network</p>
-    <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
-
-    <div class="graph-card">
-      <svg id="graph-svg" viewBox="0 0 680 500" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-
-    <p class="note" style="margin-bottom:1.75rem;">
-      <strong>Network note:</strong> Germany represents a <strong>contact transfer</strong> — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases; enhanced airport screening was a precaution. DRC health zone figures are estimates.
-    </p>
-
-    <hr class="section-divider">
+</div>
+<hr class="section-divider">
 
     <p class="section-title">Affected provinces &amp; health zones (DRC)</p>
     <table>
