@@ -286,11 +286,15 @@ async function init() {
       <a href="https://www.cdc.gov/han/php/notices/han00530.html" target="_blank" rel="noopener">CDC Health Alert Network ↗</a>
       <a href="https://www.who.int/news/item/17-05-2026-epidemic-of-ebola-disease-in-the-democratic-republic-of-the-congo-and-uganda-determined-a-public-health-emergency-of-international-concern" target="_blank" rel="noopener">WHO PHEIC Declaration ↗</a>
     </div>
-
+    
     <footer>
       Last updated ${updated} · Not a medical resource.
-    </footer>
-  `;
+      </p> 
+      <div style="margin-top: 8px;">
+        <img src="https://visitor-badge.laobi.icu/badge?page_id=mm33na.ebola-outbreak&left_text=views" alt="Views"/>
+        </div>
+        </footer>
+`;
 
   // ── Line chart ──
   renderChart('cumulative');
@@ -516,7 +520,5 @@ function buildNetwork(network, isDark, divColor) {
 
 init();
 </script>
-<footer style="text-align: center; margin: 40px 0 20px 0; font-family: sans-serif; font-size: 12px; color: #5f5e5a;">
-  <img src="https://myhits.vercel.app/api/hit/mm33na.github.io/ebola-outbreak?color=blue&label=views&size=small" alt="Views"/>  </footer>
 </body>
 </html>
