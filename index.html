@@ -212,11 +212,11 @@ async function init() {
 
     <hr class="section-divider">
 
-  <div class="chart-section-wrapper" style="margin-bottom: 24px;">
+    <div class="chart-section-wrapper" style="margin-bottom: 24px;">
   
   <div class="chart-introduction" style="margin-bottom: 16px;">
     <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
-    <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 800px; font-style: regular;">
+    <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 800px; font-style: ;">
       This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Because surveillance data initially relies heavily on unverified "suspected" cases, the curves are subject to retroactive data auditing, case reclassifications, and field cleanups by reporting Ministries of Health. Consequently, periodic plateauing or downward adjustments reflect official corrections and the removal of discarded false positives at the source.
     </p>
   </div>
@@ -238,6 +238,19 @@ async function init() {
 
 </div>
 <hr class="section-divider">
+
+    <p class="section-title">Transmission &amp; importation network</p>
+    <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
+
+    <div class="graph-card">
+      <svg id="graph-svg" viewBox="0 0 680 500" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <p class="note" style="margin-bottom:1.75rem;">
+      <strong>Network note:</strong> Germany represents a <strong>contact transfer</strong> — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases; enhanced airport screening was a precaution. DRC health zone figures are estimates.
+    </p>
+
+    <hr class="section-divider">
 
     <p class="section-title">Affected provinces &amp; health zones (DRC)</p>
     <table>
