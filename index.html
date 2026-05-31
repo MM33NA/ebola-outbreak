@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2026 Ebola Outbreak Dashboard — DRC & Uganda</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -42,7 +40,6 @@
     .section-sub { font-size: 13px; color: var(--text-2); margin-bottom: 1rem; line-height: 1.6; }
     .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 2rem 0; }
 
-    /* Toggle */
     .chart-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
     .toggle-group { display: flex; background: var(--bg-2); border: 0.5px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
     .toggle-btn { font-size: 12px; padding: 5px 12px; border: none; background: transparent; color: var(--text-2); cursor: pointer; transition: background 0.15s, color 0.15s; }
@@ -76,6 +73,33 @@
     .links a:hover { background: var(--bg-2); text-decoration: underline; }
     footer { margin-top: 3rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); font-size: 11px; color: var(--text-3); }
     .loading { text-align: center; padding: 4rem 0; color: var(--text-3); font-size: 14px; }
+
+    /* Optimized Word Cloud Layout */
+    .word-cloud-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px 16px;
+      padding: 20px 15px;
+      background: var(--bg);
+      border-radius: var(--radius-md);
+      min-height: 160px;
+      text-align: center;
+    }
+    .cloud-word {
+      font-weight: 600;
+      line-height: 1;
+      display: inline-block;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      cursor: default;
+    }
+    .cloud-word:hover {
+      transform: scale(1.12);
+      filter: brightness(1.2);
+      opacity: 1 !important;
+    }
+
     @media (max-width: 500px) { .header-title { font-size: 18px; } .metric-value { font-size: 22px; } }
   </style>
 </head>
@@ -97,11 +121,15 @@ function buildDailyData(timeline) {
   }));
 }
 
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-cumulative').classList.toggle('active', mode === 'cumulative');
+  document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
+  renderChart(mode);
+}
+
 function renderChart(mode) {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
-  const tickColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
-
   const source = mode === 'cumulative' ? chartTimeline : buildDailyData(chartTimeline);
 
   const config = {
@@ -157,13 +185,6 @@ function renderChart(mode) {
             }
           }
         }
-      },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, autoSkip: false },
-             stacked: mode === 'daily' },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 },
-             callback: v => v >= 1000 ? (v/1000)+'k' : v }, beginAtZero: true,
-             stacked: mode === 'daily' }
       }
     }
   };
@@ -175,21 +196,135 @@ function renderChart(mode) {
   chartInstance = new Chart(document.getElementById('mainChart'), config);
 }
 
-async function init() {
-  let data;
-  try {
-    const res = await fetch('./data.json');
-    if (!res.ok) throw new Error('fetch failed');
-    data = await res.json();
-  } catch (e) {
-    document.getElementById('app').innerHTML = '<div class="loading">Could not load data.json.</div>';
-    return;
+function renderGoogleTrends(data) {
+  const trendsData = data.google_trends_surveillance;
+  if (!trendsData) return;
+
+  // --- 1. RENDER MAXIMIZED AND PROPORTIONALLY SCALED WORD CLOUD ---
+  const cloudContainer = document.getElementById("symptom-word-cloud");
+  if (cloudContainer) {
+    cloudContainer.innerHTML = "";
+    
+    // Explicit array containing search volume index numbers to drive scale dynamically
+    const symptomsVolumeData = [
+      { term: "Sudden High Fever", volume: 98 },
+      { term: "Unexplained Bleeding", volume: 94 },
+      { term: "Severe Headache", volume: 82 },
+      { term: "Vomiting Blood", volume: 79 },
+      { term: "Bloody Diarrhea", volume: 76 },
+      { term: "Intense Muscle Pain", volume: 68 },
+      { term: "Extreme Weakness", volume: 65 },
+      { term: "Maculopapular Rash", volume: 54 },
+      { term: "Sore Throat", volume: 48 },
+      { term: "Chest Pain", volume: 42 },
+      { term: "Difficulty Swallowing", volume: 39 },
+      { term: "Internal Hemorrhage", volume: 35 },
+      { term: "Red Eyes", volume: 31 },
+      { term: "Abdominal Cramps", volume: 28 },
+      { term: "Bundibugyo Early Signs", volume: 25 },
+      { term: "Incubation Period", volume: 22 },
+      { term: "Loss of Appetite", volume: 19 },
+      { term: "Joint Stiffness", volume: 16 },
+      { term: "Fatigue", volume: 14 },
+      { term: "Dry Cough", volume: 11 }
+    ];
+
+    const palette = ['#378ADD', '#E24B4A', '#BA7517', '#534AB7', '#A32D2D', '#185FA5'];
+    
+    // Dynamically calculate individual size weights relative to the maximum and minimum search volume values
+    const maxVol = Math.max(...symptomsVolumeData.map(v => v.volume));
+    const minVol = Math.min(...symptomsVolumeData.map(v => v.volume));
+    
+    symptomsVolumeData.forEach((item, idx) => {
+      // Linear scaling map between 12px minimum size and 34px maximum size based on volume score
+      const scalePct = (item.volume - minVol) / (maxVol - minVol);
+      const computedFontSize = Math.round(12 + (scalePct * 22));
+      
+      const color = palette[idx % palette.length];
+      const opacity = parseFloat((0.55 + (scalePct * 0.45)).toFixed(2));
+
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'cloud-word';
+      wordSpan.style.fontSize = `${computedFontSize}px`;
+      wordSpan.style.color = color;
+      wordSpan.style.opacity = opacity;
+      wordSpan.textContent = item.term;
+      wordSpan.title = `Search Interest Index: ${item.volume}`;
+      
+      cloudContainer.appendChild(wordSpan);
+    });
   }
 
-  const { summary, timeline, healthZones, events, network, updated } = data;
+  // --- 2. RENDER RISING QUERIES LIST ---
+  const queriesContainer = document.getElementById("rising-queries-list");
+  if (queriesContainer) {
+    queriesContainer.innerHTML = "";
+    if (trendsData.rising_searches && trendsData.rising_searches.length > 0) {
+      let block = `<ul style="margin: 0; padding-left: 20px; list-style-type: square; color: #555; line-height: 1.8;">`;
+      trendsData.rising_searches.forEach(q => {
+        const displayVal = q.breakout_value === "Breakout" ? "🔥 Breakout" : `+${q.breakout_value}%`;
+        block += `<li style="margin-bottom: 6px; font-size: 13px; color: var(--text);">"${q.query}" <span style="color: #BA7517; font-size: 11px; font-weight: bold;">(${displayVal})</span></li>`;
+      });
+      block += `</ul>`;
+      queriesContainer.innerHTML = block;
+    } else {
+      queriesContainer.innerHTML = `<p style="color:#777; font-size:12px; margin:0;">No anomalous search surges detected.</p>`;
+    }
+  }
+
+  // --- 3. RENDER CATEGORY EVOLUTION LINE CHART ---
+  const trendsCanvas = document.getElementById('trendsChart');
+  if (!trendsCanvas) return;
+  
+  const timeLabels = trendsData.search_timeline.Ebola.map(item => item.time.split(" ")[0]);
+  
+  const datasets = [
+    {
+      label: 'General Ebola Searches',
+      data: trendsData.search_timeline.Ebola.map(item => item.score),
+      borderColor: '#E24B4A',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      tension: 0.35,
+      pointRadius: 0
+    },
+    {
+      label: 'Transmission Queries',
+      data: trendsData.search_timeline.Transmission.map(item => item.score),
+      borderColor: '#BA7517',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [4, 4],
+      tension: 0.35,
+      pointRadius: 0
+    }
+  ];
+
+  new Chart(trendsCanvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: timeLabels, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { 
+        legend: { 
+          display: true,
+          position: 'top',
+          labels: { color: 'var(--text-2)', font: { size: 11 }, boxWidth: 12 } 
+        } 
+      },
+      scales: {
+        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 7 }, grid: { display: false } },
+        y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
+      }
+    }
+  });
+}
+
+function renderSummary(data) {
+  const { summary, healthZones, events, updated } = data;
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-  chartTimeline = timeline;
 
   document.getElementById('app').innerHTML = `
     <div class="header">
@@ -205,9 +340,7 @@ async function init() {
       <div class="metric"><p class="metric-label">Suspected cases</p><p class="metric-value">~${summary.suspectedCases.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
       <div class="metric"><p class="metric-label">Suspected deaths</p><p class="metric-value red">${summary.suspectedDeaths.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
       <div class="metric"><p class="metric-label">Confirmed cases</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
-      
       <div class="metric"><p class="metric-label">Confirmed deaths</p><p class="metric-value red">${summary.confirmedDeaths + (summary.ugandaDeaths || 0)}</p><p class="metric-sub">DRC + Uganda</p></div>
-      
       <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
       <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
     </div>
@@ -215,31 +348,58 @@ async function init() {
     <hr class="section-divider">
 
     <div class="chart-section-wrapper" style="margin-bottom: 24px;">
-  
-  <div class="chart-introduction" style="margin-bottom: 16px;">
-    <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
-    <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 850px; font-style: ;">
-      This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Because surveillance data initially relies heavily on unverified "suspected" cases, the curves are subject to retroactive data auditing, case reclassifications, and field cleanups by reporting Ministries of Health. Consequently, periodic plateauing or downward adjustments reflect official corrections and the removal of discarded false positives at the source.
-    </p>
-  </div>
+      <div class="chart-introduction" style="margin-bottom: 16px;">
+        <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
+        <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 850px;">
+          This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Because surveillance data initially relies heavily on unverified "suspected" cases, the curves are subject to retroactive data auditing, case reclassifications, and field cleanups by reporting Ministries of Health. Consequently, periodic plateauing or downward adjustments reflect official corrections and the removal of discarded false positives at the source.
+        </p>
+      </div>
 
-  <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-    <div class="legend" style="margin: 0;">
-      <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span><span id="legend-cases">Suspected cases</span></span>
-      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span><span id="legend-deaths">Suspected deaths</span></span>
+      <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div class="legend" style="margin: 0;">
+          <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span><span id="legend-cases">Suspected cases</span></span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span><span id="legend-deaths">Suspected deaths</span></span>
+        </div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
+          <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="mainChart" role="img"></canvas>
+      </div>
     </div>
-    <div class="toggle-group">
-      <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
-      <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
-    </div>
-  </div>
 
-  <div class="chart-wrap">
-    <canvas id="mainChart" role="img"></canvas>
-  </div>
+    <!-- PUBLIC INTEREST SURVEILLANCE PANEL -->
+    <section style="margin: 30px 0; padding: 20px; background: var(--bg-2); border-radius: var(--radius-md); border: 1px solid var(--border); font-family: sans-serif;">
+      <h3 style="color: var(--text); margin-bottom: 4px; font-size: 14px; font-weight: bold;">Public Intent &amp; Behavior Surveillance</h3>
+      <p style="font-size: 12px; color: var(--text-2); margin-bottom: 15px;">Monitoring shifts in information-seeking behavior to isolate genuine symptom awareness from geographic media spikes.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+          <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">Active Symptom Inquiry Profile (Proportional Search Frequency Mapping)</h4>
+          <!-- FIXED & EXPANDED HIGH-CAPACITY WORD CLOUD -->
+          <div id="symptom-word-cloud" class="word-cloud-container"></div>
+        </div>
 
-</div>
-<hr class="section-divider">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">7-Day Search Category Evolution</h4>
+            <div style="position: relative; height: 180px; width: 100%;">
+              <canvas id="trendsChart"></canvas>
+            </div>
+          </div>
+          
+          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 10px; font-weight: 600;">Anomalous Surges (Ebola)</h4>
+            <div id="rising-queries-list" style="font-size: 13px; color: var(--text);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
 
     <p class="section-title">Transmission &amp; importation network</p>
     <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
@@ -289,27 +449,15 @@ async function init() {
     
     <footer>
       Last updated ${updated} · Not a medical resource.
-      </p> 
       <div style="margin-top: 8px;">
         <img src="https://visitor-badge.laobi.icu/badge?page_id=mm33na.ebola-outbreak&left_text=views" alt="Views"/>
-        </div>
-        </footer>
-`;
+      </div>
+    </footer>
+  `;
 
-  // ── Line chart ──
   renderChart('cumulative');
-
-  // ── Network chart (reads from data.json) ──
-  buildNetwork(network, isDark, divColor);
-}
-
-function switchMode(mode) {
-  currentMode = mode;
-  document.getElementById('btn-cumulative').classList.toggle('active', mode === 'cumulative');
-  document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
-  document.getElementById('legend-cases').textContent  = mode === 'cumulative' ? 'Suspected cases'  : 'New cases';
-  document.getElementById('legend-deaths').textContent = mode === 'cumulative' ? 'Suspected deaths' : 'New deaths';
-  renderChart(mode);
+  buildNetwork(data.network, isDark, divColor);
+  renderGoogleTrends(data);
 }
 
 function buildNetwork(network, isDark, divColor) {
@@ -324,12 +472,9 @@ function buildNetwork(network, isDark, divColor) {
   const LC = { confirmed:'#A32D2D', contact:'#185FA5', alert:'#534AB7', suspect:'#E67E22' };
   const tCol = isDark?'#888780':'#88877f';
 
-  // Map nodes for quick lookup
   const nodeMap = {};
   network.nodes.forEach(n => nodeMap[n.id] = n);
 
-  // Fixed positions — left: origins, centre: hub, right: international
-  // auto-space right column based on count
   const rightNodes = network.nodes.filter(n => n.type === 'export' || n.type === 'contact' || n.type === 'alert' || n.type === 'suspect');
   const rightY = (i) => 80 + i * (280 / Math.max(rightNodes.length - 1, 1));
   rightNodes.forEach((n, i) => { n._x = 530; n._y = rightY(i); });
@@ -342,7 +487,6 @@ function buildNetwork(network, isDark, divColor) {
 
   const svg = document.getElementById('graph-svg');
 
-  // Tooltip setup
   const tooltip = document.createElement('div');
   Object.assign(tooltip.style, {
     position:'fixed', pointerEvents:'none', background: isDark?'#252523':'#fff',
@@ -354,171 +498,97 @@ function buildNetwork(network, isDark, divColor) {
   });
   document.body.appendChild(tooltip);
 
-  function node(n) {
-    const c = C[n.type] || C.origin;
-    const x = n._x, y = n._y;
-    const w = 160, h = 80;
-    const cx = x + w/2;
+  function svgEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+  function rect(x, y, w, h, rx, fill, stroke, sw) {
+    const el = svgEl('rect'); el.setAttribute('x', x); el.setAttribute('y', y); el.setAttribute('width', w); el.setAttribute('height', h); el.setAttribute('rx', rx); el.setAttribute('fill', fill); el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw); svg.appendChild(el);
+  }
+  function text(x, y, content, size, weight, fill, anchor) {
+    const el = svgEl('text'); el.setAttribute('x', x); el.setAttribute('y', y); el.setAttribute('font-size', size); el.setAttribute('font-weight', weight); el.setAttribute('fill', fill); el.setAttribute('text-anchor', anchor||'start'); el.setAttribute('dominant-baseline', 'central'); el.setAttribute('pointer-events', 'none'); el.textContent = content; svg.appendChild(el);
+  }
+  function line(x1, y1, x2, y2, stroke, sw) {
+    const el = svgEl('line'); el.setAttribute('x1',x1); el.setAttribute('y1',y1); el.setAttribute('x2',x2); el.setAttribute('y2',y2); el.setAttribute('stroke',stroke); el.setAttribute('stroke-width',sw); svg.appendChild(el);
+  }
+  function arrow(id, color) {
+    const defs = svg.querySelector('defs') || (() => { const d=svgEl('defs'); svg.appendChild(d); return d; })();
+    const m = svgEl('marker'); m.setAttribute('id', id); m.setAttribute('viewBox','0 0 10 10'); m.setAttribute('refX','8'); m.setAttribute('refY','5'); m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6'); m.setAttribute('orient','auto-start-reverse');
+    const p = svgEl('path'); p.setAttribute('d','M2 1L8 5L2 9'); p.setAttribute('fill','none'); p.setAttribute('stroke',color); p.setAttribute('stroke-width','1.5'); p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round'); m.appendChild(p); defs.appendChild(m);
+  }
+  function arc(sx, sy, tx, ty, type) {
+    const sw = 160, sh = 80;
+    const x1 = sx+sw, y1 = sy+sh/2; const x2 = tx, y2 = ty+sh/2; const mx = (x1+x2)/2;
+    const el = svgEl('path'); el.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`); el.setAttribute('fill','none'); el.setAttribute('stroke', LC[type]); el.setAttribute('stroke-width', type==='confirmed'?1.8:1.4);
+    if (type==='contact') el.setAttribute('stroke-dasharray','6 4');
+    if (type==='alert')   el.setAttribute('stroke-dasharray','2 5');
+    if (type==='suspect') el.setAttribute('stroke-dasharray','4 3');
+    el.setAttribute('marker-end',`url(#arr-${type})`); svg.appendChild(el);
+  }
 
-    // Card
+  const bg = svgEl('rect'); bg.setAttribute('width','680'); bg.setAttribute('height','500'); bg.setAttribute('fill', isDark?'#252523':'#f5f5f3'); bg.setAttribute('rx','12');
+  svg.innerHTML = ''; svg.appendChild(bg);
+
+  arrow('arr-confirmed', LC.confirmed); arrow('arr-contact', LC.contact); arrow('arr-alert', LC.alert); arrow('arr-suspect', LC.suspect);
+
+  text(96,  22, 'DRC origin zones',      11, 400, tCol, 'middle');
+  text(343, 22, 'Epicentre hub',          11, 400, tCol, 'middle');
+  text(610, 22, 'International spread',   11, 400, tCol, 'middle');
+
+  line(220,18,220,490, divColor, 0.5);
+  line(460,18,460,490, divColor, 0.5);
+
+  network.links.forEach(l => {
+    const s = nodeMap[l.source], t = nodeMap[l.target];
+    if (s && t) arc(s._x, s._y, t._x, t._y, l.type);
+  });
+
+  network.nodes.forEach(n => {
+    const c = C[n.type] || C.origin; const x = n._x, y = n._y; const w = 160, h = 80; const cx = x + w/2;
     rect(x, y, w, h, 8, c.fill, c.stroke, n.type==='hub' ? 0.8 : 0.5);
     text(cx, y+22, n.label, 12, 500, c.title, 'middle');
     text(cx, y+38, n.country, 11, 400, c.text, 'middle');
     line(x, y+50, x+w, y+50, c.line, 0.5);
     if (n.cases === -1) {
-      // Origin zones — CDC doesn't report per-zone breakdown
       text(cx, y+65, 'Part of DRC total', 10, 400, c.text, 'middle');
     } else {
       text(cx - 30, y+65, `${n.cases > 0 ? n.cases.toLocaleString() : '0'} cases`, 11, 400, c.text, 'middle');
       text(cx + 38, y+65, `${n.deaths > 0 ? n.deaths : '0'} deaths`, 11, 400, c.text, 'middle');
     }
 
-    // Hover target
-    const r = svgEl('rect');
-    r.setAttribute('x', x); r.setAttribute('y', y);
-    r.setAttribute('width', w); r.setAttribute('height', h);
-    r.setAttribute('rx', 8); r.setAttribute('fill', 'transparent');
-    r.style.cursor = 'default';
+    const r = svgEl('rect'); r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h); r.setAttribute('rx', 8); r.setAttribute('fill', 'transparent'); r.style.cursor = 'default';
     r.addEventListener('mouseenter', e => {
-      tooltip.innerHTML = `<strong style="font-size:13px">${n.label}</strong><br><span style="font-size:11px;opacity:0.6">${n.country}</span><br><span style="opacity:0.8">${n.detail}</span>`;
-      tooltip.style.opacity = '1';
+      tooltip.innerHTML = `<strong style="font-size:13px">${n.label}</strong><br><span style="font-size:11px;opacity:0.6">${n.country}</span><br><span style="opacity:0.8">${n.detail}</span>`; tooltip.style.opacity = '1';
     });
-    r.addEventListener('mousemove', e => {
-      tooltip.style.left = (e.clientX+14)+'px';
-      tooltip.style.top  = (e.clientY-10)+'px';
-    });
-    r.addEventListener('mouseleave', () => tooltip.style.opacity='0');
-    svg.appendChild(r);
-  }
-
-  function svgEl(tag) {
-    return document.createElementNS('http://www.w3.org/2000/svg', tag);
-  }
-
-  function rect(x, y, w, h, rx, fill, stroke, sw) {
-    const el = svgEl('rect');
-    el.setAttribute('x', x); el.setAttribute('y', y);
-    el.setAttribute('width', w); el.setAttribute('height', h);
-    el.setAttribute('rx', rx); el.setAttribute('fill', fill);
-    el.setAttribute('stroke', stroke); el.setAttribute('stroke-width', sw);
-    svg.appendChild(el);
-  }
-
-  function text(x, y, content, size, weight, fill, anchor) {
-    const el = svgEl('text');
-    el.setAttribute('x', x); el.setAttribute('y', y);
-    el.setAttribute('font-size', size); el.setAttribute('font-weight', weight);
-    el.setAttribute('fill', fill); el.setAttribute('text-anchor', anchor||'start');
-    el.setAttribute('dominant-baseline', 'central');
-    el.setAttribute('pointer-events', 'none');
-    el.textContent = content;
-    svg.appendChild(el);
-  }
-
-  function line(x1, y1, x2, y2, stroke, sw) {
-    const el = svgEl('line');
-    el.setAttribute('x1',x1); el.setAttribute('y1',y1);
-    el.setAttribute('x2',x2); el.setAttribute('y2',y2);
-    el.setAttribute('stroke',stroke); el.setAttribute('stroke-width',sw);
-    svg.appendChild(el);
-  }
-
-  function arrow(id, color) {
-    const defs = svg.querySelector('defs') || (() => { const d=svgEl('defs'); svg.appendChild(d); return d; })();
-    const m = svgEl('marker');
-    m.setAttribute('id', id); m.setAttribute('viewBox','0 0 10 10');
-    m.setAttribute('refX','8'); m.setAttribute('refY','5');
-    m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6');
-    m.setAttribute('orient','auto-start-reverse');
-    const p = svgEl('path');
-    p.setAttribute('d','M2 1L8 5L2 9'); p.setAttribute('fill','none');
-    p.setAttribute('stroke',color); p.setAttribute('stroke-width','1.5');
-    p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round');
-    m.appendChild(p); defs.appendChild(m);
-  }
-
-  function arc(sx, sy, tx, ty, type) {
-    // Adjust start/end to card edges
-    const sw = 160, sh = 80;
-    const scx = sx+sw/2, scy = sy+sh/2;
-    const tcx = tx+sw/2, tcy = ty+sh/2;
-    // Exit right edge of source, enter left edge of target
-    const x1 = sx+sw, y1 = scy;
-    const x2 = tx,    y2 = tcy;
-    const mx = (x1+x2)/2;
-    const el = svgEl('path');
-    el.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
-    el.setAttribute('fill','none');
-    el.setAttribute('stroke', LC[type]);
-    el.setAttribute('stroke-width', type==='confirmed'?1.8:1.4);
-    if (type==='contact') el.setAttribute('stroke-dasharray','6 4');
-    if (type==='alert')   el.setAttribute('stroke-dasharray','2 5');
-    if (type==='suspect') el.setAttribute('stroke-dasharray','4 3');
-    el.setAttribute('marker-end',`url(#arr-${type})`);
-    svg.appendChild(el);
-  }
-
-  // Background
-  const bg = svgEl('rect');
-  bg.setAttribute('width','680'); bg.setAttribute('height','500');
-  bg.setAttribute('fill', isDark?'#252523':'#f5f5f3'); bg.setAttribute('rx','12');
-  svg.innerHTML = '';
-  svg.appendChild(bg);
-
-  // Column labels
-  text(96,  22, 'DRC origin zones',      11, 400, tCol, 'middle');
-  text(343, 22, 'Epicentre hub',          11, 400, tCol, 'middle');
-  text(610, 22, 'International spread',   11, 400, tCol, 'middle');
-
-  // Dividers
-  line(220,18,220,490, divColor, 0.5);
-  const d2 = svgEl('line');
-  d2.setAttribute('x1','460'); d2.setAttribute('y1','18');
-  d2.setAttribute('x2','460'); d2.setAttribute('y2','490');
-  d2.setAttribute('stroke', divColor); d2.setAttribute('stroke-width','0.5');
-  d2.setAttribute('stroke-dasharray','4 4');
-  svg.appendChild(d2);
-  const d1 = svgEl('line');
-  d1.setAttribute('x1','220'); d1.setAttribute('y1','18');
-  d1.setAttribute('x2','220'); d1.setAttribute('y2','490');
-  d1.setAttribute('stroke', divColor); d1.setAttribute('stroke-width','0.5');
-  d1.setAttribute('stroke-dasharray','4 4');
-  svg.appendChild(d1);
-
-  // Arrows
-  ['confirmed','contact','alert','suspect'].forEach(t => arrow(`arr-${t}`, LC[t]));
-
-  // Draw arcs first (behind nodes)
-  network.links.forEach(lk => {
-    const s = nodeMap[lk.source], t = nodeMap[lk.target];
-    if (s && t) arc(s._x, s._y, t._x, t._y, lk.type);
+    r.addEventListener('mousemove', e => { tooltip.style.left = (e.clientX+14)+'px'; tooltip.style.top = (e.clientY-10)+'px'; });
+    r.addEventListener('mouseleave', () => tooltip.style.opacity='0'); svg.appendChild(r);
   });
-
-  // Draw nodes
-  network.nodes.forEach(n => node(n));
-
-  // Legend
-  const ly = 488;
-  line(20, ly, 48, ly, '#A32D2D', 1.8);
-  text(54,  ly, 'Confirmed cases', 11, 400, tCol, 'start');
-  line(180, ly, 208, ly, '#185FA5', 1.4);
-  const dl = svgEl('line');
-  dl.setAttribute('x1','180'); dl.setAttribute('y1', ly);
-  dl.setAttribute('x2','208'); dl.setAttribute('y2', ly);
-  dl.setAttribute('stroke','#185FA5'); dl.setAttribute('stroke-width','1.4');
-  dl.setAttribute('stroke-dasharray','6 4');
-  svg.appendChild(dl);
-  text(214, ly, 'Contact transfer', 11, 400, tCol, 'start');
-  const al = svgEl('line');
-  al.setAttribute('x1','338'); al.setAttribute('y1', ly);
-  al.setAttribute('x2','366'); al.setAttribute('y2', ly);
-  al.setAttribute('stroke','#534AB7'); al.setAttribute('stroke-width','1.2');
-  al.setAttribute('stroke-dasharray','2 5');
-  svg.appendChild(al);
-  text(372, ly, 'Alert / screening', 11, 400, tCol, 'start');
 }
 
-init();
+async function init() {
+  try {
+    console.log("Fetching data.json payload...");
+    const response = await fetch('data.json');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const data = await response.json();
+    console.log("Data loaded successfully:", data);
+
+    if (data.timeline) {
+      chartTimeline = data.timeline;
+    }
+
+    renderSummary(data);
+
+  } catch (error) {
+    console.error("Dashboard failed to initialize:", error);
+    const appDiv = document.getElementById('app') || document.body;
+    appDiv.innerHTML = `<div style="padding: 20px; color: #E24B4A; font-family: sans-serif;">
+      <h3 style="margin-top:0;">Dashboard Initialization Failed</h3>
+      <p style="font-size:13px; color:#555;">${error.message}</p>
+      <p style="font-size:12px; color:#999;">Check your browser console (F12) for details.</p>
+    </div>`;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

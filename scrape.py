@@ -168,11 +168,11 @@ def update_json(s):
                 f"{current['suspectedDeaths']} suspected deaths · 3 provinces confirmed"
             )
 
+    # ── 5. Save Final Payload to File ─────────────────────────────────────
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
-
-    print(f"data.json successfully written with true raw data updates.")
-    return True
+        print(f"data.json successfully written with true raw data updates.")
+        return True
 
 def main():
     print("=" * 40)
@@ -189,7 +189,6 @@ def main():
 
     update_json(scraped)
     print("Done.")
-
 
 if __name__ == "__main__":
     main()
