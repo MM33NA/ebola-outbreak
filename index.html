@@ -575,6 +575,11 @@ async function init() {
       chartTimeline = data.timeline;
     }
 
+    // Recalculate the CFR correctly using confirmed data before rendering the summary
+    if (data.summary) {
+      data.summary.cfrPercent = Math.round(((data.summary.confirmedDeaths + (data.summary.ugandaDeaths || 0)) / data.summary.confirmedDRC) * 100);
+    }
+
     renderSummary(data);
 
   } catch (error) {
