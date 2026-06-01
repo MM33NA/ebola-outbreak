@@ -7,7 +7,7 @@ Run: python trends.py
 
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
 from pytrends.request import TrendReq
 
 DATA_FILE = Path(__file__).parent / "data.json"
@@ -16,10 +16,15 @@ def fetch_live_trends():
     print("Connecting to Google Trends API...")
     pytrends = TrendReq(hl='en-US', tz=360)
 
+    # Define the outbreak start date (Day 1) and calculate the historical daily timeframe
+    start_date = "2026-03-01"
+    today_date = date.today().strftime('%Y-%m-%d')
+    historical_timeframe = f"{start_date} {today_date}"
+
     # 1. Build the payload for the 3 distinct Ebola public intent lines
     kw_list = ["Ebola", "Ebola symptoms", "Ebola transmission"]
-    print(f"Fetching 7-day interest timelines for: {kw_list}")
-    pytrends.build_payload(kw_list, cat=0, timeframe='now 7-d', geo='', gprop='')
+    print(f"Fetching daily interest timelines from Day 1 ({historical_timeframe}) for: {kw_list}")
+    pytrends.build_payload(kw_list, cat=0, timeframe=historical_timeframe, geo='', gprop='')
     
     interest_df = pytrends.interest_over_time()
     
@@ -29,16 +34,16 @@ def fetch_live_trends():
         "Transmission": []
     }
     
-    # Process the live timeframe dataframe rows
+    # Process the historical timeframe dataframe rows (grouped by day)
     for index, row in interest_df.iterrows():
-        time_str = index.strftime('%Y-%m-%d %H:%M:%S')
+        time_str = index.strftime('%Y-%m-%d')
         search_timeline["Ebola"].append({"time": time_str, "score": int(row["Ebola"])})
         search_timeline["Symptoms"].append({"time": time_str, "score": int(row["Ebola symptoms"])})
         search_timeline["Transmission"].append({"time": time_str, "score": int(row["Ebola transmission"])})
 
     # 2. Grab anomalous rising spikes strictly for Ebola (Filters out unrelated noise)
     print("Fetching anomalous rising search queries...")
-    pytrends.build_payload(["Ebola"], cat=0, timeframe='now 7-d')
+    pytrends.build_payload(["Ebola"], cat=0, timeframe=historical_timeframe)
     related_queries = pytrends.related_queries()
     
     rising_searches = []
@@ -77,7 +82,7 @@ def update_trends_in_json():
     # Save everything back safely
     with DATA_FILE.open('w') as f:
         json.dump(data, f, indent=2)
-    print("Successfully merged live trends data into data.json!")
+    print("Successfully merged daily historical trends data into data.json!")
 
 if __name__ == "__main__":
     update_trends_in_json()

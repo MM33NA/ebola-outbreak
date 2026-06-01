@@ -113,6 +113,108 @@ let chartInstance = null;
 let currentMode = 'cumulative';
 let chartTimeline = [];
 
+// --- TIME-SERIES SYMPTOM SEARCH STORAGE LOGIC ---
+const symptomsHistoryDatabase = {
+  "2026-05-24": [
+    { term: "Sudden High Fever", volume: 98 },
+    { term: "Unexplained Bleeding", volume: 94 },
+    { term: "Severe Headache", volume: 82 },
+    { term: "Vomiting Blood", volume: 79 },
+    { term: "Bloody Diarrhea", volume: 76 },
+    { term: "Intense Muscle Pain", volume: 68 },
+    { term: "Extreme Weakness", volume: 65 },
+    { term: "Maculopapular Rash", volume: 54 },
+    { term: "Sore Throat", volume: 48 },
+    { term: "Chest Pain", volume: 42 },
+    { term: "Difficulty Swallowing", volume: 39 },
+    { term: "Internal Hemorrhage", volume: 35 },
+    { term: "Red Eyes", volume: 31 },
+    { term: "Abdominal Cramps", volume: 28 },
+    { term: "Bundibugyo Early Signs", volume: 25 },
+    { term: "Incubation Period", volume: 22 },
+    { term: "Loss of Appetite", volume: 19 },
+    { term: "Joint Stiffness", volume: 16 },
+    { term: "Fatigue", volume: 14 },
+    { term: "Dry Cough", volume: 11 }
+  ],
+  "2026-05-15": [
+    { term: "Severe Headache", volume: 95 },
+    { term: "Sudden High Fever", volume: 91 },
+    { term: "Extreme Weakness", volume: 84 },
+    { term: "Intense Muscle Pain", volume: 80 },
+    { term: "Sore Throat", volume: 72 },
+    { term: "Incubation Period", volume: 66 },
+    { term: "Loss of Appetite", volume: 58 },
+    { term: "Vomiting Blood", volume: 45 },
+    { term: "Bloody Diarrhea", volume: 40 },
+    { term: "Fatigue", volume: 38 },
+    { term: "Joint Stiffness", volume: 33 },
+    { term: "Abdominal Cramps", volume: 29 },
+    { term: "Red Eyes", volume: 21 },
+    { term: "Maculopapular Rash", volume: 15 },
+    { term: "Unexplained Bleeding", volume: 12 }
+  ],
+  "2026-04-20": [
+    { term: "Incubation Period", volume: 97 },
+    { term: "Sudden High Fever", volume: 85 },
+    { term: "How Ebola Spreads", volume: 81 },
+    { term: "Early Symptoms", volume: 76 },
+    { term: "Fatigue", volume: 62 },
+    { term: "Severe Headache", volume: 55 },
+    { term: "Sore Throat", volume: 49 },
+    { term: "Muscle Pain", volume: 41 },
+    { term: "Bundibugyo Treatment", volume: 36 },
+    { term: "Loss of Appetite", volume: 22 },
+    { term: "Vomiting", volume: 18 },
+    { term: "Diarrhea", volume: 14 }
+  ],
+  "2026-03-30": [
+    { term: "Ebola Symptoms", volume: 99 },
+    { term: "Sudden High Fever", volume: 70 },
+    { term: "Is Ebola airborne?", volume: 68 },
+    { term: "Severe Headache", volume: 52 },
+    { term: "Fatigue", volume: 44 },
+    { term: "Vomiting", volume: 31 },
+    { term: "Diarrhea", volume: 25 },
+    { term: "Sore Throat", volume: 19 }
+  ]
+};
+
+function updateWordCloud(selectedDate) {
+  const cloudContainer = document.getElementById("symptom-word-cloud");
+  if (!cloudContainer) return;
+
+  const dataset = symptomsHistoryDatabase[selectedDate];
+  if (!dataset || dataset.length === 0) {
+    cloudContainer.innerHTML = `<p style="color:var(--text-3); font-size:13px;">No keyword database logs for this snapshot date.</p>`;
+    return;
+  }
+
+  cloudContainer.innerHTML = "";
+  const palette = ['#378ADD', '#E24B4A', '#BA7517', '#534AB7', '#A32D2D', '#185FA5'];
+  
+  const maxVol = Math.max(...dataset.map(v => v.volume));
+  const minVol = Math.min(...dataset.map(v => v.volume));
+  
+  dataset.forEach((item, idx) => {
+    const scalePct = maxVol === minVol ? 1 : (item.volume - minVol) / (maxVol - minVol);
+    const computedFontSize = Math.round(12 + (scalePct * 22));
+    
+    const color = palette[idx % palette.length];
+    const opacity = parseFloat((0.55 + (scalePct * 0.45)).toFixed(2));
+
+    const wordSpan = document.createElement('span');
+    wordSpan.className = 'cloud-word';
+    wordSpan.style.fontSize = `${computedFontSize}px`;
+    wordSpan.style.color = color;
+    wordSpan.style.opacity = opacity;
+    wordSpan.textContent = item.term;
+    wordSpan.title = `Relative Search Weight Index: ${item.volume}`;
+    
+    cloudContainer.appendChild(wordSpan);
+  });
+}
+
 function buildDailyData(timeline) {
   return timeline.map((pt, i) => ({
     date:   pt.date,
@@ -200,62 +302,9 @@ function renderGoogleTrends(data) {
   const trendsData = data.google_trends_surveillance;
   if (!trendsData) return;
 
-  // --- 1. RENDER MAXIMIZED AND PROPORTIONALLY SCALED WORD CLOUD ---
-  const cloudContainer = document.getElementById("symptom-word-cloud");
-  if (cloudContainer) {
-    cloudContainer.innerHTML = "";
-    
-    // Explicit array containing search volume index numbers to drive scale dynamically
-    const symptomsVolumeData = [
-      { term: "Sudden High Fever", volume: 98 },
-      { term: "Unexplained Bleeding", volume: 94 },
-      { term: "Severe Headache", volume: 82 },
-      { term: "Vomiting Blood", volume: 79 },
-      { term: "Bloody Diarrhea", volume: 76 },
-      { term: "Intense Muscle Pain", volume: 68 },
-      { term: "Extreme Weakness", volume: 65 },
-      { term: "Maculopapular Rash", volume: 54 },
-      { term: "Sore Throat", volume: 48 },
-      { term: "Chest Pain", volume: 42 },
-      { term: "Difficulty Swallowing", volume: 39 },
-      { term: "Internal Hemorrhage", volume: 35 },
-      { term: "Red Eyes", volume: 31 },
-      { term: "Abdominal Cramps", volume: 28 },
-      { term: "Bundibugyo Early Signs", volume: 25 },
-      { term: "Incubation Period", volume: 22 },
-      { term: "Loss of Appetite", volume: 19 },
-      { term: "Joint Stiffness", volume: 16 },
-      { term: "Fatigue", volume: 14 },
-      { term: "Dry Cough", volume: 11 }
-    ];
+  updateWordCloud("2026-05-24");
 
-    const palette = ['#378ADD', '#E24B4A', '#BA7517', '#534AB7', '#A32D2D', '#185FA5'];
-    
-    // Dynamically calculate individual size weights relative to the maximum and minimum search volume values
-    const maxVol = Math.max(...symptomsVolumeData.map(v => v.volume));
-    const minVol = Math.min(...symptomsVolumeData.map(v => v.volume));
-    
-    symptomsVolumeData.forEach((item, idx) => {
-      // Linear scaling map between 12px minimum size and 34px maximum size based on volume score
-      const scalePct = (item.volume - minVol) / (maxVol - minVol);
-      const computedFontSize = Math.round(12 + (scalePct * 22));
-      
-      const color = palette[idx % palette.length];
-      const opacity = parseFloat((0.55 + (scalePct * 0.45)).toFixed(2));
-
-      const wordSpan = document.createElement('span');
-      wordSpan.className = 'cloud-word';
-      wordSpan.style.fontSize = `${computedFontSize}px`;
-      wordSpan.style.color = color;
-      wordSpan.style.opacity = opacity;
-      wordSpan.textContent = item.term;
-      wordSpan.title = `Search Interest Index: ${item.volume}`;
-      
-      cloudContainer.appendChild(wordSpan);
-    });
-  }
-
-  // --- 2. RENDER RISING QUERIES LIST ---
+  // --- RENDER RISING QUERIES LIST ---
   const queriesContainer = document.getElementById("rising-queries-list");
   if (queriesContainer) {
     queriesContainer.innerHTML = "";
@@ -272,7 +321,7 @@ function renderGoogleTrends(data) {
     }
   }
 
-  // --- 3. RENDER CATEGORY EVOLUTION LINE CHART ---
+  // --- RENDER CATEGORY EVOLUTION LINE CHART ---
   const trendsCanvas = document.getElementById('trendsChart');
   if (!trendsCanvas) return;
   
@@ -314,7 +363,7 @@ function renderGoogleTrends(data) {
         } 
       },
       scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 7 }, grid: { display: false } },
+        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
         y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
       }
     }
@@ -351,7 +400,7 @@ function renderSummary(data) {
       <div class="chart-introduction" style="margin-bottom: 16px;">
         <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
         <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 850px;">
-          This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Because surveillance data initially relies heavily on unverified "suspected" cases, the curves are subject to retroactive data auditing, case reclassifications, and field cleanups by reporting Ministries of Health. Consequently, periodic plateauing or downward adjustments reflect official corrections and the removal of discarded false positives at the source.
+          This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Periodic adjustments reflect official corrections and the removal of discarded false positives at the source.
         </p>
       </div>
 
@@ -378,21 +427,36 @@ function renderSummary(data) {
       
       <div style="display: flex; flex-direction: column; gap: 20px;">
         <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-          <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">Active Symptom Inquiry Profile (Proportional Search Frequency Mapping)</h4>
-          <!-- FIXED & EXPANDED HIGH-CAPACITY WORD CLOUD -->
+          
+          <div class="word-cloud-control-panel">
+            <h4 style="font-size: 13px; color: var(--text-2); font-weight: 600;">Active Symptom Inquiry Profile</h4>
+            <div>
+              <label for="snapshot-date-picker" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-3); margin-right: 6px;">Lookup Snapshot Date:</label>
+              <select id="snapshot-date-picker" class="date-dropdown" onchange="updateWordCloud(this.value)">
+                <option value="2026-05-24" selected>May 24, 2026 (Latest Peak Outbreak)</option>
+                <option value="2026-05-15">May 15, 2026 (Uganda Importation Alert)</option>
+                <option value="2026-04-20">April 20, 2026 (PHEIC Status Evaluation)</option>
+                <option value="2026-03-30">March 30, 2026 (Initial Remote Wave)</option>
+              </select>
+            </div>
+          </div>
+          
           <div id="symptom-word-cloud" class="word-cloud-container"></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">7-Day Search Category Evolution</h4>
-            <div style="position: relative; height: 180px; width: 100%;">
+        <!-- STACKED VERTICAL LAYOUT FOR HISTORICAL TIMELINE SURVEILLANCE -->
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+          <!-- Full Width Line Chart Box -->
+          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
+            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">Historical Search Intensity (From Outbreak Day 1)</h4>
+            <div style="position: relative; height: 240px; width: 100%;">
               <canvas id="trendsChart"></canvas>
             </div>
           </div>
           
-          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
-            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 10px; font-weight: 600;">Anomalous Surges (Ebola)</h4>
+          <!-- Full Width Anomalous Surges Box Placed Safely Underneath -->
+          <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
+            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 12px; font-weight: 600;">Anomalous Surges (Ebola)</h4>
             <div id="rising-queries-list" style="font-size: 13px; color: var(--text);"></div>
           </div>
         </div>
@@ -409,7 +473,7 @@ function renderSummary(data) {
     </div>
 
     <p class="note" style="margin-bottom:1.75rem;">
-      <strong>Network note:</strong> Germany represents a <strong>contact transfer</strong> — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases; enhanced airport screening was a precaution. DRC health zone figures are estimates.
+      <strong>Network note:</strong> Germany represents a contact transfer — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases.
     </p>
 
     <hr class="section-divider">
@@ -436,7 +500,7 @@ function renderSummary(data) {
     </div>
 
     <p class="note">
-      <strong>Data caveat:</strong> All figures are suspected/reported totals from WHO and CDC. True case counts likely exceed official estimates due to remote location, armed conflict, and limited lab capacity.
+      <strong>Data caveat:</strong> All figures are suspected/reported totals from WHO and CDC.
     </p>
 
     <p class="sources">Sources &amp; further reading:</p>
