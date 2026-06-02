@@ -302,6 +302,7 @@ function renderGoogleTrends(data) {
   const trendsData = data.google_trends_surveillance;
   if (!trendsData) return;
 
+  // Initialize the word cloud safely with the default snapshot
   updateWordCloud("2026-05-24");
 
   // --- RENDER RISING QUERIES LIST ---
@@ -325,8 +326,8 @@ function renderGoogleTrends(data) {
   const trendsCanvas = document.getElementById('trendsChart');
   if (!trendsCanvas) return;
   
-  const timeLabels = trendsData.search_timeline.Ebola.map(item => item.time.split(" ")[0]);
-  
+  // Splits out the time component if it exists, leaving only the clean date string (YYYY-MM-DD)
+const timeLabels = trendsData.search_timeline.Ebola.map(item => item.time.split(" ")[0]);  
   const datasets = [
     {
       label: 'General Ebola Searches',
@@ -363,8 +364,19 @@ function renderGoogleTrends(data) {
         } 
       },
       scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
-        y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
+        x: { 
+          ticks: { 
+            color: 'var(--text-3)', 
+            maxTicksLimit: 12 // Smoothly fits April through June daily timeline
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          min: 0, 
+          max: 100, 
+          ticks: { color: 'var(--text-3)' }, 
+          grid: { color: 'var(--border)' } 
+        }
       }
     }
   });
@@ -375,50 +387,57 @@ function renderSummary(data) {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
 
-  document.getElementById('app').innerHTML = `
-    <div class="header">
-      <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>
-      <h1 class="header-title">2026 Ebola Outbreak — DRC &amp; Uganda</h1>
-      <div class="header-meta">
-        <span class="badge badge-red">Bundibugyo virus · No vaccine or treatment</span>
-        <span class="badge">Data: WHO / CDC · Updated ${updated}</span>
-      </div>
-    </div>
+// Ensure this replacement block handles your layout inside renderSummary(data)
+document.getElementById('app').innerHTML = `
+  <hr class="section-divider">
 
-    <div class="metrics">
-      <div class="metric"><p class="metric-label">Suspected cases</p><p class="metric-value">~${summary.suspectedCases.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
-      <div class="metric"><p class="metric-label">Suspected deaths</p><p class="metric-value red">${summary.suspectedDeaths.toLocaleString()}</p><p class="metric-sub">as of ${updated}</p></div>
-      <div class="metric"><p class="metric-label">Confirmed cases</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
-      <div class="metric"><p class="metric-label">Confirmed deaths</p><p class="metric-value red">${summary.confirmedDeaths + (summary.ugandaDeaths || 0)}</p><p class="metric-sub">DRC + Uganda</p></div>
-      <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
-      <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
-    </div>
-
-    <hr class="section-divider">
-
-    <div class="chart-section-wrapper" style="margin-bottom: 24px;">
-      <div class="chart-introduction" style="margin-bottom: 16px;">
-        <p class="section-title" style="margin: 0 0 6px 0;">Reported Outbreak Timeline</p>
-        <p style="font-size: 13px; color: #555; margin: 0; line-height: 1.5; max-width: 850px;">
-          This timeline tracks the reporting history of the outbreak based on official CDC Situation Summaries as they are published live. Periodic adjustments reflect official corrections and the removal of discarded false positives at the source.
-        </p>
-      </div>
-
-      <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div class="legend" style="margin: 0;">
-          <span class="legend-item"><span class="legend-swatch" style="background:#378ADD"></span><span id="legend-cases">Suspected cases</span></span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A"></span><span id="legend-deaths">Suspected deaths</span></span>
+  <section style="margin: 30px 0; padding: 20px; background: var(--bg-2); border-radius: var(--radius-md); border: 1px solid var(--border); font-family: sans-serif;">
+    <h3 style="color: var(--text); margin-bottom: 4px; font-size: 14px; font-weight: bold;">Public Intent &amp; Behavior Surveillance</h3>
+    <p style="font-size: 12px; color: var(--text-2); margin-bottom: 15px;">Monitoring shifts in information-seeking behavior to isolate genuine symptom awareness from geographic media spikes.</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+        
+        <div class="word-cloud-control-panel" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="font-size: 13px; color: var(--text-2); font-weight: 600; margin: 0;">Active Symptom Inquiry Profile</h4>
+          <div>
+            <label for="snapshot-date-picker" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-3); margin-right: 6px;">Lookup Snapshot Date:</label>
+            <select id="snapshot-date-picker" class="date-dropdown" onchange="updateWordCloud(this.value)">
+              <option value="2026-05-24" selected>May 24, 2026 (Latest Peak Outbreak)</option>
+              <option value="2026-05-15">May 15, 2026 (Uganda Importation Alert)</option>
+              <option value="2026-04-20">April 20, 2026 (PHEIC Status Evaluation)</option>
+              <option value="2026-03-30">March 30, 2026 (Initial Remote Wave)</option>
+            </select>
+          </div>
         </div>
-        <div class="toggle-group">
-          <button class="toggle-btn active" id="btn-cumulative" onclick="switchMode('cumulative')">Cumulative</button>
-          <button class="toggle-btn" id="btn-daily" onclick="switchMode('daily')">Daily new</button>
-        </div>
+        
+        <div id="symptom-word-cloud" class="word-cloud-container"></div>
       </div>
 
-      <div class="chart-wrap">
-        <canvas id="mainChart" role="img"></canvas>
+      <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+        
+        <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h4 style="font-size: 13px; color: var(--text-2); margin: 0; font-weight: 600;">Historical Public Search Interest Timeline</h4>
+            <div class="toggle-group" style="margin: 0; display: flex; gap: 4px;">
+              <button class="toggle-btn active" id="btn-trend-daily" onclick="switchTrendResolution('daily')" style="padding: 4px 10px; font-size: 12px; cursor: pointer;">Daily</button>
+              <button class="toggle-btn" id="btn-trend-weekly" onclick="switchTrendResolution('weekly')" style="padding: 4px 10px; font-size: 12px; cursor: pointer;">Weekly</button>
+              <button class="toggle-btn" id="btn-trend-monthly" onclick="switchTrendResolution('monthly')" style="padding: 4px 10px; font-size: 12px; cursor: pointer;">Monthly</button>
+            </div>
+          </div>
+          <div style="position: relative; height: 240px; width: 100%;">
+            <canvas id="trendsChart"></canvas>
+          </div>
+        </div>
+        
+        <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
+          <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 12px; font-weight: 600;">Anomalous Surges (Ebola) [Work In Progress}</h4>
+          <div id="rising-queries-list" style="font-size: 13px; color: var(--text);"></div>
+        </div>
       </div>
     </div>
+  </section>
+;
 
     <!-- PUBLIC INTEREST SURVEILLANCE PANEL -->
     <section style="margin: 30px 0; padding: 20px; background: var(--bg-2); border-radius: var(--radius-md); border: 1px solid var(--border); font-family: sans-serif;">
@@ -448,11 +467,18 @@ function renderSummary(data) {
         <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
           <!-- Full Width Line Chart Box -->
           <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
-            <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 15px; font-weight: 600;">Historical Search Intensity (From Outbreak Day 1)</h4>
-            <div style="position: relative; height: 240px; width: 100%;">
-              <canvas id="trendsChart"></canvas>
-            </div>
-          </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h4 style="font-size: 13px; color: var(--text-2); margin: 0; font-weight: 600;">Historical Public Search Interest Timeline</h4>
+              <div class="toggle-group" style="margin: 0;">
+                <button class="toggle-btn active" id="btn-trend-daily" onclick="switchTrendResolution('daily')">Daily</button>
+                <button class="toggle-btn" id="btn-trend-weekly" onclick="switchTrendResolution('weekly')">Weekly</button>
+                <button class="toggle-btn" id="btn-trend-monthly" onclick="switchTrendResolution('monthly')">Monthly</button>
+                </div>
+                </div>
+                <div style="position: relative; height: 240px; width: 100%;">
+                  <canvas id="trendsChart"></canvas>
+                  </div>
+                  </div>
           
           <!-- Full Width Anomalous Surges Box Placed Safely Underneath -->
           <div style="background: var(--bg); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%;">
