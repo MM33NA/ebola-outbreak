@@ -16,17 +16,10 @@ def fetch_live_trends():
     print("Connecting to Google Trends API...")
     pytrends = TrendReq(hl='en-US', tz=360)
 
-    # Define the outbreak start date (Day 1) and calculate the historical daily timeframe
-    start_date = "2026-03-01"
+    # Hardcoded to start exactly 1 week prior to the sentinel case alert
+    start_date = "2026-04-17"
     today_date = date.today().strftime('%Y-%m-%d')
     historical_timeframe = f"{start_date} {today_date}"
-
-    # 1. Build the payload for the 3 distinct Ebola public intent lines
-    kw_list = ["Ebola", "Ebola symptoms", "Ebola transmission"]
-    print(f"Fetching daily interest timelines from Day 1 ({historical_timeframe}) for: {kw_list}")
-    pytrends.build_payload(kw_list, cat=0, timeframe=historical_timeframe, geo='', gprop='')
-    
-    interest_df = pytrends.interest_over_time()
     
     search_timeline = {
         "Ebola": [],
@@ -34,14 +27,28 @@ def fetch_live_trends():
         "Transmission": []
     }
     
-    # Process the historical timeframe dataframe rows (grouped by day)
-    for index, row in interest_df.iterrows():
-        time_str = index.strftime('%Y-%m-%d')
-        search_timeline["Ebola"].append({"time": time_str, "score": int(row["Ebola"])})
-        search_timeline["Symptoms"].append({"time": time_str, "score": int(row["Ebola symptoms"])})
-        search_timeline["Transmission"].append({"time": time_str, "score": int(row["Ebola transmission"])})
+    # FETCH KEYWORD 1 (Ebola)
+    print(f"Fetching historical daily timeline for: Ebola ({historical_timeframe})")
+    pytrends.build_payload(["Ebola"], cat=0, timeframe=historical_timeframe)
+    df1 = pytrends.interest_over_time()
+    for index, row in df1.iterrows():
+        search_timeline["Ebola"].append({"time": index.strftime('%Y-%m-%d'), "score": int(row["Ebola"])})
 
-    # 2. Grab anomalous rising spikes strictly for Ebola (Filters out unrelated noise)
+    # FETCH KEYWORD 2 (Ebola symptoms)
+    print(f"Fetching historical daily timeline for: Ebola symptoms ({historical_timeframe})")
+    pytrends.build_payload(["Ebola symptoms"], cat=0, timeframe=historical_timeframe)
+    df2 = pytrends.interest_over_time()
+    for index, row in df2.iterrows():
+        search_timeline["Symptoms"].append({"time": index.strftime('%Y-%m-%d'), "score": int(row["Ebola symptoms"])})
+
+    # FETCH KEYWORD 3 (Ebola transmission)
+    print(f"Fetching historical daily timeline for: Ebola transmission ({historical_timeframe})")
+    pytrends.build_payload(["Ebola transmission"], cat=0, timeframe=historical_timeframe)
+    df3 = pytrends.interest_over_time()
+    for index, row in df3.iterrows():
+        search_timeline["Transmission"].append({"time": index.strftime('%Y-%m-%d'), "score": int(row["Ebola transmission"])})
+
+    # 2. Grab anomalous rising spikes strictly for Ebola
     print("Fetching anomalous rising search queries...")
     pytrends.build_payload(["Ebola"], cat=0, timeframe=historical_timeframe)
     related_queries = pytrends.related_queries()
@@ -62,24 +69,21 @@ def update_trends_in_json():
         print("ERROR: data.json file missing. Run scrape.py first to initialize structure.")
         return
 
-    # Read the existing data containing your CDC tracking info
     with DATA_FILE.open('r') as f:
         data = json.load(f)
 
-    # Fetch fresh curves from Google Trends
     try:
         timeline, rising = fetch_live_trends()
     except Exception as e:
         print(f"Google API Error: {e}. Check internet connection or API rate-limits.")
         return
 
-    # Inject/Overwrite only the trends object block
+    # Injects the structured keys the frontend is waiting for
     data['google_trends_surveillance'] = {
         "search_timeline": timeline,
         "rising_searches": rising
     }
 
-    # Save everything back safely
     with DATA_FILE.open('w') as f:
         json.dump(data, f, indent=2)
     print("Successfully merged daily historical trends data into data.json!")
