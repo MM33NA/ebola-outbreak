@@ -1,94 +1,61 @@
 {
-  "updated": "2026-06-02",
+  "updated": "2026-06-11",
   "summary": {
-    "suspectedCases": 116,
-    "suspectedDeaths": 223,
-    "confirmedDRC": 332,
-    "confirmedDeaths": 48,
-    "ugandaCases": 11,
-    "ugandaDeaths": 1,
-    "cfrPercent": 192
+    "confirmedDRC": 635,
+    "confirmedDeaths": 127,
+    "ugandaCases": 15,
+    "ugandaDeaths": 7,
+    "cfrPercent": 20.6
   },
   "timeline": [
     {
-      "date": "Apr 24",
-      "cases": 1,
-      "deaths": 1
+      "date": "Jun 5",
+      "cases": 378,
+      "deaths": 64,
+      "drcConfirmed": 363,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 5",
-      "cases": 50,
-      "deaths": 15
+      "date": "Jun 6",
+      "cases": 467,
+      "deaths": 84,
+      "drcConfirmed": 452,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 15",
-      "cases": 246,
-      "deaths": 80
+      "date": "Jun 7",
+      "cases": 467,
+      "deaths": 84,
+      "drcConfirmed": 452,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 16",
-      "cases": 248,
-      "deaths": 81
+      "date": "Jun 8",
+      "cases": 565,
+      "deaths": 102,
+      "drcConfirmed": 550,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 19",
-      "cases": 543,
-      "deaths": 131
+      "date": "Jun 9",
+      "cases": 565,
+      "deaths": 102,
+      "drcConfirmed": 550,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 21",
-      "cases": 575,
-      "deaths": 148
+      "date": "Jun 10",
+      "cases": 613,
+      "deaths": 120,
+      "drcConfirmed": 598,
+      "ugandaConfirmed": 15
     },
     {
-      "date": "May 22",
-      "cases": 827,
-      "deaths": 176
-    },
-    {
-      "date": "May 24",
-      "cases": 906,
-      "deaths": 223
-    },
-    {
-      "date": "May 27",
-      "cases": 1077,
-      "deaths": 246
-    },
-    {
-      "date": "May 29",
-      "cases": 906,
-      "deaths": 223,
-      "drcConfirmed": 125,
-      "ugandaConfirmed": 9
-    },
-    {
-      "date": "May 30",
-      "cases": 906,
-      "deaths": 223,
-      "drcConfirmed": 125,
-      "ugandaConfirmed": 9
-    },
-    {
-      "date": "May 31",
-      "cases": 349,
-      "deaths": 223,
-      "drcConfirmed": 210,
-      "ugandaConfirmed": 9
-    },
-    {
-      "date": "Jun 1",
-      "cases": 220,
-      "deaths": 223,
-      "drcConfirmed": 282,
-      "ugandaConfirmed": 9
-    },
-    {
-      "date": "Jun 2",
-      "cases": 116,
-      "deaths": 223,
-      "drcConfirmed": 321,
-      "ugandaConfirmed": 11
+      "date": "Jun 11",
+      "cases": 650,
+      "deaths": 134,
+      "drcConfirmed": 635,
+      "ugandaConfirmed": 15
     }
   ],
   "healthZones": [
@@ -115,7 +82,7 @@
     {
       "name": "Sud-Kivu Province",
       "areasAffected": null,
-      "status": "Confirmed \u2014 travel-linked"
+      "status": "Confirmed — travel-linked"
     },
     {
       "name": "Tsopo Province",
@@ -127,7 +94,7 @@
     {
       "date": "April 24, 2026",
       "red": false,
-      "desc": "First known suspected case \u2014 a health worker \u2014 reports onset of symptoms including fever, hemorrhaging, vomiting and intense malaise. The case died at a medical centre in Bunia."
+      "desc": "First known suspected case — a health worker — reports onset of symptoms including fever, hemorrhaging, vomiting and intense malaise. The case died at a medical centre in Bunia."
     },
     {
       "date": "May 5, 2026",
@@ -147,7 +114,7 @@
     {
       "date": "May 15, 2026",
       "red": true,
-      "desc": "Laboratory analysis confirmed BVD in 8 of 13 samples. DRC Ministry of Health officially declares the 17th Ebola outbreak. 246 suspected cases and 80 deaths across Rwampara, Mongbwalu, and Bunia. Uganda confirms first imported case \u2014 an elderly man admitted May 11, died May 14."
+      "desc": "Laboratory analysis confirmed BVD in 8 of 13 samples. DRC Ministry of Health officially declares the 17th Ebola outbreak. 246 suspected cases and 80 deaths across Rwampara, Mongbwalu, and Bunia. Uganda confirms first imported case — an elderly man admitted May 11, died May 14."
     },
     {
       "date": "May 16, 2026",
@@ -167,22 +134,22 @@
     {
       "date": "May 21, 2026",
       "red": true,
-      "desc": "Outbreak spreads to Nord-Kivu Province \u2014 cases reported in Goma. Over 1,000 contacts under follow-up in Ituri."
+      "desc": "Outbreak spreads to Nord-Kivu Province — cases reported in Goma. Over 1,000 contacts under follow-up in Ituri."
     },
     {
       "date": "May 22, 2026",
       "red": true,
-      "desc": "Outbreak expands to 3rd province \u2014 Sud-Kivu confirmed in a person who travelled from Tsopo Province. Uganda announces 3 additional cases, all linked to previously confirmed DRC travellers."
+      "desc": "Outbreak expands to 3rd province — Sud-Kivu confirmed in a person who travelled from Tsopo Province. Uganda announces 3 additional cases, all linked to previously confirmed DRC travellers."
     },
     {
       "date": "May 24, 2026",
       "red": true,
-      "desc": "DRC Ministry of Health reports 904 suspected cases, 101 confirmed, 119 suspected deaths, 10 confirmed deaths across Ituri, Nord-Kivu, and Sud-Kivu provinces. Uganda: 5 confirmed cases, 1 confirmed death \u2014 all linked to DRC travel, no local spread."
+      "desc": "DRC Ministry of Health reports 904 suspected cases, 101 confirmed, 119 suspected deaths, 10 confirmed deaths across Ituri, Nord-Kivu, and Sud-Kivu provinces. Uganda: 5 confirmed cases, 1 confirmed death — all linked to DRC travel, no local spread."
     },
     {
       "date": "May 25, 2026",
       "red": true,
-      "desc": "DRC reports 906 suspected cases (223 deaths) and 105 confirmed cases (10 deaths). Uganda: 7 confirmed cases, 1 death. Two suspected cases reported in Italy \u2014 travellers from Uganda hospitalised in isolation in Milan, Lombardy. Italy under investigation."
+      "desc": "DRC reports 906 suspected cases (223 deaths) and 105 confirmed cases (10 deaths). Uganda: 7 confirmed cases, 1 death. Two suspected cases reported in Italy — travellers from Uganda hospitalised in isolation in Milan, Lombardy. Italy under investigation."
     }
   ],
   "network": {
@@ -191,37 +158,37 @@
         "id": "rwampara",
         "label": "Rwampara HZ",
         "type": "origin",
-        "country": "DRC \u00b7 Ituri",
+        "country": "DRC · Ituri",
         "cases": -1,
         "deaths": -1,
-        "detail": "6 health areas affected \u00b7 confirmed outbreak origin \u00b7 per-zone breakdown not reported by CDC"
+        "detail": "6 health areas affected · confirmed outbreak origin · per-zone breakdown not reported by CDC"
       },
       {
         "id": "mongbwalu",
         "label": "Mongbwalu HZ",
         "type": "origin",
-        "country": "DRC \u00b7 Ituri",
+        "country": "DRC · Ituri",
         "cases": -1,
         "deaths": -1,
-        "detail": "3 health areas affected \u00b7 4 HCWs dead by May 9 \u00b7 per-zone breakdown not reported by CDC"
+        "detail": "3 health areas affected · 4 HCWs dead by May 9 · per-zone breakdown not reported by CDC"
       },
       {
         "id": "bunia",
         "label": "Bunia HZ",
         "type": "hub",
-        "country": "DRC \u00b7 Ituri",
-        "cases": 116,
-        "deaths": 223,
-        "detail": "Epicentre hub \u00b7 116 suspected cases \u00b7 223 suspected deaths \u00b7 3 provinces confirmed"
+        "country": "DRC · Ituri",
+        "cases": 635,
+        "deaths": 127,
+        "detail": "Epicentre hub · 359 confirmed cases · 60 confirmed deaths · 3 provinces active"
       },
       {
         "id": "uganda",
         "label": "Kampala, Uganda",
         "type": "export",
         "country": "Uganda",
-        "cases": 11,
-        "deaths": 1,
-        "detail": "11 confirmed cases \u00b7 1 confirmed death \u00b7 Kampala \u00b7 5 linked to first 2 cases"
+        "cases": 15,
+        "deaths": 7,
+        "detail": "15 confirmed cases · 7 confirmed death · Kampala · 5 linked to first 2 cases"
       },
       {
         "id": "italy",
@@ -230,16 +197,16 @@
         "country": "Italy",
         "cases": 2,
         "deaths": 0,
-        "detail": "2 suspected cases \u00b7 travellers from Uganda \u00b7 hospitalised in isolation in Milan \u00b7 May 25 \u00b7 under investigation"
+        "detail": "2 suspected cases · travellers from Uganda · hospitalised in isolation in Milan · May 25"
       },
       {
         "id": "germany",
         "label": "Germany",
         "type": "contact",
         "country": "Germany",
-        "cases": 0,
+        "cases": 1,
         "deaths": 0,
-        "detail": "1 American HCW (confirmed) + 6 high-risk contacts evacuated \u00b7 May 17 \u00b7 no local transmission"
+        "detail": "1 American HCW (confirmed) + 6 high-risk contacts evacuated · May 17 · no local transmission"
       },
       {
         "id": "usa",
@@ -248,7 +215,7 @@
         "country": "USA",
         "cases": 0,
         "deaths": 0,
-        "detail": "Enhanced screening at entry points \u00b7 May 18 \u00b7 no confirmed cases \u00b7 risk assessed as low"
+        "detail": "Enhanced screening at entry points · May 18 · risk assessed as low"
       }
     ],
     "links": [
@@ -268,633 +235,262 @@
         "source": "bunia",
         "target": "uganda",
         "type": "confirmed",
-        "label": "Confirmed export \u00b7 travellers"
+        "label": "Confirmed export · travellers"
       },
       {
         "source": "uganda",
         "target": "italy",
         "type": "suspect",
-        "label": "Suspected \u00b7 under investigation"
+        "label": "Suspected · under investigation"
       },
       {
         "source": "bunia",
         "target": "germany",
         "type": "contact",
-        "label": "Medical evacuation \u00b7 May 17"
+        "label": "Medical evacuation · May 17"
       },
       {
         "source": "bunia",
         "target": "usa",
         "type": "alert",
-        "label": "Enhanced screening \u00b7 no cases"
+        "label": "Enhanced screening · no cases"
       }
     ]
-  },
+  ],
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
-        {
-          "time": "2026-04-17",
-          "score": 3
-        },
-        {
-          "time": "2026-04-18",
-          "score": 3
-        },
-        {
-          "time": "2026-04-19",
-          "score": 2
-        },
-        {
-          "time": "2026-04-20",
-          "score": 2
-        },
-        {
-          "time": "2026-04-21",
-          "score": 2
-        },
-        {
-          "time": "2026-04-22",
-          "score": 2
-        },
-        {
-          "time": "2026-04-23",
-          "score": 2
-        },
-        {
-          "time": "2026-04-24",
-          "score": 2
-        },
-        {
-          "time": "2026-04-25",
-          "score": 2
-        },
-        {
-          "time": "2026-04-26",
-          "score": 3
-        },
-        {
-          "time": "2026-04-27",
-          "score": 2
-        },
-        {
-          "time": "2026-04-28",
-          "score": 2
-        },
-        {
-          "time": "2026-04-29",
-          "score": 3
-        },
-        {
-          "time": "2026-04-30",
-          "score": 3
-        },
-        {
-          "time": "2026-05-01",
-          "score": 2
-        },
-        {
-          "time": "2026-05-02",
-          "score": 2
-        },
-        {
-          "time": "2026-05-03",
-          "score": 2
-        },
-        {
-          "time": "2026-05-04",
-          "score": 2
-        },
-        {
-          "time": "2026-05-05",
-          "score": 3
-        },
-        {
-          "time": "2026-05-06",
-          "score": 3
-        },
-        {
-          "time": "2026-05-07",
-          "score": 5
-        },
-        {
-          "time": "2026-05-08",
-          "score": 4
-        },
-        {
-          "time": "2026-05-09",
-          "score": 4
-        },
-        {
-          "time": "2026-05-10",
-          "score": 4
-        },
-        {
-          "time": "2026-05-11",
-          "score": 4
-        },
-        {
-          "time": "2026-05-12",
-          "score": 4
-        },
-        {
-          "time": "2026-05-13",
-          "score": 4
-        },
-        {
-          "time": "2026-05-14",
-          "score": 4
-        },
-        {
-          "time": "2026-05-15",
-          "score": 11
-        },
-        {
-          "time": "2026-05-16",
-          "score": 14
-        },
-        {
-          "time": "2026-05-17",
-          "score": 86
-        },
-        {
-          "time": "2026-05-18",
-          "score": 91
-        },
-        {
-          "time": "2026-05-19",
-          "score": 100
-        },
-        {
-          "time": "2026-05-20",
-          "score": 82
-        },
-        {
-          "time": "2026-05-21",
-          "score": 79
-        },
-        {
-          "time": "2026-05-22",
-          "score": 81
-        },
-        {
-          "time": "2026-05-23",
-          "score": 64
-        },
-        {
-          "time": "2026-05-24",
-          "score": 49
-        },
-        {
-          "time": "2026-05-25",
-          "score": 55
-        },
-        {
-          "time": "2026-05-26",
-          "score": 49
-        },
-        {
-          "time": "2026-05-27",
-          "score": 48
-        },
-        {
-          "time": "2026-05-28",
-          "score": 45
-        },
-        {
-          "time": "2026-05-29",
-          "score": 38
-        },
-        {
-          "time": "2026-05-30",
-          "score": 36
-        },
-        {
-          "time": "2026-05-31",
-          "score": 38
-        },
-        {
-          "time": "2026-06-01",
-          "score": 37
-        }
+        { "time": "2026-04-17", "score": 3 },
+        { "time": "2026-04-18", "score": 3 },
+        { "time": "2026-04-19", "score": 2 },
+        { "time": "2026-04-20", "score": 2 },
+        { "time": "2026-04-21", "score": 2 },
+        { "time": "2026-04-22", "score": 2 },
+        { "time": "2026-04-23", "score": 2 },
+        { "time": "2026-04-24", "score": 2 },
+        { "time": "2026-04-25", "score": 2 },
+        { "time": "2026-04-26", "score": 2 },
+        { "time": "2026-04-27", "score": 2 },
+        { "time": "2026-04-28", "score": 2 },
+        { "time": "2026-04-29", "score": 3 },
+        { "time": "2026-04-30", "score": 3 },
+        { "time": "2026-05-01", "score": 2 },
+        { "time": "2026-05-02", "score": 2 },
+        { "time": "2026-05-03", "score": 2 },
+        { "time": "2026-05-04", "score": 2 },
+        { "time": "2026-05-05", "score": 2 },
+        { "time": "2026-05-06", "score": 3 },
+        { "time": "2026-05-07", "score": 4 },
+        { "time": "2026-05-08", "score": 4 },
+        { "time": "2026-05-09", "score": 3 },
+        { "time": "2026-05-10", "score": 4 },
+        { "time": "2026-05-11", "score": 4 },
+        { "time": "2026-05-12", "score": 4 },
+        { "time": "2026-05-13", "score": 4 },
+        { "time": "2026-05-14", "score": 4 },
+        { "time": "2026-05-15", "score": 10 },
+        { "time": "2026-05-16", "score": 14 },
+        { "time": "2026-05-17", "score": 80 },
+        { "time": "2026-05-18", "score": 88 },
+        { "time": "2026-05-19", "score": 100 },
+        { "time": "2026-05-20", "score": 82 },
+        { "time": "2026-05-21", "score": 78 },
+        { "time": "2026-05-22", "score": 82 },
+        { "time": "2026-05-23", "score": 71 },
+        { "time": "2026-05-24", "score": 52 },
+        { "time": "2026-05-25", "score": 61 },
+        { "time": "2026-05-26", "score": 47 },
+        { "time": "2026-05-27", "score": 48 },
+        { "time": "2026-05-28", "score": 42 },
+        { "time": "2026-05-29", "score": 36 },
+        { "time": "2026-05-30", "score": 34 },
+        { "time": "2026-05-31", "score": 38 },
+        { "time": "2026-06-01", "score": 36 },
+        { "time": "2026-06-02", "score": 31 },
+        { "time": "2026-06-03", "score": 24 },
+        { "time": "2026-06-04", "score": 20 },
+        { "time": "2026-06-05", "score": 17 },
+        { "time": "2026-06-06", "score": 16 },
+        { "time": "2026-06-07", "score": 14 },
+        { "time": "2026-06-08", "score": 12 },
+        { "time": "2026-06-09", "score": 10 },
+        { "time": "2026-06-10", "score": 12 },
+        { "time": "2026-06-11", "score": 9 }
       ],
       "Symptoms": [
-        {
-          "time": "2026-04-17",
-          "score": 2
-        },
-        {
-          "time": "2026-04-18",
-          "score": 2
-        },
-        {
-          "time": "2026-04-19",
-          "score": 2
-        },
-        {
-          "time": "2026-04-20",
-          "score": 1
-        },
-        {
-          "time": "2026-04-21",
-          "score": 3
-        },
-        {
-          "time": "2026-04-22",
-          "score": 2
-        },
-        {
-          "time": "2026-04-23",
-          "score": 3
-        },
-        {
-          "time": "2026-04-24",
-          "score": 1
-        },
-        {
-          "time": "2026-04-25",
-          "score": 1
-        },
-        {
-          "time": "2026-04-26",
-          "score": 3
-        },
-        {
-          "time": "2026-04-27",
-          "score": 1
-        },
-        {
-          "time": "2026-04-28",
-          "score": 2
-        },
-        {
-          "time": "2026-04-29",
-          "score": 3
-        },
-        {
-          "time": "2026-04-30",
-          "score": 3
-        },
-        {
-          "time": "2026-05-01",
-          "score": 2
-        },
-        {
-          "time": "2026-05-02",
-          "score": 2
-        },
-        {
-          "time": "2026-05-03",
-          "score": 1
-        },
-        {
-          "time": "2026-05-04",
-          "score": 2
-        },
-        {
-          "time": "2026-05-05",
-          "score": 2
-        },
-        {
-          "time": "2026-05-06",
-          "score": 4
-        },
-        {
-          "time": "2026-05-07",
-          "score": 5
-        },
-        {
-          "time": "2026-05-08",
-          "score": 4
-        },
-        {
-          "time": "2026-05-09",
-          "score": 3
-        },
-        {
-          "time": "2026-05-10",
-          "score": 5
-        },
-        {
-          "time": "2026-05-11",
-          "score": 4
-        },
-        {
-          "time": "2026-05-12",
-          "score": 6
-        },
-        {
-          "time": "2026-05-13",
-          "score": 6
-        },
-        {
-          "time": "2026-05-14",
-          "score": 6
-        },
-        {
-          "time": "2026-05-15",
-          "score": 9
-        },
-        {
-          "time": "2026-05-16",
-          "score": 10
-        },
-        {
-          "time": "2026-05-17",
-          "score": 57
-        },
-        {
-          "time": "2026-05-18",
-          "score": 70
-        },
-        {
-          "time": "2026-05-19",
-          "score": 86
-        },
-        {
-          "time": "2026-05-20",
-          "score": 72
-        },
-        {
-          "time": "2026-05-21",
-          "score": 83
-        },
-        {
-          "time": "2026-05-22",
-          "score": 100
-        },
-        {
-          "time": "2026-05-23",
-          "score": 72
-        },
-        {
-          "time": "2026-05-24",
-          "score": 45
-        },
-        {
-          "time": "2026-05-25",
-          "score": 42
-        },
-        {
-          "time": "2026-05-26",
-          "score": 46
-        },
-        {
-          "time": "2026-05-27",
-          "score": 56
-        },
-        {
-          "time": "2026-05-28",
-          "score": 54
-        },
-        {
-          "time": "2026-05-29",
-          "score": 44
-        },
-        {
-          "time": "2026-05-30",
-          "score": 34
-        },
-        {
-          "time": "2026-05-31",
-          "score": 30
-        },
-        {
-          "time": "2026-06-01",
-          "score": 30
-        }
+        { "time": "2026-04-17", "score": 0 },
+        { "time": "2026-04-18", "score": 0 },
+        { "time": "2026-04-19", "score": 0 },
+        { "time": "2026-04-20", "score": 0 },
+        { "time": "2026-04-21", "score": 0 },
+        { "time": "2026-04-22", "score": 0 },
+        { "time": "2026-04-23", "score": 0 },
+        { "time": "2026-04-24", "score": 0 },
+        { "time": "2026-04-25", "score": 0 },
+        { "time": "2026-04-26", "score": 0 },
+        { "time": "2026-04-27", "score": 0 },
+        { "time": "2026-04-28", "score": 0 },
+        { "time": "2026-04-29", "score": 0 },
+        { "time": "2026-04-30", "score": 0 },
+        { "time": "2026-05-01", "score": 0 },
+        { "time": "2026-05-02", "score": 0 },
+        { "time": "2026-05-03", "score": 0 },
+        { "time": "2026-05-04", "score": 0 },
+        { "time": "2026-05-05", "score": 0 },
+        { "time": "2026-05-06", "score": 0 },
+        { "time": "2026-05-07", "score": 0 },
+        { "time": "2026-05-08", "score": 0 },
+        { "time": "2026-05-09", "score": 0 },
+        { "time": "2026-05-10", "score": 0 },
+        { "time": "2026-05-11", "score": 0 },
+        { "time": "2026-05-12", "score": 0 },
+        { "time": "2026-05-13", "score": 0 },
+        { "time": "2026-05-14", "score": 0 },
+        { "time": "2026-05-15", "score": 0 },
+        { "time": "2026-05-16", "score": 0 },
+        { "time": "2026-05-17", "score": 2 },
+        { "time": "2026-05-18", "score": 3 },
+        { "time": "2026-05-19", "score": 4 },
+        { "time": "2026-05-20", "score": 3 },
+        { "time": "2026-05-21", "score": 4 },
+        { "time": "2026-05-22", "score": 5 },
+        { "time": "2026-05-23", "score": 3 },
+        { "time": "2026-05-24", "score": 2 },
+        { "time": "2026-05-25", "score": 2 },
+        { "time": "2026-05-26", "score": 2 },
+        { "time": "2026-05-27", "score": 2 },
+        { "time": "2026-05-28", "score": 2 },
+        { "time": "2026-05-29", "score": 2 },
+        { "time": "2026-05-30", "score": 1 },
+        { "time": "2026-05-31", "score": 1 },
+        { "time": "2026-06-01", "score": 1 },
+        { "time": "2026-06-02", "score": 1 },
+        { "time": "2026-06-03", "score": 1 },
+        { "time": "2026-06-04", "score": 1 },
+        { "time": "2026-06-05", "score": 1 },
+        { "time": "2026-06-06", "score": 1 },
+        { "time": "2026-06-07", "score": 1 },
+        { "time": "2026-06-08", "score": 0 },
+        { "time": "2026-06-09", "score": 0 },
+        { "time": "2026-06-10", "score": 0 },
+        { "time": "2026-06-11", "score": 0 }
       ],
       "Transmission": [
-        {
-          "time": "2026-04-17",
-          "score": 0
-        },
-        {
-          "time": "2026-04-18",
-          "score": 0
-        },
-        {
-          "time": "2026-04-19",
-          "score": 0
-        },
-        {
-          "time": "2026-04-20",
-          "score": 0
-        },
-        {
-          "time": "2026-04-21",
-          "score": 5
-        },
-        {
-          "time": "2026-04-22",
-          "score": 0
-        },
-        {
-          "time": "2026-04-23",
-          "score": 0
-        },
-        {
-          "time": "2026-04-24",
-          "score": 5
-        },
-        {
-          "time": "2026-04-25",
-          "score": 5
-        },
-        {
-          "time": "2026-04-26",
-          "score": 7
-        },
-        {
-          "time": "2026-04-27",
-          "score": 7
-        },
-        {
-          "time": "2026-04-28",
-          "score": 6
-        },
-        {
-          "time": "2026-04-29",
-          "score": 8
-        },
-        {
-          "time": "2026-04-30",
-          "score": 8
-        },
-        {
-          "time": "2026-05-01",
-          "score": 0
-        },
-        {
-          "time": "2026-05-02",
-          "score": 6
-        },
-        {
-          "time": "2026-05-03",
-          "score": 0
-        },
-        {
-          "time": "2026-05-04",
-          "score": 6
-        },
-        {
-          "time": "2026-05-05",
-          "score": 6
-        },
-        {
-          "time": "2026-05-06",
-          "score": 9
-        },
-        {
-          "time": "2026-05-07",
-          "score": 10
-        },
-        {
-          "time": "2026-05-08",
-          "score": 13
-        },
-        {
-          "time": "2026-05-09",
-          "score": 10
-        },
-        {
-          "time": "2026-05-10",
-          "score": 10
-        },
-        {
-          "time": "2026-05-11",
-          "score": 12
-        },
-        {
-          "time": "2026-05-12",
-          "score": 9
-        },
-        {
-          "time": "2026-05-13",
-          "score": 16
-        },
-        {
-          "time": "2026-05-14",
-          "score": 11
-        },
-        {
-          "time": "2026-05-15",
-          "score": 18
-        },
-        {
-          "time": "2026-05-16",
-          "score": 17
-        },
-        {
-          "time": "2026-05-17",
-          "score": 100
-        },
-        {
-          "time": "2026-05-18",
-          "score": 82
-        },
-        {
-          "time": "2026-05-19",
-          "score": 61
-        },
-        {
-          "time": "2026-05-20",
-          "score": 49
-        },
-        {
-          "time": "2026-05-21",
-          "score": 52
-        },
-        {
-          "time": "2026-05-22",
-          "score": 53
-        },
-        {
-          "time": "2026-05-23",
-          "score": 49
-        },
-        {
-          "time": "2026-05-24",
-          "score": 36
-        },
-        {
-          "time": "2026-05-25",
-          "score": 33
-        },
-        {
-          "time": "2026-05-26",
-          "score": 34
-        },
-        {
-          "time": "2026-05-27",
-          "score": 35
-        },
-        {
-          "time": "2026-05-28",
-          "score": 33
-        },
-        {
-          "time": "2026-05-29",
-          "score": 26
-        },
-        {
-          "time": "2026-05-30",
-          "score": 25
-        },
-        {
-          "time": "2026-05-31",
-          "score": 22
-        },
-        {
-          "time": "2026-06-01",
-          "score": 20
-        }
+        { "time": "2026-04-17", "score": 0 },
+        { "time": "2026-04-18", "score": 0 },
+        { "time": "2026-04-19", "score": 0 },
+        { "time": "2026-04-20", "score": 0 },
+        { "time": "2026-04-21", "score": 0 },
+        { "time": "2026-04-22", "score": 0 },
+        { "time": "2026-04-23", "score": 0 },
+        { "time": "2026-04-24", "score": 0 },
+        { "time": "2026-04-25", "score": 0 },
+        { "time": "2026-04-26", "score": 0 },
+        { "time": "2026-04-27", "score": 0 },
+        { "time": "2026-04-28", "score": 0 },
+        { "time": "2026-04-29", "score": 0 },
+        { "time": "2026-04-30", "score": 0 },
+        { "time": "2026-05-01", "score": 0 },
+        { "time": "2026-05-02", "score": 0 },
+        { "time": "2026-05-03", "score": 0 },
+        { "time": "2026-05-04", "score": 0 },
+        { "time": "2026-05-05", "score": 0 },
+        { "time": "2026-05-06", "score": 0 },
+        { "time": "2026-05-07", "score": 0 },
+        { "time": "2026-05-08", "score": 0 },
+        { "time": "2026-05-09", "score": 0 },
+        { "time": "2026-05-10", "score": 0 },
+        { "time": "2026-05-11", "score": 0 },
+        { "time": "2026-05-12", "score": 0 },
+        { "time": "2026-05-13", "score": 0 },
+        { "time": "2026-05-14", "score": 0 },
+        { "time": "2026-05-15", "score": 0 },
+        { "time": "2026-05-16", "score": 0 },
+        { "time": "2026-05-17", "score": 1 },
+        { "time": "2026-05-18", "score": 1 },
+        { "time": "2026-05-19", "score": 1 },
+        { "time": "2026-05-20", "score": 1 },
+        { "time": "2026-05-21", "score": 1 },
+        { "time": "2026-05-22", "score": 1 },
+        { "time": "2026-05-23", "score": 1 },
+        { "time": "2026-05-24", "score": 1 },
+        { "time": "2026-05-25", "score": 1 },
+        { "time": "2026-05-26", "score": 0 },
+        { "time": "2026-05-27", "score": 0 },
+        { "time": "2026-05-28", "score": 0 },
+        { "time": "2026-05-29", "score": 0 },
+        { "time": "2026-05-30", "score": 0 },
+        { "time": "2026-05-31", "score": 0 },
+        { "time": "2026-06-01", "score": 0 },
+        { "time": "2026-06-02", "score": 0 },
+        { "time": "2026-06-03", "score": 0 },
+        { "time": "2026-06-04", "score": 0 },
+        { "time": "2026-06-05", "score": 0 },
+        { "time": "2026-06-06", "score": 0 },
+        { "time": "2026-06-07", "score": 0 },
+        { "time": "2026-06-08", "score": 0 },
+        { "time": "2026-06-09", "score": 0 },
+        { "time": "2026-06-10", "score": 0 },
+        { "time": "2026-06-11", "score": 0 }
       ]
     },
     "rising_searches": [
-      {
-        "query": "malattia da virus ebola",
-        "breakout_value": "53050"
+      { "query": "brote de ebola", "breakout_value": "21400" },
+      { "query": "gorączka krwotoczna ebola", "breakout_value": "18550" },
+      { "query": "ebola ausbruch aktuell", "breakout_value": "11850" },
+      { "query": "hantavirus update", "breakout_value": "11400" },
+      { "query": "que es el ebola y como se transmite", "breakout_value": "6150" }
+    ],
+    "word_cloud": {
+      "all_time": {
+        "brote": 3,
+        "krwotoczna": 3,
+        "ausbruch": 3,
+        "aktuell": 3,
+        "hantavirus": 3,
+        "update": 3,
+        "que": 3,
+        "como": 3,
+        "transmite": 3
       },
-      {
-        "query": "ebola kongo",
-        "breakout_value": "39200"
-      },
-      {
-        "query": "brote de ebola",
-        "breakout_value": "23750"
-      },
-      {
-        "query": "gor\u0105czka krwotoczna ebola",
-        "breakout_value": "22300"
-      },
-      {
-        "query": "ebola ausbruch aktuell",
-        "breakout_value": "12950"
+      "periods": {
+        "2026-05-24": {
+          "brote": 3,
+          "krwotoczna": 3,
+          "ausbruch": 3,
+          "aktuell": 3,
+          "hantavirus": 3,
+          "update": 3,
+          "que": 3,
+          "como": 3,
+          "transmite": 3
+        }
       }
-    ]
-  },
-  "rising_searches": [
-    {
-      "query": "ebola outbreak 2026 map",
-      "breakout_value": "18700"
-    },
-    {
-      "query": "hantavirus symptoms",
-      "breakout_value": "15800"
-    },
-    {
-      "query": "kyle busch",
-      "breakout_value": "12900"
-    },
-    {
-      "query": "ebola ausbruch aktuell",
-      "breakout_value": "11900"
-    },
-    {
-      "query": "que es el ebola y como se transmite",
-      "breakout_value": "6250"
     }
-  ],
-  "last_trends_sync": "2026-05-31 09:46 UTC"
+  },
+  "last_trends_sync": "2026-05-31 09:46 UTC",
+  "word_cloud": {
+    "all_time": {
+      "malattia": 2,
+      "virus": 2,
+      "krwotoczna": 2,
+      "hantavirus": 4,
+      "symptoms": 2,
+      "ausbruch": 2,
+      "aktuell": 2,
+      "update": 2
+    },
+    "periods": {
+      "2026-05-24": {
+        "malattia": 2,
+        "virus": 2,
+        "krwotoczna": 2,
+        "hantavirus": 4,
+        "symptoms": 2,
+        "ausbruch": 2,
+        "aktuell": 2,
+        "update": 2
+      }
+    }
+  }
 }
