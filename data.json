@@ -451,7 +451,10 @@
         "update": 3,
         "que": 3,
         "como": 3,
-        "transmite": 3
+        "transmite": 3,
+        "malattia": 2,
+        "virus": 2,
+        "symptoms": 2
       },
       "periods": {
         "2026-05-24": {
@@ -463,34 +466,13 @@
           "update": 3,
           "que": 3,
           "como": 3,
-          "transmite": 3
+          "transmite": 3,
+          "malattia": 2,
+          "virus": 2,
+          "symptoms": 2
         }
       }
     }
   },
-  "last_trends_sync": "2026-05-31 09:46 UTC",
-  "word_cloud": {
-    "all_time": {
-      "malattia": 2,
-      "virus": 2,
-      "krwotoczna": 2,
-      "hantavirus": 4,
-      "symptoms": 2,
-      "ausbruch": 2,
-      "aktuell": 2,
-      "update": 2
-    },
-    "periods": {
-      "2026-05-24": {
-        "malattia": 2,
-        "virus": 2,
-        "krwotoczna": 2,
-        "hantavirus": 4,
-        "symptoms": 2,
-        "ausbruch": 2,
-        "aktuell": 2,
-        "update": 2
-      }
-    }
-  }
+  "last_trends_sync": "2026-05-31 09:46 UTC"
 }
