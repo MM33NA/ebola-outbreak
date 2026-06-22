@@ -46,31 +46,52 @@ def scrape_cdc():
     text = BeautifulSoup(resp.text, "html.parser").get_text(" ", strip=True)
     print(f"Page fetched — {len(text):,} chars")
 
-    # ── Text Processing Fallbacks (Optimized for May 29 Layout) ───────────
+    # ── Suspected cases ───────────────────────────────────────────────────
+    # CDC: "DRC: A total of 904 suspected cases"
     suspected = extract_number(r"(\d[\d,]*)\s+suspected cases", text)
-    if suspected == 0:
-        suspected = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+suspected", text)
 
+    # ── Confirmed cases ───────────────────────────────────────────────────
+    # CDC: "101 confirmed cases"
     confirmed = extract_number(r"(\d[\d,]*)\s+confirmed cases", text)
-    if confirmed == 0:
-        confirmed = extract_number(r"DRC[:\s]+(?:A total of\s+)?(\d[\d,]*)\s+confirmed", text)
 
+    # ── Suspected deaths ──────────────────────────────────────────────────
+    # CDC: "119 suspected deaths"
     suspected_deaths = extract_number(r"(\d[\d,]*)\s+suspected deaths", text)
-    if suspected_deaths == 0:
-        suspected_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+suspected\s+deaths?", text)
 
+    # ── Confirmed deaths ──────────────────────────────────────────────────
+    # CDC: "10 confirmed deaths"
     confirmed_deaths = extract_number(r"(\d[\d,]*)\s+confirmed deaths", text)
-    if confirmed_deaths == 0:
-        confirmed_deaths = extract_number(r"(?:DRC[:\s]+)?(\d[\d,]*)\s+confirmed\s+deaths?", text)
 
-    uganda_cases = extract_number(r"Uganda[:\s]+(?:A total of\s+)?(\d+)\s+confirmed cases", text)
-    if uganda_cases == 0:
-        uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
+    # ── Uganda cases ──────────────────────────────────────────────────────
+    # Handle specific phrase: "5 cases have clear links to the first 2 confirmed cases"
+    link_match = re.search(r"(\d+)\s+cases?\s+have\s+clear\s+links\s+to\s+the\s+first\s+(\d+)\s+confirmed\s+cases", text, re.IGNORECASE)
+    if link_match:
+        uganda_cases = int(link_match.group(1)) + int(link_match.group(2))
+    else:
+        uganda_cases = extract_number(r"Uganda[:\s]+A total of (\d+) confirmed cases", text)
+        if uganda_cases == 0:
+            uganda_cases = extract_number(r"(\d+)\s+cases?.{0,80}reported in Uganda", text)
+        # Handle written numbers e.g. "Five cases ... Uganda"
+        if uganda_cases == 0:
+            words = {"one":1,"two":2,"three":3,"four":4,"five":5,"six":6,"seven":7,"eight":8,"nine":9,"ten":10}
+            m = re.search(r"(one|two|three|four|five|six|seven|eight|nine|ten)\s+cases?.{0,80}Uganda", text, re.IGNORECASE)
+            if m:
+                uganda_cases = words.get(m.group(1).lower(), 0)
 
-    uganda_deaths = extract_number(r"Uganda[:\s]+(?:A total of\s+)?\d+\s+confirmed cases\s+(?:and\s+)?(\d+)\s+confirmed death", text)
+    # ── Uganda deaths ─────────────────────────────────────────────────────
+    # CDC: "Uganda: A total of 5 confirmed cases and 1 confirmed death"
+    uganda_deaths = extract_number(
+        r"Uganda[:\s]+A total of \d+ confirmed cases and (\d+) confirmed death", text
+    )
     if uganda_deaths == 0:
-        uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?deaths?", text)
+        uganda_deaths = extract_number(r"Uganda.{0,120}(\d+)\s+(?:confirmed\s+)?death", text)
+    if uganda_deaths == 0:
+        m_death = re.search(r"(\d+)\s+confirmed\s+death", text, re.IGNORECASE)
+        if m_death:
+            uganda_deaths = int(m_death.group(1))
 
+    # ── Update date ───────────────────────────────────────────────────────
+    # Require "As of" prefix to avoid picking up metadata dates
     m = re.search(r"As of\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})", text, re.IGNORECASE)
     try:
         updated = datetime.strptime(
@@ -102,63 +123,60 @@ def update_json(s):
 
     current = data["summary"]
 
-    print("Syncing data.json with raw epidemiological reporting curves...")
+    # Update if numbers changed OR date changed
+    numbers_changed = (
+        (s["suspected"]       > 0 and s["suspected"]       != current.get("suspectedCases", 0)) or
+        (s["suspected_deaths"]> 0 and s["suspected_deaths"] != current.get("suspectedDeaths", 0)) or
+        (s["confirmed"]       > 0 and s["confirmed"]        != current.get("confirmedDRC", 0))
+    )
+    date_changed = data.get("updated") != s["updated"]
 
-    # ── 1. Update Global KPI Summary Blocks ───────────────────────────────
+    if not numbers_changed and not date_changed:
+        print(f"No changes detected. Cases: {s['suspected']}  Deaths: {s['suspected_deaths']}. Skipping.")
+        return False
+
+    print(f"Changes detected — updating data.json")
+
+    # ── Update summary ────────────────────────────────────────────────────
     if s["suspected"]        > 0: current["suspectedCases"]   = s["suspected"]
     if s["suspected_deaths"] > 0: current["suspectedDeaths"]  = s["suspected_deaths"]
+    if s["confirmed"]        > 0: current["confirmedDRC"]     = s["confirmed"]
     if s["confirmed_deaths"] > 0: current["confirmedDeaths"]  = s["confirmed_deaths"]
     if s["uganda_cases"]     > 0: current["ugandaCases"]      = s["uganda_cases"]
     if s["uganda_deaths"]    > 0: current["ugandaDeaths"]     = s["uganda_deaths"]
 
-    # Synchronize the main Lab Confirmed card to display 132 (125 + 7)
-    if s["confirmed"] > 0:
-        current["confirmedDRC"] = s["confirmed"] + s["uganda_cases"]
-
     if current["suspectedCases"] > 0:
-        current["cfrPercent"] = round((current["suspectedDeaths"] / current["suspectedCases"]) * 100)
+        current["cfrPercent"] = round(current["suspectedDeaths"] / current["suspectedCases"] * 100)
 
     data["updated"] = s["updated"]
 
-    # ── 2. Format Timeline Entries (True Raw Data Sequence) ───────────────
+    # ── Append or update timeline point ──────────────────────────────────
     try:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %-d")
     except ValueError:
         label = datetime.strptime(s["updated"], "%Y-%m-%d").strftime("%b %d").replace(" 0", " ")
 
-    # Keep original Suspected fields active for your cumulative line chart sequence
-    cases_value = s["suspected"] if s["suspected"] > 0 else current["suspectedCases"]
-    deaths_value = s["suspected_deaths"] if s["suspected_deaths"] > 0 else current["suspectedDeaths"]
-
-    # Structural country breakouts required to render the Stacked Bar Chart component
-    drc_seg = s["confirmed"] if s["confirmed"] > 0 else (current["confirmedDRC"] - current["ugandaCases"])
-    uganda_seg = s["uganda_cases"] if s["uganda_cases"] > 0 else current["ugandaCases"]
-
     existing = {p["date"]: i for i, p in enumerate(data["timeline"])}
     if label in existing:
-        idx = existing[label]
-        data["timeline"][idx]["cases"] = cases_value
-        data["timeline"][idx]["deaths"] = deaths_value
-        data["timeline"][idx]["drcConfirmed"] = drc_seg
-        data["timeline"][idx]["ugandaConfirmed"] = uganda_seg
+        data["timeline"][existing[label]]["cases"]  = current["suspectedCases"]
+        data["timeline"][existing[label]]["deaths"] = current["suspectedDeaths"]
+        print(f"Timeline point updated: {label}")
     else:
         data["timeline"].append({
-            "date": label,
-            "cases": cases_value,
-            "deaths": deaths_value,
-            "drcConfirmed": drc_seg,
-            "ugandaConfirmed": uganda_seg
+            "date":   label,
+            "cases":  current["suspectedCases"],
+            "deaths": current["suspectedDeaths"],
         })
+        print(f"Timeline point added: {label}")
 
-    # ── 3. Map Node Configurations ────────────────────────────────────────
+    # ── Update network nodes ──────────────────────────────────────────────
     for node in data.get("network", {}).get("nodes", []):
         if node["id"] == "uganda":
             node["cases"]  = current["ugandaCases"]
             node["deaths"] = current["ugandaDeaths"]
             node["detail"] = (
                 f"{current['ugandaCases']} confirmed cases · "
-                f"{current['ugandaDeaths']} confirmed death · Kampala · "
-                f"5 linked to first 2 cases"
+                f"{current['ugandaDeaths']} death · Kampala · all linked to DRC travellers"
             )
         if node["id"] == "bunia":
             node["cases"]  = current["suspectedCases"]
@@ -168,11 +186,15 @@ def update_json(s):
                 f"{current['suspectedDeaths']} suspected deaths · 3 provinces confirmed"
             )
 
-    # ── 5. Save Final Payload to File ─────────────────────────────────────
     with DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
-        print(f"data.json successfully written with true raw data updates.")
-        return True
+
+    print(f"data.json updated -> {s['updated']}")
+    print(f"Suspected: {current['suspectedCases']} cases  {current['suspectedDeaths']} deaths")
+    print(f"Confirmed: {current['confirmedDRC']} cases  {current.get('confirmedDeaths', '?')} deaths")
+    print(f"Uganda: {current['ugandaCases']} cases  {current['ugandaDeaths']} deaths")
+    return True
+
 
 def main():
     print("=" * 40)
@@ -185,10 +207,12 @@ def main():
 
     if scraped["suspected"] == 0 and scraped["suspected_deaths"] == 0:
         print("WARNING: All zeros — CDC page structure may have changed.")
+        print("Check scrape.py regex patterns.")
         sys.exit(1)
 
     update_json(scraped)
     print("Done.")
+
 
 if __name__ == "__main__":
     main()
