@@ -22,20 +22,20 @@ def scrape_cdc_ebola():
     html_content = response.text
     print(f"Page fetched — {len(html_content):,} chars")
     
-    # Clean spacing to allow easy regex extraction across table layout elements
+    # Keeps your exact preprocessing feature logic
     clean_text = re.sub(r'\s+', ' ', html_content)
     
-    # Isolate country segments exactly as features exist in the page text
+    # Keeps your precise segment splitting feature boundaries intact
     drc_segment = clean_text.split("DRC")[1].split("Uganda")[0] if "DRC" in clean_text else ""
     uganda_segment = clean_text.split("Uganda")[1] if "Uganda" in clean_text else ""
 
-    # FIXED REGEX PATTERNS: Captures digits inside the new table formatting
+    # FIXED PATTERNS: Handles intervening structural characters safely
     drc_cases = re.search(r"Confirmed cases\D*(\d+)", drc_segment, re.IGNORECASE)
     drc_deaths = re.search(r"Confirmed deaths\D*(\d+)", drc_segment, re.IGNORECASE)
     ug_cases = re.search(r"Confirmed cases\D*(\d+)", uganda_segment, re.IGNORECASE)
     ug_deaths = re.search(r"Confirmed deaths\D*(\d+)", uganda_segment, re.IGNORECASE)
     
-    # Maps perfectly back into your original extracted dictionary layout
+    # Maps directly into your exact dictionary format
     extracted = {
         'suspected': 0, 
         'confirmed': int(drc_cases.group(1)) if drc_cases else 0,
@@ -48,7 +48,7 @@ def scrape_cdc_ebola():
     
     print(f"Extracted: {extracted}")
     
-    # Your original exact exit validation feature logic
+    # Your exact diagnostic assertion and exit condition checks 
     if (extracted['confirmed'] + extracted['confirmed_deaths'] + extracted['uganda_cases'] + extracted['uganda_deaths']) == 0:
         print("WARNING: All zeros — CDC page structure may have changed.")
         print("Check scrape.py regex patterns.")
