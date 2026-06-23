@@ -527,6 +527,10 @@
         {
           "time": "2026-06-22",
           "score": 7
+        },
+        {
+          "time": "2026-06-23",
+          "score": 6
         }
       ],
       "Symptoms": [
@@ -796,6 +800,10 @@
         },
         {
           "time": "2026-06-22",
+          "score": 0
+        },
+        {
+          "time": "2026-06-23",
           "score": 0
         }
       ],
@@ -1067,64 +1075,70 @@
         {
           "time": "2026-06-22",
           "score": 0
+        },
+        {
+          "time": "2026-06-23",
+          "score": 0
         }
       ]
     },
     "rising_searches": [
       {
-        "query": "malattia da virus ebola",
-        "breakout_value": "43650"
-      },
-      {
         "query": "ebola update in uganda today",
         "breakout_value": "12150"
       },
       {
-        "query": "hantavirus update",
+        "query": "ebola ausbruch aktuell",
         "breakout_value": "10400"
       },
       {
-        "query": "ebola ausbruch aktuell",
-        "breakout_value": "10300"
+        "query": "que es el ebola y como se transmite",
+        "breakout_value": "5650"
       },
       {
-        "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
-        "breakout_value": "8100"
+        "query": "malattia da virus ebola",
+        "breakout_value": "2900"
+      },
+      {
+        "query": "ebola bundibugyo",
+        "breakout_value": "2650"
       }
     ],
     "word_cloud": {
       "all_time": {
         "brote": 3,
         "krwotoczna": 3,
-        "ausbruch": 4,
-        "aktuell": 4,
+        "ausbruch": 5,
+        "aktuell": 5,
         "hantavirus": 4,
-        "update": 5,
-        "que": 3,
-        "como": 3,
-        "transmite": 3,
-        "malattia": 3,
-        "virus": 3,
+        "update": 6,
+        "que": 4,
+        "como": 4,
+        "transmite": 4,
+        "malattia": 4,
+        "virus": 4,
         "symptoms": 2,
-        "uganda": 1,
-        "today": 1
+        "uganda": 2,
+        "today": 2,
+        "bundibugyo": 1
       },
       "periods": {
         "2026-05-24": {
           "brote": 3,
           "krwotoczna": 3,
-          "ausbruch": 4,
-          "aktuell": 4,
+          "ausbruch": 5,
+          "aktuell": 5,
           "hantavirus": 4,
-          "update": 5,
-          "que": 3,
-          "como": 3,
-          "transmite": 3,
-          "malattia": 3,
-          "virus": 3,
+          "update": 6,
+          "que": 4,
+          "como": 4,
+          "transmite": 4,
+          "malattia": 4,
+          "virus": 4,
           "symptoms": 2,
-          "uganda": 1,
-          "today": 1
+          "uganda": 2,
+          "today": 2,
+          "bundibugyo": 1
         }
       }
     }
