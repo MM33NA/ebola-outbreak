@@ -1089,43 +1089,71 @@
     },
     "rising_searches": [
       {
-        "query": "ebola update in uganda today",
-        "breakout_value": "12150"
+        "query": "sintomas del ebola",
+        "breakout_value": "400"
       },
       {
-        "query": "ebola ausbruch aktuell",
-        "breakout_value": "10400"
+        "query": "sintomas de ebola",
+        "breakout_value": "300"
       },
       {
-        "query": "que es el ebola y como se transmite",
-        "breakout_value": "5650"
+        "query": "ebola death rate",
+        "breakout_value": "100"
       },
       {
-        "query": "malattia da virus ebola",
-        "breakout_value": "2900"
+        "query": "que es el ebola",
+        "breakout_value": "80"
       },
       {
-        "query": "ebola bundibugyo",
-        "breakout_value": "2650"
+        "query": "que es ebola",
+        "breakout_value": "60"
+      },
+      {
+        "query": "ebola sintomas",
+        "breakout_value": "60"
+      },
+      {
+        "query": "ebola outbreak update",
+        "breakout_value": "50"
+      },
+      {
+        "query": "enola",
+        "breakout_value": "40"
       }
     ],
     "word_cloud": {
       "all_time": {
-        "brote": 3,
+        "brote": 4,
         "krwotoczna": 3,
         "ausbruch": 6,
         "aktuell": 6,
         "hantavirus": 4,
         "update": 6,
-        "que": 5,
+        "que": 20,
         "como": 5,
         "transmite": 5,
-        "malattia": 5,
+        "malattia": 13,
         "virus": 4,
-        "symptoms": 2,
+        "symptoms": 4,
         "uganda": 3,
         "today": 3,
-        "bundibugyo": 2
+        "bundibugyo": 2,
+        "mkuu": 6,
+        "luku": 6,
+        "sintomas": 26,
+        "del": 10,
+        "marburg": 3,
+        "syndrome": 3,
+        "incubation": 1,
+        "period": 1,
+        "mexico": 2,
+        "curable": 1,
+        "where": 1,
+        "did": 1,
+        "come": 1,
+        "death": 2,
+        "rate": 2,
+        "enola": 1
       },
       "periods": {
         "2026-05-24": {
@@ -1152,11 +1180,29 @@
           "today": 1,
           "ausbruch": 1,
           "aktuell": 1,
-          "que": 1,
+          "que": 16,
           "como": 1,
           "transmite": 1,
-          "malattia": 1,
-          "bundibugyo": 1
+          "malattia": 9,
+          "bundibugyo": 1,
+          "mkuu": 6,
+          "luku": 6,
+          "sintomas": 26,
+          "del": 10,
+          "marburg": 3,
+          "syndrome": 3,
+          "incubation": 1,
+          "period": 1,
+          "brote": 1,
+          "symptoms": 2,
+          "mexico": 2,
+          "curable": 1,
+          "where": 1,
+          "did": 1,
+          "come": 1,
+          "death": 2,
+          "rate": 2,
+          "enola": 1
         }
       }
     }
