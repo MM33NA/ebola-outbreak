@@ -10,7 +10,6 @@ def scrape_cdc_ebola():
     print("========================================")
     print(f"Fetching {url} ...")
     
-    # 1. Fetch the target CDC page content safely
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -24,10 +23,9 @@ def scrape_cdc_ebola():
     html_content = response.text
     print(f"Page fetched — {len(html_content):,} characters.")
     
-    # Base baseline snapshot structure
     extracted = {
         'suspected': 0, 
-        'confirmed': 1000, 
+        'confirmed': 1003, 
         'suspected_deaths': 0, 
         'confirmed_deaths': 254, 
         'uganda_cases': 20, 
@@ -35,23 +33,38 @@ def scrape_cdc_ebola():
         'updated': '2026-06-23'
     }
 
-    # 2. Text Parsing Engine (Strips out heavy HTML syntax tags for easy matching)
+    # --- PRECISION TABLE PARSING ENGINE ---
     clean_text = re.sub(r'<[^>]+>', ' ', html_content)
-    clean_text = re.sub(r'\s+', ' ', clean_text) # Collapse multiple whitespaces
+    clean_text = re.sub(r'\s+', ' ', clean_text)
+
+    # 1. Parse the DRC Table Row Section
+    drc_section = re.search(r'DRC\s*\(As\s+of[\s\S]*?Uganda', clean_text, re.IGNORECASE)
+    if drc_section:
+        drc_text = drc_section.group(0)
+        drc_cases = re.search(r'Confirmed\s+cases\s+(\d[\d,.]*)', drc_text, re.IGNORECASE)
+        drc_deaths = re.search(r'Confirmed\s+deaths\s+(\d[\d,.]*)', drc_text, re.IGNORECASE)
+        
+        if drc_cases: 
+            extracted['confirmed'] = int(drc_cases.group(1).replace(',', ''))
+        if drc_deaths: 
+            extracted['confirmed_deaths'] = int(drc_deaths.group(1).replace(',', ''))
+
+    # 2. Parse the Uganda Table Row Section
+    uganda_section = re.search(r'Uganda\s*\(As\s+of[\s\S]*?Totals', clean_text, re.IGNORECASE)
+    if uganda_section:
+        ug_text = uganda_section.group(0)
+        ug_cases = re.search(r'Confirmed\s+cases\s+(\d[\d,.]*)', ug_text, re.IGNORECASE)
+        ug_deaths = re.search(r'Confirmed\s+deaths\s+(\d[\d,.]*)', ug_text, re.IGNORECASE)
+        
+        if ug_cases: 
+            extracted['uganda_cases'] = int(ug_cases.group(1).replace(',', ''))
+        if ug_deaths: 
+            extracted['uganda_deaths'] = int(ug_deaths.group(1).replace(',', ''))
+
+    print(f"Extracted Metrics from Table Layout: {extracted}")
     
-    # Scan text for "DRC has confirmed more than X cases" or "DRC has confirmed X cases"
-    drc_cases_match = re.search(r'DRC\s+has\s+confirmed\s+(?:more\s+than\s+)?([\d,]+)\s+cases', clean_text, re.IGNORECASE)
-    if drc_cases_match:
-        extracted['confirmed'] = int(drc_cases_match.group(1).replace(',', ''))
-        # Adjust proportional deaths based on current baseline text boundaries if exact metric moves
-        extracted['confirmed_deaths'] = int(extracted['confirmed'] * 0.254)
-    
-    print(f"Extracted Metrics from Web Content: {extracted}")
-    
-    # Execution Guardrail Validation
     if (extracted['confirmed'] + extracted['confirmed_deaths'] + extracted['uganda_cases'] + extracted['uganda_deaths']) == 0:
         print("WARNING: All zeros — CDC page structure might have broken completely.")
-        print("Error: Process completed with exit code 1.")
         sys.exit(1)
         
     # ========================================================
@@ -59,43 +72,35 @@ def scrape_cdc_ebola():
     # ========================================================
     json_filename = "data.json"
     try:
-        # Step A: Load your current file data architecture
         with open(json_filename, "r", encoding="utf-8") as f:
             dashboard_data = json.load(f)
         
-        # Step B: Inject freshly extracted web numbers into the snapshot data matrix
         dashboard_data["updated"] = extracted["updated"]
         dashboard_data["summary"]["confirmedDRC"] = extracted["confirmed"]
         dashboard_data["summary"]["confirmedDeaths"] = extracted["confirmed_deaths"]
         dashboard_data["summary"]["ugandaCases"] = extracted["uganda_cases"]
         dashboard_data["summary"]["ugandaDeaths"] = extracted["uganda_deaths"]
         
-        # Step C: Auto-Calculate Case Fatality Rate (CFR %)
         total_cases = extracted["confirmed"] + extracted["uganda_cases"]
         total_deaths = extracted["confirmed_deaths"] + extracted["uganda_deaths"]
         if total_cases > 0:
             dashboard_data["summary"]["cfrPercent"] = round((total_deaths / total_cases) * 100, 1)
         
-        # Step D: Dynamic Append Automation for the Charts
         today_date = extracted["updated"]
-        timeline_dates = [item["date"] for item in dashboard_data["timeline"]]
         
-        if today_date not in timeline_dates:
-            new_history_point = {
+        # Check if today's entry already exists to prevent duplicate timeline rendering nodes
+        existing_node = next((item for item in dashboard_data["timeline"] if item["date"] == today_date), None)
+        if existing_node:
+            existing_node["cases"] = total_cases
+            existing_node["deaths"] = total_deaths
+        else:
+            dashboard_data["timeline"].append({
                 "date": today_date,
                 "cases": total_cases,
                 "deaths": total_deaths
-            }
-            dashboard_data["timeline"].append(new_history_point)
+            })
             print(f"Added a new timeline node item for {today_date}!")
-        else:
-            # Update the existing timeline node for today if it already exists
-            for item in dashboard_data["timeline"]:
-                if item["date"] == today_date:
-                    item["cases"] = total_cases
-                    item["deaths"] = total_deaths
 
-        # Step E: Commit everything cleanly to disk without wrecking other blocks
         with open(json_filename, "w", encoding="utf-8") as f:
             json.dump(dashboard_data, f, indent=2)
             
@@ -104,7 +109,7 @@ def scrape_cdc_ebola():
     except FileNotFoundError:
         print(f"Error: Could not locate '{json_filename}' in your active project workspace folder.")
     except Exception as e:
-        print(f"Error parsing or saving data to JSON file structure: {e}")
+        print(f"Error parsing or saving data to JSON: {e}")
 
     return extracted
 

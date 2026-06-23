@@ -1,11 +1,11 @@
 {
   "updated": "2026-06-23",
   "summary": {
-    "confirmedDRC": 1000,
+    "confirmedDRC": 1003,
     "confirmedDeaths": 254,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 25.1
+    "cfrPercent": 25.0
   },
   "timeline": [
     {
@@ -59,7 +59,7 @@
     },
     {
       "date": "2026-06-23",
-      "cases": 1020,
+      "cases": 1023,
       "deaths": 256
     }
   ],
