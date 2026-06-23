@@ -387,6 +387,20 @@ function renderSummary(data) {
 
   chartTimeline = Array.isArray(data.timeline) ? data.timeline : [];
 
+  // Normalize all dates to a consistent format right after initialization
+chartTimeline = chartTimeline.map(item => {
+    if (item.date && item.date.includes('-')) {
+        const parts = item.date.split('-');
+        // Months are 0-indexed in JS (0 = Jan, 5 = June)
+        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]); 
+        return {
+            ...item,
+            date: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        };
+    }
+    return item;
+});
+
   document.getElementById('app').innerHTML = `
     <div class="header">
       <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>

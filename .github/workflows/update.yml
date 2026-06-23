@@ -24,18 +24,23 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Added pytrends here so the workflow environment can handle Google connection queries
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 pytrends
 
-      - name: Run scraper
+      - name: Run CDC Web Scraper
         run: python scrape.py
+
+      # Added trends.py execution right after the CDC numbers update
+      - name: Run Google Trends Scraper
+        run: python trends.py
 
       - name: Commit updated data.json
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --cached --quiet || git commit -m "Auto-update: outbreak data $(date +'%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "Auto-update: outbreak and trends data $(date +'%Y-%m-%d')"
 
       - name: Push changes
         run: git push

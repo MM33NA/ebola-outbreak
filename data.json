@@ -1113,19 +1113,19 @@
       "all_time": {
         "brote": 3,
         "krwotoczna": 3,
-        "ausbruch": 5,
-        "aktuell": 5,
+        "ausbruch": 6,
+        "aktuell": 6,
         "hantavirus": 4,
         "update": 6,
-        "que": 4,
-        "como": 4,
-        "transmite": 4,
-        "malattia": 4,
+        "que": 5,
+        "como": 5,
+        "transmite": 5,
+        "malattia": 5,
         "virus": 4,
         "symptoms": 2,
-        "uganda": 2,
-        "today": 2,
-        "bundibugyo": 1
+        "uganda": 3,
+        "today": 3,
+        "bundibugyo": 2
       },
       "periods": {
         "2026-05-24": {
@@ -1143,6 +1143,19 @@
           "symptoms": 2,
           "uganda": 2,
           "today": 2,
+          "bundibugyo": 1
+        }
+      },
+      "daily_history": {
+        "2026-06-23": {
+          "uganda": 1,
+          "today": 1,
+          "ausbruch": 1,
+          "aktuell": 1,
+          "que": 1,
+          "como": 1,
+          "transmite": 1,
+          "malattia": 1,
           "bundibugyo": 1
         }
       }
