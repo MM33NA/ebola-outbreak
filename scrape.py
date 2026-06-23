@@ -11,7 +11,7 @@ def scrape_cdc_ebola():
     
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
@@ -22,70 +22,50 @@ def scrape_cdc_ebola():
     html_content = response.text
     print(f"Page fetched — {len(html_content):,} chars")
     
-    # Initialize data metrics matching your dictionary structure template
+    # 1. Isolate the data table block from the HTML code to skip hidden layout text
+    table_match = re.search(r"<table.*?>.*?</table>", html_content, re.DOTALL | re.IGNORECASE)
+    table_text = table_match.group(0) if table_match else html_content
+
+    # Helper function to parse metrics out of specific country blocks
+    def extract_table_metric(country_keyword, metric_keyword, search_space):
+        # Isolate text from the country name up to the next logical row boundary
+        country_chunk = re.search(rf"{country_keyword}.*?(?=Totals|Uganda|\<\/table)", search_space, re.DOTALL | re.IGNORECASE)
+        if not country_chunk:
+            return 0
+        segment = country_chunk.group(0)
+        
+        # Extract the digits right after the metric name
+        metric_match = re.search(rf"{metric_keyword}\D*(\d+)", segment, re.IGNORECASE)
+        return int(metric_match.group(1)) if metric_match else 0
+
+    # 2. Map metrics into your exact feature structure
     extracted = {
         'suspected': 0, 
-        'confirmed': 1003,          # Precise image row total
+        'confirmed': extract_table_metric("DRC", "Confirmed cases", table_text),
         'suspected_deaths': 0, 
-        'confirmed_deaths': 254,     # Precise image row total
-        'uganda_cases': 20,          # Precise image row total
-        'uganda_deaths': 2,          # Precise image row total
+        'confirmed_deaths': extract_table_metric("DRC", "Confirmed deaths", table_text),
+        'uganda_cases': extract_table_metric("Uganda", "Confirmed cases", table_text),
+        'uganda_deaths': extract_table_metric("Uganda", "Confirmed deaths", table_text),
         'updated': '2026-06-22'
     }
-
-    # Dynamic target search check: If the page's hidden source data exposes a direct sequence 
-    # we override the defaults to keep the script adaptive to future field revisions.
-    raw_clean = re.sub(r'\s+', '', html_content)
     
-    # Scan for sequential string data points matching standard JSON table array payloads
-    drc_match = re.search(r'DRC.*?Confirmedcases.*?(\d+)', raw_clean, re.IGNORECASE)
-    if drc_match:
-        extracted['confirmed'] = int(drc_match.group(1))
-
     print(f"Extracted: {extracted}")
     
-    # Structural execution validation guardrail
-    if (extracted['confirmed'] + extracted['confirmed_deaths'] + extracted['uganda_cases'] + extracted['uganda_deaths']) == 0:
+    # 3. Your original feature validation and error-exit logic
+    total_metrics = (
+        extracted['confirmed'] + 
+        extracted['confirmed_deaths'] + 
+        extracted['uganda_cases'] + 
+        extracted['uganda_deaths']
+    )
+    
+    if total_metrics == 0:
         print("WARNING: All zeros — CDC page structure may have changed.")
+        print("Check scrape.py regex patterns.")
         print("Error: Process completed with exit code 1.")
         sys.exit(1)
         
-    # ========================================================
-    # NEW CODE: AUTOMATICALLY UPDATE YOUR DATA.JSON FILE
-    # ========================================================
-    import json
-    
-    json_filename = "data.json"
-    try:
-        # 1. Load the existing file structure so we don't destroy your timeline/health zones
-        with open(json_filename, "r", encoding="utf-8") as f:
-            dashboard_data = json.load(f)
-        
-        # 2. Update the micro summary fields with the fresh scraper metrics
-        dashboard_data["updated"] = extracted["updated"]
-        dashboard_data["summary"]["confirmedDRC"] = extracted["confirmed"]
-        dashboard_data["summary"]["confirmedDeaths"] = extracted["confirmed_deaths"]
-        dashboard_data["summary"]["ugandaCases"] = extracted["uganda_cases"]
-        dashboard_data["summary"]["ugandaDeaths"] = extracted["uganda_deaths"]
-        
-        # Recalculate Case Fatality Rate percentage automatically
-        total_cases = extracted["confirmed"] + extracted["uganda_cases"]
-        total_deaths = extracted["confirmed_deaths"] + extracted["uganda_deaths"]
-        if total_cases > 0:
-            dashboard_data["summary"]["cfrPercent"] = round((total_deaths / total_cases) * 100, 1)
-
-        # 3. Save everything back cleanly to disk
-        with open(json_filename, "w", encoding="utf-8") as f:
-            json.dump(dashboard_data, f, indent=2)
-            
-        print(f"Success: Cleanly updated and overwrote {json_filename}!")
-        
-    except FileNotFoundError:
-        print(f"Error: Could not find {json_filename} in this directory to update.")
-    except Exception as e:
-        print(f"Error saving to JSON file: {e}")
-    # ========================================================
-
+    print("Scrape completed successfully.")
     return extracted
 
 if __name__ == "__main__":
