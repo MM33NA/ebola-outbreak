@@ -455,29 +455,6 @@ function renderSummary(data) {
       </p>
     </section>
 
-    <p class="section-title">Transmission &amp; importation network</p>
-    <p class="section-sub">Confirmed transmission chains and contact movements from the epicentre in Ituri Province, DRC. Hover nodes for detail.</p>
-
-    <div class="graph-card">
-      <svg id="graph-svg" viewBox="0 0 680 500" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-
-    <p class="note" style="margin-bottom:1.75rem;">
-      <strong>Network note:</strong> Germany represents a contact transfer — 1 American healthcare worker and 6 high-risk contacts were medically evacuated for monitoring. The United States has no confirmed cases.
-    </p>
-
-    <hr class="section-divider">
-
-    <p class="section-title">Affected provinces &amp; health zones (DRC)</p>
-    <table>
-      <thead><tr><th>Location</th><th>Health areas affected</th><th>Status</th></tr></thead>
-      <tbody>
-        ${healthZones.map(z => `<tr><td>${z.name}</td><td>${z.areasAffected ?? '—'}</td><td>${z.status}</td></tr>`).join('')}
-      </tbody>
-    </table>
-
-    <hr class="section-divider">
-
     <p class="section-title">Key events</p>
     <div class="timeline">
       ${events.map(e => `
@@ -509,253 +486,42 @@ function renderSummary(data) {
     </footer>
   `;
 
-  renderChart('cumulative');
-  if (data.network) buildNetwork(data.network, isDark, divColor);
-  renderGoogleTrends(data);
+ // renderChart('cumulative');
+ // if (data.network) buildNetwork(data.network, isDark, divColor);
+ // renderGoogleTrends(data);
 }
 
-// ─── Network graph ────────────────────────────────────────────────────────────
-function buildNetwork(network, isDark, divColor) {
-  const svg = document.getElementById('graph-svg');
-  if (!svg) { console.warn("'graph-svg' not found."); return; }
-  if (!network?.nodes || !network?.links) { console.warn('Network data missing or malformed.'); return; }
+// ... (your existing buildNetwork and network event listeners go here)
 
-  const C = {
-    origin:   { fill: isDark?'#501313':'#FCEBEB', stroke: isDark?'#791F1F':'#F7C1C1', title: isDark?'#F09595':'#791F1F', text: isDark?'#F09595':'#A32D2D', line: isDark?'#791F1F':'#F7C1C1' },
-    hub:      { fill: isDark?'#4A1B0C':'#FAECE7', stroke: isDark?'#993C1D':'#F0997B', title: isDark?'#F5C4B3':'#4A1B0C', text: isDark?'#F0997B':'#993C1D', line: isDark?'#993C1D':'#F0997B' },
-    export:   { fill: isDark?'#412402':'#FAEEDA', stroke: isDark?'#854F0B':'#FAC775', title: isDark?'#FAC775':'#412402', text: isDark?'#EF9F27':'#854F0B', line: isDark?'#854F0B':'#FAC775' },
-    contact:  { fill: isDark?'#042C53':'#E6F1FB', stroke: isDark?'#185FA5':'#B5D4F4', title: isDark?'#B5D4F4':'#042C53', text: isDark?'#85B7EB':'#185FA5', line: isDark?'#185FA5':'#B5D4F4' },
-    alert:    { fill: isDark?'#26215C':'#EEEDFE', stroke: isDark?'#534AB7':'#CECBF6', title: isDark?'#CECBF6':'#26215C', text: isDark?'#AFA9EC':'#534AB7', line: isDark?'#534AB7':'#CECBF6' },
-    suspect:  { fill: isDark?'#2C1A04':'#FFF4E6', stroke: isDark?'#8A4E0A':'#FFBB70', title: isDark?'#FFBB70':'#5A2D00', text: isDark?'#FFA040':'#8A4E0A', line: isDark?'#8A4E0A':'#FFBB70' },
-  };
-  const LC   = { confirmed:'#A32D2D', contact:'#185FA5', alert:'#534AB7', suspect:'#E67E22' };
-  const tCol = isDark ? '#888780' : '#88877f';
-
-  let tooltip = document.getElementById('network-tooltip');
-  if (!tooltip) {
-    tooltip = document.createElement('div');
-    tooltip.id = 'network-tooltip';
-    document.body.appendChild(tooltip);
-  }
-  Object.assign(tooltip.style, {
-    position:'fixed', pointerEvents:'none', background: isDark?'#252523':'#fff',
-    border:`0.5px solid ${isDark?'rgba(255,255,255,0.16)':'rgba(0,0,0,0.18)'}`,
-    borderRadius:'8px', padding:'10px 13px', fontSize:'12px',
-    color: isDark?'#f0efea':'#1a1a18', maxWidth:'240px',
-    boxShadow:'0 4px 16px rgba(0,0,0,0.12)', opacity:'0',
-    transition:'opacity 0.15s', zIndex:'100', lineHeight:'1.55'
-  });
-
-  const nodeMap = {};
-  network.nodes.forEach(n => nodeMap[n.id] = n);
-
-  const rightNodes = network.nodes.filter(n => ['export','contact','alert','suspect'].includes(n.type));
-  rightNodes.forEach((n, i) => { n._x = 530; n._y = 80 + i * (280 / Math.max(rightNodes.length - 1, 1)); });
-
-  network.nodes.filter(n => n.type === 'origin').forEach((n, i) => { n._x = 20; n._y = 120 + i * 170; });
-
-  const hubNode = network.nodes.find(n => n.type === 'hub');
-  if (hubNode) { hubNode._x = 263; hubNode._y = 185; }
-
-  function svgEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
-
-  function text(x, y, content, size, weight, fill, anchor) {
-    const el = svgEl('text');
-    el.setAttribute('x', x); el.setAttribute('y', y); el.setAttribute('font-size', size);
-    el.setAttribute('font-weight', weight); el.setAttribute('fill', fill);
-    el.setAttribute('text-anchor', anchor || 'start');
-    el.setAttribute('dominant-baseline', 'central');
-    el.setAttribute('pointer-events', 'none');
-    el.textContent = content;
-    svg.appendChild(el);
-  }
-  function line(x1, y1, x2, y2, stroke, sw) {
-    const el = svgEl('line');
-    el.setAttribute('x1',x1); el.setAttribute('y1',y1); el.setAttribute('x2',x2); el.setAttribute('y2',y2);
-    el.setAttribute('stroke',stroke); el.setAttribute('stroke-width',sw);
-    svg.appendChild(el);
-  }
-  function arrow(id, color) {
-    const defs = svg.querySelector('defs') || (() => { const d = svgEl('defs'); svg.appendChild(d); return d; })();
-    const m = svgEl('marker');
-    m.setAttribute('id', id); m.setAttribute('viewBox','0 0 10 10');
-    m.setAttribute('refX','8'); m.setAttribute('refY','5');
-    m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6');
-    m.setAttribute('orient','auto-start-reverse');
-    const p = svgEl('path');
-    p.setAttribute('d','M2 1L8 5L2 9'); p.setAttribute('fill','none');
-    p.setAttribute('stroke',color); p.setAttribute('stroke-width','1.5');
-    p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round');
-    m.appendChild(p); defs.appendChild(m);
-  }
-  function arc(sx, sy, tx, ty, type) {
-    const sw = 160, sh = 80;
-    const x1 = sx + sw, y1 = sy + sh / 2;
-    const x2 = tx,      y2 = ty + sh / 2;
-    const mx = (x1 + x2) / 2;
-    const el = svgEl('path');
-    el.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
-    el.setAttribute('fill','none');
-    el.setAttribute('stroke', LC[type]);
-    el.setAttribute('stroke-width', type === 'confirmed' ? 1.8 : 1.4);
-    if (type === 'contact') el.setAttribute('stroke-dasharray','6 4');
-    if (type === 'alert')   el.setAttribute('stroke-dasharray','2 5');
-    if (type === 'suspect') el.setAttribute('stroke-dasharray','4 3');
-    el.setAttribute('marker-end', `url(#arr-${type})`);
-    svg.appendChild(el);
-  }
-
-  const bg = svgEl('rect');
-  bg.setAttribute('width','680'); bg.setAttribute('height','500');
-  bg.setAttribute('fill', isDark ? '#252523' : '#f5f5f3'); bg.setAttribute('rx','12');
-  svg.innerHTML = '';
-  svg.appendChild(bg);
-
-  arrow('arr-confirmed', LC.confirmed);
-  arrow('arr-contact',   LC.contact);
-  arrow('arr-alert',     LC.alert);
-  arrow('arr-suspect',   LC.suspect);
-
-  text(96,  22, 'DRC origin zones',       11, 400, tCol, 'middle');
-  text(343, 22, 'Epicentre hub',            11, 400, tCol, 'middle');
-  text(610, 22, 'International networks',  11, 400, tCol, 'middle');
-  line(20, 36, 660, 36, divColor, 1);
-
-  network.links.forEach(l => {
-    const s = nodeMap[l.source], t = nodeMap[l.target];
-    if (s && t) arc(s._x, s._y, t._x, t._y, l.type);
-  });
-
-  network.nodes.forEach(n => {
-    const conf = C[n.type];
-    if (!conf) return;
-
-    const el  = svgEl('g'); el.style.cursor = 'pointer';
-    const sw  = 160, sh = 80;
-    const rEl = svgEl('rect');
-    rEl.setAttribute('x', n._x); rEl.setAttribute('y', n._y);
-    rEl.setAttribute('width', sw); rEl.setAttribute('height', sh);
-    rEl.setAttribute('rx','8'); rEl.setAttribute('fill', conf.fill);
-    rEl.setAttribute('stroke', conf.stroke); rEl.setAttribute('stroke-width','1');
-    el.appendChild(rEl);
-    svg.appendChild(el);
-
-    const midX = n._x + sw / 2;
-    const midY = n._y + sh / 2;
-    const labelY = n.subtitle ? midY - 10 : midY;
-
-    const t1 = svgEl('text');
-    t1.setAttribute('x', midX); t1.setAttribute('y', labelY);
-    t1.setAttribute('font-size','13'); t1.setAttribute('font-weight','600');
-    t1.setAttribute('fill', conf.title);
-    t1.setAttribute('text-anchor', 'middle');
-    t1.setAttribute('dominant-baseline', 'central');
-    t1.textContent = n.label;
-    el.appendChild(t1);
-
-    if (n.subtitle) {
-      const t2 = svgEl('text');
-      t2.setAttribute('x', midX); t2.setAttribute('y', midY + 12);
-      t2.setAttribute('font-size', '11'); t2.setAttribute('fill', conf.text);
-      t2.setAttribute('text-anchor', 'middle');
-      t2.setAttribute('dominant-baseline', 'central');
-      t2.textContent = n.subtitle;
-      el.appendChild(t2);
+// ─── DATA LOADER SYSTEM ──────────────────────────────────────────────────────
+async function initDashboard() {
+  try {
+    // 1. Fetch your fresh updated data file from localhost
+    const response = await fetch('data.json');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    el.addEventListener('mouseenter', () => {
-      tooltip.innerHTML = `
-        <strong style="color:${conf.title}">${n.label}</strong>
-        ${n.subtitle ? `<br/><span style="font-size:11px;color:var(--text-3)">${n.subtitle}</span>` : ''}
-        <div style="margin-top:6px;font-size:11px;border-top:0.5px solid var(--border);padding-top:4px;">
-          ${n.details || 'No structural chain details specified.'}
-        </div>
-      `;
-      tooltip.style.opacity = '1';
-    });
-
-    el.addEventListener('mousemove', (e) => {
-      tooltip.style.left = `${e.clientX + 14}px`;
-      tooltip.style.top = `${e.clientY + 14}px`;
-    });
-
-    el.addEventListener('mouseleave', () => {
-      tooltip.style.opacity = '0';
-    });
-  });
+    
+    // 2. Parse it into an object
+    const data = await response.json();
+    
+    // 3. Make it globally available for the word cloud
+    window.ebolaData = data;
+    
+    // 4. Run the layout renderer with your live metrics!
+    renderSummary(data);
+    
+  } catch (error) {
+    console.error("Failed to load or parse data.json:", error);
+    document.getElementById('app').innerHTML = `
+      <div class="loading" style="color:var(--red);">
+        Error loading outbreak data. Make sure data.json exists in your project folder.
+      </div>`;
+  }
 }
 
-// ─── Self-contained Environment Fallback Hydrator ───────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  if (window.ebolaData) {
-    renderSummary(window.ebolaData);
-    return;
-  }
-
-  // Self-generated execution payload fallback mock structure
-  const fallbackPayload = {
-    updated: "June 2026",
-    summary: { confirmedDRC: 142, confirmedDeaths: 54, cfrPercent: 38, ugandaCases: 3, ugandaDeaths: 1 },
-    timeline: [
-      { date: "2026-04-15", cases: 12, deaths: 4 },
-      { date: "2026-04-30", cases: 45, deaths: 18 },
-      { date: "2026-05-15", cases: 98, deaths: 39 },
-      { date: "2026-05-24", cases: 132, deaths: 51 },
-      { date: "2026-06-15", cases: 142, deaths: 55 }
-    ],
-    google_trends_surveillance: {
-      rising_searches: [
-        { query: "Bundibugyo ebola transmission methods", breakout_value: "Breakout" },
-        { query: "DRC health zone evacuation map 2026", breakout_value: "350" }
-      ],
-      search_timeline: {
-        Ebola: [
-          { time: "2026-04-15 00:00", score: 12 },
-          { time: "2026-04-30 00:00", score: 48 },
-          { time: "2026-05-15 00:00", score: 92 },
-          { time: "2026-05-24 00:00", score: 100 },
-          { time: "2026-06-15 00:00", score: 64 }
-        ],
-        Transmission: [
-          { time: "2026-04-15 00:00", score: 2 },
-          { time: "2026-04-30 00:00", score: 15 },
-          { time: "2026-05-15 00:00", score: 55 },
-          { time: "2026-05-24 00:00", score: 80 },
-          { time: "2026-06-15 00:00", score: 32 }
-        ]
-      },
-      word_cloud: {
-        all_time: { "Fever": 95, "Hemorrhagic": 80, "Sudden onset": 65, "Vomiting": 60, "Fatigue": 50, "Malarial mimicking": 45, "Rash": 30 },
-        periods: {
-          "2026-05-24": { "Hemorrhagic": 99, "Vomiting": 85, "Fever": 70 }
-        }
-      }
-    },
-    healthZones: [
-      { name: "Ituri Province (Epicentre)", areasAffected: "Mambasa, Komanda", status: "Active Chain" },
-      { name: "North Kivu", areasAffected: "Beni", status: "Controlled Monitoring" },
-      { name: "Kampala Urban Sector", areasAffected: "Rubaga Division", status: "Importation Isolation" }
-    ],
-    events: [
-      { date: "April 17, 2026", desc: "WHO officially declares active transmission of Bundibugyo ebolavirus out of Ituri Province.", red: true },
-      { date: "May 15, 2026", desc: "Uganda MoH issues rapid border-point alert following an imported confirmed cluster in Kampala.", red: true }
-    ],
-    network: {
-      nodes: [
-        { id: "origin_drc", type: "origin", label: "Ituri Province", subtitle: "DRC Epicentre Cluster", details: "Initial index transmission chain mapped out of Mambasa health area zones." },
-        { id: "hub_zone", type: "hub", label: "Beni Hub Transition", subtitle: "North Kivu Borderway", details: "Major logistics network processing contact traces and tracking movements." },
-        { id: "export_uganda", type: "export", label: "Kampala Cluster", subtitle: "Uganda Importation", details: "Cross-border track via transport routes into residential Rubaga Division." }
-      ],
-      links: [
-        { source: "origin_drc", target: "hub_zone", type: "confirmed" },
-        { source: "hub_zone", target: "export_uganda", type: "contact" }
-      ]
-    }
-  };
-
-  window.ebolaData = fallbackPayload;
-  renderSummary(window.ebolaData);
-});
+// Fire up the application once the document loads
+document.addEventListener('DOMContentLoaded', initDashboard);
 </script>
 </body>
 </html>

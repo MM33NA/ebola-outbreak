@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-22",
+  "updated": "2026-06-23",
   "summary": {
-    "confirmedDRC": 921,
+    "confirmedDRC": 1000,
     "confirmedDeaths": 254,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 27.2
+    "cfrPercent": 25.1
   },
   "timeline": [
     {
@@ -56,6 +56,11 @@
       "deaths": 134,
       "drcConfirmed": 635,
       "ugandaConfirmed": 15
+    },
+    {
+      "date": "2026-06-23",
+      "cases": 1020,
+      "deaths": 256
     }
   ],
   "healthZones": [
