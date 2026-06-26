@@ -1125,42 +1125,42 @@
     },
     "rising_searches": [
       {
-        "query": "como se contagia el ebola",
-        "breakout_value": "12350"
-      },
-      {
         "query": "ebola update in uganda today",
-        "breakout_value": "12300"
+        "breakout_value": "12200"
       },
       {
         "query": "hantavirus update",
-        "breakout_value": "10650"
+        "breakout_value": "10600"
       },
       {
         "query": "ebola ausbruch aktuell",
-        "breakout_value": "9750"
+        "breakout_value": "9850"
       },
       {
         "query": "que es el ebola y como se transmite",
-        "breakout_value": "5550"
+        "breakout_value": "5500"
+      },
+      {
+        "query": "malattia da virus ebola",
+        "breakout_value": "4550"
       }
     ],
     "word_cloud": {
       "all_time": {
         "brote": 4,
         "krwotoczna": 3,
-        "ausbruch": 10,
-        "aktuell": 10,
-        "hantavirus": 8,
-        "update": 11,
-        "que": 22,
-        "como": 10,
-        "transmite": 7,
-        "malattia": 17,
-        "virus": 7,
+        "ausbruch": 11,
+        "aktuell": 11,
+        "hantavirus": 9,
+        "update": 13,
+        "que": 23,
+        "como": 11,
+        "transmite": 8,
+        "malattia": 18,
+        "virus": 8,
         "symptoms": 5,
-        "uganda": 6,
-        "today": 6,
+        "uganda": 7,
+        "today": 7,
         "bundibugyo": 3,
         "mkuu": 7,
         "luku": 7,
@@ -1187,18 +1187,18 @@
         "2026-05-24": {
           "brote": 3,
           "krwotoczna": 3,
-          "ausbruch": 9,
-          "aktuell": 9,
-          "hantavirus": 8,
-          "update": 11,
-          "que": 6,
-          "como": 8,
-          "transmite": 6,
-          "malattia": 7,
-          "virus": 7,
+          "ausbruch": 10,
+          "aktuell": 10,
+          "hantavirus": 9,
+          "update": 13,
+          "que": 7,
+          "como": 9,
+          "transmite": 7,
+          "malattia": 8,
+          "virus": 8,
           "symptoms": 3,
-          "uganda": 5,
-          "today": 5,
+          "uganda": 6,
+          "today": 6,
           "bundibugyo": 2,
           "cagliari": 1,
           "contagia": 2
