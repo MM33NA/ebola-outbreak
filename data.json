@@ -548,6 +548,10 @@
         {
           "time": "2026-06-26",
           "score": 9
+        },
+        {
+          "time": "2026-06-27",
+          "score": 9
         }
       ],
       "Symptoms": [
@@ -833,6 +837,10 @@
         },
         {
           "time": "2026-06-26",
+          "score": 0
+        },
+        {
+          "time": "2026-06-27",
           "score": 0
         }
       ],
@@ -1120,47 +1128,51 @@
         {
           "time": "2026-06-26",
           "score": 0
+        },
+        {
+          "time": "2026-06-27",
+          "score": 0
         }
       ]
     },
     "rising_searches": [
+      {
+        "query": "malattia da virus ebola",
+        "breakout_value": "43550"
+      },
+      {
+        "query": "ebola cagliari",
+        "breakout_value": "14350"
+      },
       {
         "query": "ebola update in uganda today",
         "breakout_value": "12200"
       },
       {
         "query": "hantavirus update",
-        "breakout_value": "10600"
+        "breakout_value": "10350"
       },
       {
         "query": "ebola ausbruch aktuell",
-        "breakout_value": "9850"
-      },
-      {
-        "query": "que es el ebola y como se transmite",
-        "breakout_value": "5500"
-      },
-      {
-        "query": "malattia da virus ebola",
-        "breakout_value": "4550"
+        "breakout_value": "9600"
       }
     ],
     "word_cloud": {
       "all_time": {
         "brote": 4,
         "krwotoczna": 3,
-        "ausbruch": 11,
-        "aktuell": 11,
-        "hantavirus": 9,
-        "update": 13,
+        "ausbruch": 12,
+        "aktuell": 12,
+        "hantavirus": 10,
+        "update": 15,
         "que": 23,
         "como": 11,
         "transmite": 8,
-        "malattia": 18,
-        "virus": 8,
+        "malattia": 19,
+        "virus": 9,
         "symptoms": 5,
-        "uganda": 7,
-        "today": 7,
+        "uganda": 8,
+        "today": 8,
         "bundibugyo": 3,
         "mkuu": 7,
         "luku": 7,
@@ -1181,26 +1193,26 @@
         "congo": 2,
         "contagia": 3,
         "river": 1,
-        "cagliari": 1
+        "cagliari": 2
       },
       "periods": {
         "2026-05-24": {
           "brote": 3,
           "krwotoczna": 3,
-          "ausbruch": 10,
-          "aktuell": 10,
-          "hantavirus": 9,
-          "update": 13,
+          "ausbruch": 11,
+          "aktuell": 11,
+          "hantavirus": 10,
+          "update": 15,
           "que": 7,
           "como": 9,
           "transmite": 7,
-          "malattia": 8,
-          "virus": 8,
+          "malattia": 9,
+          "virus": 9,
           "symptoms": 3,
-          "uganda": 6,
-          "today": 6,
+          "uganda": 7,
+          "today": 7,
           "bundibugyo": 2,
-          "cagliari": 1,
+          "cagliari": 2,
           "contagia": 2
         }
       },
