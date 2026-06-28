@@ -43,4 +43,4 @@ jobs:
           git diff --cached --quiet || git commit -m "Auto-update: outbreak and trends data $(date +'%Y-%m-%d')"
 
       - name: Push changes
-        run: git push
+        run: git push origin main

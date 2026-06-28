@@ -61,6 +61,29 @@ def scrape_cdc_ebola():
         if ug_deaths: 
             extracted['uganda_deaths'] = int(ug_deaths.group(1).replace(',', ''))
 
+# 3. Your original feature validation and error-exit logic
+    total_metrics = (
+        extracted['confirmed'] + 
+        extracted['confirmed_deaths'] + 
+        extracted['uganda_cases'] + 
+        extracted['uganda_deaths']
+    )
+    
+    if total_metrics == 0:
+        print("WARNING: All zeros — CDC page structure may have changed.")
+        print("Check scrape.py regex patterns.")
+        print("Error: Process completed with exit code 1.")
+        sys.exit(1)
+        
+    # ==================== ADD THIS TO WRITE FILE ====================
+    with open("data.json", "w", encoding="utf-8") as f:
+        json.dump(extracted, f, indent=2)
+    print("Successfully saved data to data.json")
+    # ================================================================
+        
+    print("Scrape completed successfully.")
+    return extracted
+
     print(f"Extracted Metrics from Table Layout: {extracted}")
     
     if (extracted['confirmed'] + extracted['confirmed_deaths'] + extracted['uganda_cases'] + extracted['uganda_deaths']) == 0:

@@ -126,286 +126,57 @@ let chartInstance  = null;
 let currentMode    = 'cumulative';
 let chartTimeline  = [];
 
-// ─── Word cloud ───────────────────────────────────────────────────────────────
-function updateWordCloudView(selectedDate) {
-  const cloudContainer = document.getElementById('symptom-word-cloud');
-  if (!cloudContainer) return;
-
-  if (!window.ebolaData || !window.ebolaData.google_trends || !window.ebolaData.google_trends.word_cloud) {
-    cloudContainer.innerHTML = `<p style="color:var(--text-3);font-size:13px;padding:20px;text-align:center;">
-      No word-cloud data available. Run trends.py to populate search logs.
-    </p>`;
-    return;
-  }
-
-  const targetCloud = window.ebolaData.google_trends.word_cloud;
-  let rawWordsObject = {};
-  if (selectedDate === 'all' || !selectedDate) {
-    rawWordsObject = targetCloud.all_time || {};
-  } else {
-    if (targetCloud.daily_history) {
-      // Print out the actual dictionary keys to your browser console to see what exists!
-      console.log("🔍 Available keys in daily_history:", Object.keys(targetCloud.daily_history));
-      console.log("👉 Key you are trying to find right now:", selectedDate);
-
-      // 1. Try direct matching (e.g., "2026-05-24")
-      if (targetCloud.daily_history[selectedDate]) {
-        rawWordsObject = targetCloud.daily_history[selectedDate];
-      } 
-      // 2. Fallback: If your keys match the exact text label inside the option tag instead
-      else {
-        // Try getting the active text name from the select dropdown directly
-        const selectEl = document.getElementById('word-cloud-period-select');
-        const selectedText = selectEl ? selectEl.options[selectEl.selectedIndex].text : '';
-        
-        console.log("🔄 Trying fallback option text matching for:", selectedText);
-        
-        if (targetCloud.daily_history[selectedText]) {
-          rawWordsObject = targetCloud.daily_history[selectedText];
-        } else {
-          rawWordsObject = {};
-        }
-      }
-    }
-  }
-  
-  cloudContainer.innerHTML = '';
-
-  const colors = [
-    '#1f77b4','#aec7e8','#ff7f0e','#ffbb78','#2ca02c',
-    '#98df8a','#d62728','#ff9896','#9467bd','#c5b0d5',
-    '#8c564b','#e377c2','#f7b6d2','#bcbd22','#17becf'
-  ];
-
-  const dataset = Object.entries(rawWordsObject).map(([word, frequency]) => ({ term: word, volume: frequency }));
-  const maxVol  = Math.max(...dataset.map(v => v.volume));
-  const minVol  = Math.min(...dataset.map(v => v.volume));
-
-  const width   = cloudContainer.offsetWidth || 600;
-  const height  = 320;
-  const centerX = width  / 2;
-  const centerY = height / 2;
-  const placed  = [];
-
-  function intersects(x1, y1, w1, h1) {
-    for (const ex of placed) {
-      if (x1 < ex.x2 && x1 + w1 > ex.x1 && y1 < ex.y2 && y1 + h1 > ex.y1) return true;
-    }
-    return false;
-  }
-
-  [...dataset].sort((a, b) => b.volume - a.volume).forEach((item, idx) => {
-    const scalePct = maxVol === minVol ? 0.5 : (item.volume - minVol) / (maxVol - minVol);
-    const fontSize = Math.round(12 + scalePct * 28);
-
-    const span = document.createElement('span');
-    span.className   = 'cloud-word';
-    span.style.fontSize = `${fontSize}px`;
-    span.style.color    = colors[idx % colors.length];
-    span.style.position = 'absolute';  // <--- Force absolute immediately
-    span.textContent    = item.term;
-    span.title          = `Relative Search Weight Index: ${item.volume}`;
+// ─── APPLICATION INITIALIZATION ──────────────────────────────────────────────
+async function initDashboard() {
+  try {
+    const response = await fetch('data.json');
+    if (!response.ok) throw new Error("Could not find data.json framework file.");
     
-    // We must append it to the DOM first so the browser layout engine calculates offsetWidth/Height
-    cloudContainer.appendChild(span);
-
-    const ww = span.offsetWidth || (item.term.length * fontSize * 0.6); // Fallback estimate if 0
-    const wh = span.offsetHeight || (fontSize * 1.2);                   // Fallback estimate if 0
-
-    let angle = 0, radius = 0, posX = 0, posY = 0, ok = false;
+    const data = await response.json();
     
-    // Give the spiral plenty of room to expand outwards
-    while (!ok && radius < Math.max(width, height) * 2) {
-      posX = centerX + radius * Math.cos(angle) - ww / 2;
-      posY = centerY + radius * Math.sin(angle) - wh / 2;
-      
-      if (posX > 0 && posX + ww < width && posY > 0 && posY + wh < height) {
-        if (!intersects(posX, posY, ww, wh)) {
-          placed.push({ x1: posX, y1: posY, x2: posX + ww, y2: posY + wh });
-          ok = true;
-        }
-      }
-      angle  += 0.1; // Tighter spiral angles for better compactness
-      radius += 0.1;
-    }
-
-    if (ok) {
-      span.style.left = `${posX}px`;
-      span.style.top  = `${posY}px`;
-      // Remove any translation modifications that fight with explicit coordinates
-      span.style.transform = 'none'; 
-    } else {
-      // If it absolutely won't fit, hide it or place it randomly as a fallback instead of removing it
-      span.style.left = `${Math.random() * (width - ww)}px`;
-      span.style.top  = `${Math.random() * (height - wh)}px`;
-    }
-  });
-}
-
-// ─── Chart helpers ────────────────────────────────────────────────────────────
-function buildDailyData(timeline) {
-  return timeline.map((pt, i) => ({
-    date:   pt.date,
-    cases:  i === 0 ? pt.cases  : Math.max(0, pt.cases  - timeline[i - 1].cases),
-    deaths: i === 0 ? pt.deaths : Math.max(0, pt.deaths - timeline[i - 1].deaths),
-  }));
-}
-
-function switchMode(mode) {
-  currentMode = mode;
-  document.getElementById('btn-cumulative').classList.toggle('active', mode === 'cumulative');
-  document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
-  renderChart(mode);
-}
-
-function renderChart(mode) {
-  if (!chartTimeline || chartTimeline.length === 0) {
-    console.warn('renderChart called before chartTimeline was populated.');
-    return;
-  }
-
-  const canvas = document.getElementById('mainChart');
-  if (!canvas) { console.warn('mainChart canvas not found.'); return; }
-
-  const isDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const source  = mode === 'cumulative' ? chartTimeline : buildDailyData(chartTimeline);
-  const display = mode === 'daily' ? source.slice(1) : source;
-
-  const config = {
-    type: mode === 'daily' ? 'bar' : 'line',
-    data: {
-      labels: display.map(d => d.date),
-      datasets: [
-        {
-          label: mode === 'cumulative' ? 'Confirmed cases' : 'New confirmed cases',
-          data: display.map(d => d.cases),
-          borderColor: '#378ADD',
-          backgroundColor: mode === 'daily' ? 'rgba(55,138,221,0.7)' : (isDark ? 'rgba(55,138,221,0.12)' : 'rgba(55,138,221,0.08)'),
-          fill: mode !== 'daily',
-          tension: 0.35,
-          pointRadius: mode === 'daily' ? 0 : 5,
-          pointBackgroundColor: '#378ADD',
-          pointBorderColor: isDark ? '#1c1c1a' : '#fff',
-          pointBorderWidth: 2,
-          borderWidth: 2,
-          borderRadius: mode === 'daily' ? 4 : 0,
-          order: 1,
-        },
-        {
-          label: mode === 'cumulative' ? 'Confirmed deaths' : 'New confirmed deaths',
-          data: display.map(d => d.deaths),
-          borderColor: '#E24B4A',
-          backgroundColor: mode === 'daily' ? 'rgba(226,75,74,0.75)' : (isDark ? 'rgba(226,75,74,0.10)' : 'rgba(226,75,74,0.06)'),
-          fill: mode !== 'daily',
-          tension: 0.35,
-          pointRadius: mode === 'daily' ? 0 : 5,
-          pointBackgroundColor: '#E24B4A',
-          pointBorderColor: isDark ? '#1c1c1a' : '#fff',
-          pointBorderWidth: 2,
-          borderWidth: 2,
-          borderDash: mode === 'daily' ? [] : [5, 3],
-          borderRadius: mode === 'daily' ? 4 : 0,
-          order: 2,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}`,
-            footer: items => {
-              const c = items[0]?.parsed.y, d = items[1]?.parsed.y;
-              if (c && d && mode === 'cumulative') return `CFR (Confirmed): ${Math.round((d / c) * 100)}%`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
-        y: { ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
-      }
-    }
-  };
-
-  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
-  chartInstance = new Chart(canvas, config);
-}
-
-// ─── GOOGLE TRENDS RENDERING ENGINE ──────────────────────────────────────────
-function renderGoogleTrends(data) {
-  // 1. Safety check to make sure the trends data block exists
-  if (!data || !data.google_trends_surveillance || !data.google_trends_surveillance.search_timeline) {
-      console.warn("Google Trends data matrix is currently unpopulated or missing. Skipping render step.");
-      return; 
-  }
-
-  const trends = data.google_trends_surveillance;
-
-  // 2. Safely parse tracking timeline labels
-  const timeLabels = (trends.search_timeline.Ebola || []).map(item => {
-      if (item.time && item.time.includes('-')) {
-          const parts = item.time.split('-');
-          const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-          return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      }
-      return item.time || '';
-  });
+    // Save reference globally for interactive elements
+    window.ebolaData = data;
     
-  // 3. Set up keyword series
-  const ebolaSeries = (trends.search_timeline.Ebola || []).map(item => item.score || 0);
-  const symptomsSeries = (trends.search_timeline.Symptoms || []).map(item => item.score || 0);
-  const transmissionSeries = (trends.search_timeline.Transmission || []).map(item => item.score || 0);
-
-  if (!window.ebolaData) window.ebolaData = {};
-  if (!window.ebolaData.google_trends) {
-      window.ebolaData.google_trends = trends;
-  }
-
-  // Define the dataset layout configuration for Chart.js
-  const datasets = [
-    { label: 'Ebola Searches', data: ebolaSeries, borderColor: '#f59e0b', tension: 0.1, fill: false },
-    { label: 'Symptoms', data: symptomsSeries, borderColor: '#ef4444', tension: 0.1, fill: false },
-    { label: 'Transmission', data: transmissionSeries, borderColor: '#3b82f6', tension: 0.1, fill: false }
-  ];
-
-  const trendsCanvas = document.getElementById('trendsChart');
-  if (!trendsCanvas) return;
-
-  new Chart(trendsCanvas.getContext('2d'), {
-    type: 'line',
-    data: { labels: timeLabels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true, position: 'top',
-          labels: { color: 'var(--text-2)', font: { size: 11 }, boxWidth: 12 }
-        }
-      },
-      scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
-        y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
-      }
+    // 1. Paint the HTML structure and summaries
+    renderSummary(data);
+    
+    // 2. Render chart visualizations safely
+    renderChart(currentMode);
+    if (data.google_trends_surveillance) {
+      renderGoogleTrends(data);
     }
-  });
-} // <--- THIS MATCHES AND CLOSES THE RENDERGOOGLE TRENDS FUNCTION CLEANLY!
+    
+    // 3. Populate default initial word cloud view
+    updateWordCloudView('all');
+    
+  } catch (error) {
+    console.error("Dashboard launch failure:", error);
+    document.getElementById('app').innerHTML = `
+      <div class="loading" style="color:var(--red);">
+        ❌ Failed to load dashboard: ${error.message}<br>
+        <span style="font-size:12px;color:var(--text-2);">Make sure data.json exists and both scrapers have run!</span>
+      </div>`;
+  }
+}
 
 // ─── EPIDEMIOLOGICAL DATA SUMMARY RENDER ─────────────────────────────────────
 function renderSummary(data) {
-  const { summary, healthZones, events, updated } = data;
-  const isDark   = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  if (!data || !data.summary) {
+    console.warn("⚠️ Cannot parse summary metrics — data structure node is missing.");
+    return;
+  }
 
-  // Initialize data timeline array
+  // Secure Key Mapping: Capture parameters regardless of Python naming conventions
+  const summary = data.summary;
+  const updated = data.updated || "Live Update Loop";
+  const confirmedDRC = summary.confirmedDRC || summary.confirmed || 0;
+  const confirmedDeaths = summary.confirmedDeaths || summary.confirmed_deaths || summary.deaths || 0;
+  const ugandaCases = summary.ugandaCases || summary.uganda_cases || 0;
+  const ugandaDeaths = summary.ugandaDeaths || summary.uganda_deaths || 0;
+  const cfrPercent = summary.cfrPercent || summary.cfr || 0;
+
+  // Capture timeline data tracking sequences securely
   chartTimeline = Array.isArray(data.timeline) ? data.timeline : [];
-
-  // Normalize all timeline data dates back to consistent short text values
   chartTimeline = chartTimeline.map(item => {
     if (item.date && item.date.includes('-')) {
         const parts = item.date.split('-');
@@ -418,32 +189,117 @@ function renderSummary(data) {
     return item;
   });
 
-  // Global scope references for charts
-let chartTimeline = [];
+  // Extract events safe block
+  const outbreakEvents = Array.isArray(data.events) ? data.events : [];
+  let eventsHTML = '';
+  
+  if (outbreakEvents.length > 0) {
+    eventsHTML = `
+      <div style="margin: 30px 0 15px 0;">
+        <h3 style="color:var(--text);font-size:14px;font-weight:bold;margin-bottom:2px;">Outbreak Milestones &amp; Events</h3>
+        <p style="font-size:12px;color:var(--text-2);margin-bottom:15px;">Key operational developments and official health notifications chronologically filed.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; padding-left:10px; border-left: 2px solid var(--border);">
+          ${outbreakEvents.map(ev => `
+            <div style="position:relative; padding-bottom:5px;">
+              <span style="position:absolute; left:-15px; top:4px; width:8px; height:8px; border-radius:50%; background:var(--red);"></span>
+              <strong style="font-size:12px; color:var(--text); display:inline-block; min-width:80px;">${ev.date}</strong>
+              <span style="font-size:12px; color:var(--text-2);">${ev.title || ev.description}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
 
-// ─── 1. GOOGLE TRENDS WORD CLOUD GENERATOR ────────────────────────────────────
+  // Inject Master HTML Layout Framework
+  document.getElementById('app').innerHTML = `
+    <div class="header">
+      <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>
+      <h1 class="header-title">2026 Ebola Outbreak — DRC &amp; Uganda</h1>
+      <div class="header-meta">
+        <span class="badge badge-red">Bundibugyo virus · No vaccine or treatment</span>
+        <span class="badge">Data: WHO / CDC · Updated ${updated}</span>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><p class="metric-label">Confirmed cases</p><p class="metric-value">${confirmedDRC.toLocaleString()}</p><p class="metric-sub">DRC + Uganda</p></div>
+      <div class="metric"><p class="metric-label">Confirmed deaths</p><p class="metric-value red">${(confirmedDeaths + ugandaDeaths).toLocaleString()}</p><p class="metric-sub">DRC + Uganda</p></div>
+      <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
+      <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${ugandaCases}</p><p class="metric-sub">${ugandaDeaths} death · Kampala</p></div>
+    </div>
+
+    <div class="chart-header" style="margin-bottom:10px;">
+      <p class="section-title" style="margin:0;">Cases &amp; deaths over time</p>
+      <div class="toggle-group">
+        <button id="btn-cumulative" class="toggle-btn active" onclick="switchMode('cumulative')">Cumulative</button>
+        <button id="btn-daily"      class="toggle-btn"        onclick="switchMode('daily')">Daily</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:#378ADD;"></span>Cases</span>
+      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A;"></span>Deaths</span>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+
+    <!-- Re-injected Events Timeline Block -->
+    ${eventsHTML}
+
+    <section style="margin:30px 0;padding:20px;background:var(--bg-2);border-radius:var(--radius-md);border:1px solid var(--border);">
+      <h3 style="color:var(--text);margin-bottom:4px;font-size:14px;font-weight:bold;">Public Intent &amp; Behavior Surveillance</h3>
+      <p style="font-size:12px;color:var(--text-2);margin-bottom:15px;">Monitoring shifts in information-seeking behavior to isolate genuine symptom awareness from geographic media spikes.</p>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);">
+          <div class="word-cloud-control-panel">
+            <h4 style="font-size:13px;color:var(--text-2);font-weight:600;">Active Symptom Inquiry Profile</h4>
+            <select id="word-cloud-period-select" onchange="updateWordCloudView(this.value)">
+              <option value="all">All Periods (Combined View)</option>
+              <option value="2026-06-23">Latest Peak Outbreak (June 23)</option>
+            </select>
+          </div>
+          <div id="symptom-word-cloud" class="word-cloud-container"></div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px;">
+           <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);height:260px;">
+              <h4 style="font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:10px;">Search Intensity Trajectory</h4>
+              <div style="height:200px;position:relative;"><canvas id="trendsChart"></canvas></div>
+           </div>
+           <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);overflow-y:auto;height:260px;">
+              <h4 style="font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:10px;">Surging Search Inquiries</h4>
+              <div id="rising-queries-list"></div>
+           </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// ─── WORD CLOUD INJECTION GENERATOR ──────────────────────────────────────────
 function updateWordCloudView(selectedDate) {
   const cloudContainer = document.getElementById('symptom-word-cloud');
   if (!cloudContainer) return;
 
-  if (!window.ebolaData || !window.ebolaData.google_trends || !window.ebolaData.google_trends.word_cloud) {
+  const data = window.ebolaData;
+  if (!data || !data.google_trends_surveillance || !data.google_trends_surveillance.word_cloud) {
     cloudContainer.innerHTML = `<p style="color:var(--text-3);font-size:13px;padding:20px;text-align:center;">
       No word-cloud data available. Run trends.py to populate search logs.
     </p>`;
     return;
   }
 
-  const targetCloud = window.ebolaData.google_trends.word_cloud;
+  const targetCloud = data.google_trends_surveillance.word_cloud;
   let rawWordsObject = {};
 
   if (selectedDate === 'all' || !selectedDate) {
     rawWordsObject = targetCloud.all_time || {};
-  } else {
-    rawWordsObject = (targetCloud.daily_history && targetCloud.daily_history[selectedDate]) || {};
+  } else if (targetCloud.daily_history) {
+    rawWordsObject = targetCloud.daily_history[selectedDate] || {};
   }
 
   if (!rawWordsObject || Object.keys(rawWordsObject).length === 0) {
-    cloudContainer.innerHTML = `<p style="color:var(--text-3);font-size:13px;padding:20px;text-align:center;">No keyword data for this period.</p>`;
+    cloudContainer.innerHTML = `<p style="color:var(--text-3);font-size:13px;padding:20px;text-align:center;">No keyword data for this tracking period.</p>`;
     return;
   }
 
@@ -453,7 +309,7 @@ function updateWordCloudView(selectedDate) {
   
   const maxVol  = Math.max(...dataset.map(v => v.volume));
   const minVol  = Math.min(...dataset.map(v => v.volume));
-  const width   = cloudContainer.offsetWidth || 350;
+  const width   = cloudContainer.offsetWidth || 500;
   const height  = 320;
   const centerX = width  / 2;
   const centerY = height / 2;
@@ -468,7 +324,7 @@ function updateWordCloudView(selectedDate) {
 
   dataset.sort((a, b) => b.volume - a.volume).forEach((item, idx) => {
     const scalePct = maxVol === minVol ? 0.5 : (item.volume - minVol) / (maxVol - minVol);
-    const fontSize = Math.round(12 + scalePct * 28);
+    const fontSize = Math.round(12 + scalePct * 24);
 
     const span = document.createElement('span');
     span.className   = 'cloud-word';
@@ -506,7 +362,7 @@ function updateWordCloudView(selectedDate) {
   });
 }
 
-// ─── 2. GOOGLE TRENDS CHART & QUERIES LIST RENDER ────────────────────────────
+// ─── GOOGLE TRENDS CHART RENDERING ENGINE ────────────────────────────────────
 function renderGoogleTrends(data) {
   const trendsData = data.google_trends_surveillance;
   if (!trendsData) return;
@@ -514,15 +370,15 @@ function renderGoogleTrends(data) {
   const queriesContainer = document.getElementById('rising-queries-list');
   if (queriesContainer) {
     if (trendsData.rising_searches && trendsData.rising_searches.length > 0) {
-      let block = `<ul style="margin:0;padding-left:20px;list-style-type:square;line-height:1.8;">`;
+      let block = `<ul style="margin:0;padding-left:15px;list-style-type:square;line-height:1.6;">`;
       trendsData.rising_searches.forEach(q => {
         const displayVal = q.breakout_value === 'Breakout' ? '🔥 Breakout' : `+${q.breakout_value}%`;
-        block += `<li style="margin-bottom:6px;font-size:13px;color:var(--text);">"${q.query}" <span style="color:#BA7517;font-size:11px;font-weight:bold;">(${displayVal})</span></li>`;
+        block += `<li style="margin-bottom:4px;font-size:12px;">"${q.query}" <span style="color:#BA7517;font-weight:bold;">(${displayVal})</span></li>`;
       });
       block += '</ul>';
       queriesContainer.innerHTML = block;
     } else {
-      queriesContainer.innerHTML = `<p style="color:#777;font-size:12px;margin:0;">No anomalous search surges detected.</p>`;
+      queriesContainer.innerHTML = `<p style="color:#777;font-size:12px;margin:0;">No query surges detected.</p>`;
     }
   }
 
@@ -532,13 +388,13 @@ function renderGoogleTrends(data) {
   const timeLabels = trendsData.search_timeline.Ebola.map(item => item.time.split(' ')[0]);
   const datasets   = [
     {
-      label: 'General Ebola Searches',
+      label: 'Ebola Searches',
       data: trendsData.search_timeline.Ebola.map(item => item.score),
       borderColor: '#E24B4A', backgroundColor: 'transparent',
       borderWidth: 2, tension: 0.35, pointRadius: 0
     },
     {
-      label: 'Transmission Queries',
+      label: 'Transmission',
       data: (trendsData.search_timeline.Transmission || []).map(item => item.score),
       borderColor: '#BA7517', backgroundColor: 'transparent',
       borderWidth: 1.5, borderDash: [4, 4], tension: 0.35, pointRadius: 0
@@ -552,298 +408,84 @@ function renderGoogleTrends(data) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
+        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 6 }, grid: { display: false } },
         y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
       }
     }
   });
 }
 
-// ─── 3. MAIN EPIDEMIOLOGICAL DATA SUMMARY RENDER ─────────────────────────────
-function renderSummary(data) {
-  const { summary, healthZones, events, updated } = data;
-  
-  // Clean, capture and store timeline tracking data inside our global state array
-  chartTimeline = Array.isArray(data.timeline) ? data.timeline : [];
-  chartTimeline = chartTimeline.map(item => {
-    if (item.date && item.date.includes('-')) {
-        const parts = item.date.split('-');
-        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);  
-        return {
-            ...item,
-            date: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        };
-    }
-    return item;
-  });
-
-  // ─── STRATEGIC INSIGHT UPGRADE: ANATOMY OF CORRELATION ─────────────────────
-  // Even if case data is sparse or weekly, we project contextual milestones onto the Google Trends timeline
-  const annotations = [];
-  chartTimeline.forEach(milestone => {
-     if (milestone.cases > 0 || milestone.deaths > 0) {
-        annotations.push({
-           type: 'line',
-           scaleID: 'x',
-           value: milestone.date,
-           borderColor: 'rgba(226, 75, 74, 0.4)',
-           borderWidth: 1,
-           borderDash: [2, 2],
-           label: {
-              display: true,
-              content: `⚠️ ${milestone.cases} Cases`,
-              position: 'start',
-              font: { size: 9 }
-           }
-        });
-     }
-  });
-
-  // Your code logic for updating DOM metrics, cards, summary elements goes here...
-  console.log("Summary rendered cleanly. Ready with milestones:", annotations.length);
+// ─── EPIDEMIOLOGICAL TIME-SERIES CHART HELPERS ───────────────────────────────
+function buildDailyData(timeline) {
+  return timeline.map((pt, i) => ({
+    date:   pt.date,
+    cases:  i === 0 ? pt.cases  : Math.max(0, pt.cases  - timeline[i - 1].cases),
+    deaths: i === 0 ? pt.deaths : Math.max(0, pt.deaths - timeline[i - 1].deaths),
+  }));
 }
 
-  const queriesContainer = document.getElementById('rising-queries-list');
-  if (queriesContainer) {
-    if (trendsData.rising_searches && trendsData.rising_searches.length > 0) {
-      let block = `<ul style="margin:0;padding-left:20px;list-style-type:square;line-height:1.8;">`;
-      trendsData.rising_searches.forEach(q => {
-        const displayVal = q.breakout_value === 'Breakout' ? '🔥 Breakout' : `+${q.breakout_value}%`;
-        block += `<li style="margin-bottom:6px;font-size:13px;color:var(--text);">"${q.query}" <span style="color:#BA7517;font-size:11px;font-weight:bold;">(${displayVal})</span></li>`;
-      });
-      block += '</ul>';
-      queriesContainer.innerHTML = block;
-    } else {
-      queriesContainer.innerHTML = `<p style="color:#777;font-size:12px;margin:0;">No anomalous search surges detected.</p>`;
-    }
-  }
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-cumulative').classList.toggle('active', mode === 'cumulative');
+  document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
+  renderChart(mode);
+}
 
-  const trendsCanvas = document.getElementById('trendsChart');
-  if (!trendsCanvas) { console.warn("Canvas 'trendsChart' not found."); return; }
-  if (!trendsData.search_timeline?.Ebola) { console.warn('search_timeline.Ebola missing.'); return; }
+function renderChart(mode) {
+  if (!chartTimeline || chartTimeline.length === 0) return;
 
-  const timeLabels = trendsData.search_timeline.Ebola.map(item => item.time.split(' ')[0]);
-  const datasets   = [
-    {
-      label: 'General Ebola Searches',
-      data: trendsData.search_timeline.Ebola.map(item => item.score),
-      borderColor: '#E24B4A', backgroundColor: 'transparent',
-      borderWidth: 2, tension: 0.35, pointRadius: 0
-    },
-    {
-      label: 'Transmission Queries',
-      data: (trendsData.search_timeline.Transmission || []).map(item => item.score),
-      borderColor: '#BA7517', backgroundColor: 'transparent',
-      borderWidth: 1.5, borderDash: [4, 4], tension: 0.35, pointRadius: 0
-    }
-  ];
+  const canvas = document.getElementById('mainChart');
+  if (!canvas) return;
 
-  new Chart(trendsCanvas.getContext('2d'), {
-    type: 'line',
-    data: { labels: timeLabels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true, position: 'top',
-          labels: { color: 'var(--text-2)', font: { size: 11 }, boxWidth: 12 }
+  const isDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const source  = mode === 'cumulative' ? chartTimeline : buildDailyData(chartTimeline);
+  const display = mode === 'daily' ? source.slice(1) : source;
+
+  const config = {
+    type: mode === 'daily' ? 'bar' : 'line',
+    data: {
+      labels: display.map(d => d.date),
+      datasets: [
+        {
+          label: mode === 'cumulative' ? 'Confirmed cases' : 'New cases',
+          data: display.map(d => d.cases),
+          borderColor: '#378ADD',
+          backgroundColor: mode === 'daily' ? 'rgba(55,138,221,0.7)' : 'rgba(55,138,221,0.05)',
+          fill: mode !== 'daily',
+          tension: 0.35,
+          pointRadius: mode === 'daily' ? 0 : 4,
+          borderWidth: 2
+        },
+        {
+          label: mode === 'cumulative' ? 'Confirmed deaths' : 'New deaths',
+          data: display.map(d => d.deaths),
+          borderColor: '#E24B4A',
+          backgroundColor: mode === 'daily' ? 'rgba(226,75,74,0.75)' : 'rgba(226,75,74,0.03)',
+          fill: mode !== 'daily',
+          tension: 0.35,
+          pointRadius: mode === 'daily' ? 0 : 4,
+          borderWidth: 2,
+          borderDash: mode === 'daily' ? [] : [4, 4]
         }
-      },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       scales: {
-        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 12 }, grid: { display: false } },
-        y: { min: 0, max: 100, ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
+        x: { ticks: { color: 'var(--text-3)', maxTicksLimit: 8 }, grid: { display: false } },
+        y: { ticks: { color: 'var(--text-3)' }, grid: { color: 'var(--border)' } }
       }
     }
-  });
+  };
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(canvas, config);
 }
 
-// ─── Main render ──────────────────────────────────────────────────────────────
-function renderSummary(data) {
-  const { summary, healthZones, events, updated } = data;
-  const isDark   = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-
-  chartTimeline = Array.isArray(data.timeline) ? data.timeline : [];
-
-// Normalize all dates instantly on launch
-chartTimeline = chartTimeline.map(item => {
-  if (item.date && item.date.includes('-')) {
-      const parts = item.date.split('-');
-      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);  
-      return {
-          ...item,
-          date: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      };
-  }
-  return item;
-});
-
-// 2. Now call your initial chart draw function right below it:
-
-  document.getElementById('app').innerHTML = `
-    <div class="header">
-      <p class="header-eyebrow">Public health emergency of international concern (PHEIC)</p>
-      <h1 class="header-title">2026 Ebola Outbreak — DRC &amp; Uganda</h1>
-      <div class="header-meta">
-        <span class="badge badge-red">Bundibugyo virus · No vaccine or treatment</span>
-        <span class="badge">Data: WHO / CDC · Updated ${updated}</span>
-      </div>
-    </div>
-
-    <div class="metrics">
-      <div class="metric"><p class="metric-label">Confirmed cases</p><p class="metric-value">${summary.confirmedDRC}</p><p class="metric-sub">DRC + Uganda</p></div>
-      <div class="metric"><p class="metric-label">Confirmed deaths</p><p class="metric-value red">${summary.confirmedDeaths + (summary.ugandaDeaths || 0)}</p><p class="metric-sub">DRC + Uganda</p></div>
-      <div class="metric"><p class="metric-label">Case fatality rate</p><p class="metric-value amber">~${summary.cfrPercent}%</p><p class="metric-sub">25–50% est. for Bundibugyo</p></div>
-      <div class="metric"><p class="metric-label">Uganda cases</p><p class="metric-value">${summary.ugandaCases}</p><p class="metric-sub">${summary.ugandaDeaths} death · Kampala</p></div>
-    </div>
-
-    <div class="chart-header" style="margin-bottom:10px;">
-      <p class="section-title" style="margin:0;">Cases &amp; deaths over time</p>
-      <div class="toggle-group">
-        <button id="btn-cumulative" class="toggle-btn active" onclick="switchMode('cumulative')">Cumulative</button>
-        <button id="btn-daily"      class="toggle-btn"        onclick="switchMode('daily')">Daily</button>
-      </div>
-    </div>
-    <div class="legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:#378ADD;"></span>Cases</span>
-      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A;"></span>Deaths</span>
-    </div>
-    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
-
-    <section style="margin:30px 0;padding:20px;background:var(--bg-2);border-radius:var(--radius-md);border:1px solid var(--border);">
-      <h3 style="color:var(--text);margin-bottom:4px;font-size:14px;font-weight:bold;">Public Intent &amp; Behavior Surveillance</h3>
-      <p style="font-size:12px;color:var(--text-2);margin-bottom:15px;">Monitoring shifts in information-seeking behavior to isolate genuine symptom awareness from geographic media spikes.</p>
-
-      <div style="display:flex;flex-direction:column;gap:20px;">
-        <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);">
-          <div class="word-cloud-control-panel">
-            <h4 style="font-size:13px;color:var(--text-2);font-weight:600;">Active Symptom Inquiry Profile</h4>
-            <select id="word-cloud-period-select" onchange="updateWordCloudView(this.value)">
-              <option value="all">All Periods (Combined View)</option>
-              <option value="2026-05-24">Latest Peak Outbreak (May 24)</option>
-              <option value="2026-05-15">Uganda Importation Alert (May 15)</option>
-              <option value="2026-04-20">PHEIC Status Evaluation (Apr 20)</option>
-              <option value="2026-03-30">Initial Remote Wave (Mar 30)</option>
-              </select>
-          </div>
-          <div id="symptom-word-cloud" class="word-cloud-container"></div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:20px;width:100%;">
-          <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);width:100%;">
-            <h4 style="font-size:13px;color:var(--text-2);margin-bottom:15px;font-weight:600;">Historical Search Intensity</h4>
-            <div style="position:relative;height:240px;width:100%;">
-              <canvas id="trendsChart"></canvas>
-            </div>
-          </div>
-          <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);width:100%;">
-            <h4 style="font-size:13px;color:var(--text-2);margin-bottom:12px;font-weight:600;">Anomalous Surges (Ebola)</h4>
-            <div id="rising-queries-list" style="font-size:13px;color:var(--text);"></div>
-          </div>
-        </div>
-      </div>
-
-      <p class="note" style="margin-top:1.75rem;margin-bottom:0;">
-        <strong>Note:</strong> Percentage surges reflect change from a near-zero baseline. Because Ebola-related searches are extremely rare during non-outbreak periods, moderate absolute increases in query volume produce outsized percentage figures. Furthermore, the multilingual query mix indicates broad international public interest rather than a localized signal.
-      </p>
-    </section>
-
-    <p class="section-title">Key events</p>
-    <div class="timeline">
-      ${events.map(e => `
-        <div class="tl-item">
-          <div class="tl-dot ${e.red ? 'red' : ''}"></div>
-          <p class="tl-date">${e.date}</p>
-          <p class="tl-desc">${e.desc}</p>
-        </div>
-      `).join('')}
-    </div>
-
-    <p class="note">
-      <strong>Data caveat:</strong> Case and death figures reflect confirmed totals as reported by CDC. Suspected case tracking was discontinued by CDC.
-    </p>
-
-    <p class="sources">Sources &amp; further reading:</p>
-    <div class="links">
-      <a href="https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON602" target="_blank" rel="noopener">WHO Disease Outbreak News ↗</a>
-      <a href="https://www.cdc.gov/ebola/situation-summary/index.html" target="_blank" rel="noopener">CDC Situation Summary ↗</a>
-      <a href="https://www.cdc.gov/han/php/notices/han00530.html" target="_blank" rel="noopener">CDC Health Alert Network ↗</a>
-      <a href="https://www.who.int/news/item/17-05-2026-epidemic-of-ebola-disease-in-the-democratic-republic-of-the-congo-and-uganda-determined-a-public-health-emergency-of-international-concern" target="_blank" rel="noopener">WHO PHEIC Declaration ↗</a>
-    </div>
-
-    <footer>
-      Last updated ${updated} · Not a medical resource.
-      <div style="margin-top:8px;">
-        <img src="https://visitor-badge.laobi.icu/badge?page_id=mm33na.ebola-outbreak&left_text=views" alt="Views"/>
-      </div>
-    </footer>
-  `;
-
-  renderChart('cumulative');
-  //if (data.network) buildNetwork(data.network, isDark, divColor);
- // renderGoogleTrends(data);
-}
-
-// ─── DATA LOADER SYSTEM ──────────────────────────────────────────────────────
-async function initDashboard() {
-  try {
-    // 1. Fetch fresh updated data file from localhost with a cache-buster timestamp
-    const cacheBuster = new Date().getTime();
-    const response = await fetch(`data.json?v=${cacheBuster}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    // 2. Parse it into an object
-    const data = await response.json();
-    
-    // 3. Normalize all timeline dates instantly on launch so charts don't load empty
-    let chartTimeline = Array.isArray(data.timeline) ? data.timeline : [];
-    chartTimeline = chartTimeline.map(item => {
-      if (item.date && item.date.includes('-')) {
-        const parts = item.date.split('-');
-        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);  
-        return {
-          ...item,
-          date: dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        };
-      }
-      return item;
-    });
-
-    // 4. Save global data states cleanly so the word cloud and charts can see them
-    window.ebolaData = {
-      timeline: chartTimeline,
-      google_trends: data.google_trends_surveillance || null
-    };
-    
-    // 5. Run layout renderers with your live metrics!
-    if (typeof renderSummary === 'function') {
-      renderSummary(data);
-    }
-    if (typeof renderGoogleTrends === 'function') {
-      renderGoogleTrends(data);
-    }
-    if (typeof updateWordCloudView === 'function') {
-      updateWordCloudView('all');
-    }
-    
-  } catch (error) {
-      console.error("Failed to load or parse data.json:", error);
-      const appContainer = document.getElementById('app');
-      if (appContainer) {
-        appContainer.innerHTML = `
-          <div class="loading" style="color:var(--red); text-align:center; padding:40px;">
-            Error loading outbreak data. Make sure data.json exists in your project folder.
-          </div>`;
-      }
-    }
-} // Closes initDashboard
-
-// Fire up the application once the document loads
-document.addEventListener('DOMContentLoaded', initDashboard);
- 
+// Kickstart dashboard loading execution sequence on load
+document.addEventListener("DOMContentLoaded", initDashboard);
 </script>
 </body>
 </html>
