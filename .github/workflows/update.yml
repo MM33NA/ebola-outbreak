@@ -35,12 +35,19 @@ jobs:
       - name: Run Google Trends Scraper
         run: python trends.py
 
+      # Stdlib-only (no extra pip installs needed) - computes CFR trend,
+      # growth rate/doubling time, and search-interest correlation from
+      # whatever scrape.py and trends.py just wrote. Runs after both since
+      # it reads their output.
+      - name: Run Outbreak Trajectory Analysis
+        run: python analysis.py
+
       - name: Commit updated data.json
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --cached --quiet || git commit -m "Auto-update: outbreak and trends data $(date +'%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "Auto-update: outbreak, trends, and trajectory analysis data $(date +'%Y-%m-%d')"
 
       - name: Push changes
         run: git push origin main

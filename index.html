@@ -9,7 +9,7 @@
     :root {
       --bg: #ffffff; --bg-2: #f5f5f3; --text: #1a1a18; --text-2: #5f5e5a;
       --text-3: #88877f; --border: rgba(0,0,0,0.10); --border-2: rgba(0,0,0,0.18);
-      --blue: #378ADD; --red: #E24B4A; --amber: #BA7517;
+      --blue: #378ADD; --red: #E24B4A; --amber: #BA7517; --green: #2E8B57;
       --amber-bg: #faeeda; --amber-bdr: #FAC775; --radius-md: 8px;
     }
     @media (prefers-color-scheme: dark) {
@@ -185,6 +185,81 @@ function populateWordCloudPeriodOptions(data) {
   });
 }
 
+// ─── OUTBREAK TRAJECTORY ANALYSIS RENDER ─────────────────────────────────────
+// Renders the CFR trend, growth-rate/doubling-time, and search-correlation
+// cards computed server-side by analysis.py. Pure read + format - no
+// calculation happens here, to keep the numbers identical to what the
+// pipeline computed (and identical to the original R analysis they were
+// ported from).
+function buildTrajectoryAnalysisHTML(analysis) {
+  if (!analysis || analysis.insufficient_data) {
+    return `
+      <div style="margin: 30px 0 15px 0;">
+        <h3 style="color:var(--text);font-size:14px;font-weight:bold;margin-bottom:2px;">Outbreak Trajectory Analysis</h3>
+        <p style="font-size:12px;color:var(--text-2);">
+          Not enough historical data points yet to compute trend statistics. This section
+          will populate automatically as more daily updates accumulate.
+        </p>
+      </div>`;
+  }
+
+  const cfr = analysis.cfr_trend;
+  const growth = analysis.growth_rate;
+  const search = analysis.search_correlation;
+
+  // CFR direction → color + icon, falling back gracefully if direction is null
+  const directionStyle = {
+    rising:  { color: 'var(--red)',   icon: '▲' },
+    falling: { color: 'var(--green)', icon: '▼' },
+    stable:  { color: 'var(--text-2)', icon: '▬' },
+  };
+  const dir = cfr?.summary?.direction;
+  const dirStyle = directionStyle[dir] || { color: 'var(--text-2)', icon: '' };
+
+  const cfrCard = cfr?.summary ? `
+    <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);">
+      <p class="metric-label">Case Fatality Rate Trend</p>
+      <p class="metric-value" style="color:${dirStyle.color};">${dirStyle.icon} ${cfr.summary.current_cfr_percent}%</p>
+      <p class="metric-sub">Range observed: ${cfr.summary.min_cfr_percent}%–${cfr.summary.max_cfr_percent}%
+        ${dir ? `· trend ${dir}` : ''}</p>
+    </div>` : '';
+
+  const growthCard = growth ? `
+    <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);">
+      <p class="metric-label">Doubling Time</p>
+      <p class="metric-value amber">${growth.doubling_time_days ?? '—'} days</p>
+      <p class="metric-sub">
+        ${growth.doubling_time_ci ? `~95% range: ${growth.doubling_time_ci.doubling_time_low}–${growth.doubling_time_ci.doubling_time_high} days` : ''}
+        ${growth.r_squared != null ? ` · fit R² ${growth.r_squared}` : ''}
+      </p>
+    </div>` : '';
+
+  const searchCard = (search && search.rho != null) ? `
+    <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);">
+      <p class="metric-label">Search Interest vs. Cases</p>
+      <p class="metric-value" style="color:${search.rho < 0 ? 'var(--text-2)' : 'var(--blue)'};">ρ ${search.rho}</p>
+      <p class="metric-sub">Spearman correlation, n=${search.n} days</p>
+    </div>` : '';
+
+  return `
+    <div style="margin: 30px 0 15px 0;">
+      <h3 style="color:var(--text);font-size:14px;font-weight:bold;margin-bottom:2px;">Outbreak Trajectory Analysis</h3>
+      <p style="font-size:12px;color:var(--text-2);margin-bottom:15px;">
+        Descriptive statistics computed from the ${growth?.n_points ?? ''}-point case/death timeline above.
+        Small sample size — treat as indicative trends, not formal inferential statistics.
+      </p>
+      <div class="metrics" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">
+        ${cfrCard}
+        ${growthCard}
+        ${searchCard}
+      </div>
+      ${search?.interpretation_note ? `
+        <p style="font-size:11px;color:var(--text-3);margin-top:10px;line-height:1.5;">
+          ⓘ ${search.interpretation_note}
+        </p>` : ''}
+    </div>`;
+}
+
 // ─── EPIDEMIOLOGICAL DATA SUMMARY RENDER ─────────────────────────────────────
 function renderSummary(data) {
   if (!data || !data.summary) {
@@ -237,6 +312,10 @@ function renderSummary(data) {
     `;
   }
 
+  // Trajectory analysis (CFR trend, growth rate, search correlation) -
+  // computed server-side by analysis.py, rendered here read-only.
+  const trajectoryAnalysisHTML = buildTrajectoryAnalysisHTML(data.trajectory_analysis);
+
   // Inject Master HTML Layout Framework
   document.getElementById('app').innerHTML = `
     <div class="header">
@@ -270,6 +349,8 @@ function renderSummary(data) {
 
     <!-- Re-injected Events Timeline Block -->
     ${eventsHTML}
+
+    ${trajectoryAnalysisHTML}
 
     <section style="margin:30px 0;padding:20px;background:var(--bg-2);border-radius:var(--radius-md);border:1px solid var(--border);">
       <h3 style="color:var(--text);margin-bottom:4px;font-size:14px;font-weight:bold;">Public Intent &amp; Behavior Surveillance</h3>

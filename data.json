@@ -887,24 +887,16 @@
     },
     "rising_searches": [
       {
-        "query": "ebola update in uganda today",
-        "breakout_value": "11950"
+        "query": "ebola outbreak ituri",
+        "breakout_value": "250"
       },
       {
-        "query": "ebola ausbruch aktuell",
-        "breakout_value": "9500"
+        "query": "ebola death toll congo",
+        "breakout_value": "Breakout"
       },
       {
-        "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
-        "breakout_value": "7450"
-      },
-      {
-        "query": "ebola symtom",
-        "breakout_value": "5700"
-      },
-      {
-        "query": "que es el ebola y como se transmite",
-        "breakout_value": "5250"
+        "query": "ebola travel restrictions",
+        "breakout_value": "180"
       }
     ],
     "word_cloud": {
@@ -914,22 +906,16 @@
         "cagliari": 1,
         "hantavirus": 2,
         "symptoms": 1,
-        "update": 3,
-        "uganda": 2,
-        "today": 2,
+        "update": 2,
+        "uganda": 1,
+        "today": 1,
         "outbreak": 1,
         "ituri": 1,
         "death": 1,
         "toll": 1,
         "congo": 1,
         "travel": 1,
-        "restrictions": 1,
-        "ausbruch": 1,
-        "aktuell": 1,
-        "symtom": 1,
-        "que": 1,
-        "como": 1,
-        "transmite": 1
+        "restrictions": 1
       },
       "periods": {
         "2026-05-24": {
@@ -949,16 +935,7 @@
           "toll": 1,
           "congo": 1,
           "travel": 1,
-          "restrictions": 1,
-          "update": 1,
-          "uganda": 1,
-          "today": 1,
-          "ausbruch": 1,
-          "aktuell": 1,
-          "symtom": 1,
-          "que": 1,
-          "como": 1,
-          "transmite": 1
+          "restrictions": 1
         }
       }
     },
@@ -972,24 +949,16 @@
     "rising_searches_history": {
       "2026-06-28": [
         {
-          "query": "ebola update in uganda today",
-          "breakout_value": "11950"
+          "query": "ebola outbreak ituri",
+          "breakout_value": "250"
         },
         {
-          "query": "ebola ausbruch aktuell",
-          "breakout_value": "9500"
+          "query": "ebola death toll congo",
+          "breakout_value": "Breakout"
         },
         {
-          "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
-          "breakout_value": "7450"
-        },
-        {
-          "query": "ebola symtom",
-          "breakout_value": "5700"
-        },
-        {
-          "query": "que es el ebola y como se transmite",
-          "breakout_value": "5250"
+          "query": "ebola travel restrictions",
+          "breakout_value": "180"
         }
       ]
     }
@@ -1119,5 +1088,81 @@
       "cases": 1175,
       "deaths": 306
     }
-  ]
+  ],
+  "trajectory_analysis": {
+    "computed_at": "2026-06-28",
+    "cfr_trend": {
+      "points": [
+        {
+          "date": "2026-05-16",
+          "cfr_percent": 50.0
+        },
+        {
+          "date": "2026-05-21",
+          "cfr_percent": 12.64
+        },
+        {
+          "date": "2026-05-24",
+          "cfr_percent": 9.82
+        },
+        {
+          "date": "2026-05-29",
+          "cfr_percent": 13.43
+        },
+        {
+          "date": "2026-06-01",
+          "cfr_percent": 14.76
+        },
+        {
+          "date": "2026-06-02",
+          "cfr_percent": 16.67
+        },
+        {
+          "date": "2026-06-06",
+          "cfr_percent": 17.42
+        },
+        {
+          "date": "2026-06-13",
+          "cfr_percent": 19.86
+        },
+        {
+          "date": "2026-06-17",
+          "cfr_percent": 23.13
+        },
+        {
+          "date": "2026-06-22",
+          "cfr_percent": 25.1
+        },
+        {
+          "date": "2026-06-26",
+          "cfr_percent": 26.04
+        }
+      ],
+      "summary": {
+        "current_cfr_percent": 26.04,
+        "min_cfr_percent": 9.82,
+        "max_cfr_percent": 50.0,
+        "recent_avg_percent": 24.76,
+        "direction": "rising"
+      }
+    },
+    "growth_rate": {
+      "start_date": "2026-05-16",
+      "end_date": "2026-06-26",
+      "growth_rate_per_day": 0.0966,
+      "doubling_time_days": 7.2,
+      "doubling_time_ci": {
+        "doubling_time_low": 5.5,
+        "doubling_time_high": 10.3
+      },
+      "r_squared": 0.8238,
+      "n_points": 11
+    },
+    "search_correlation": {
+      "n": 44,
+      "rho": -0.865,
+      "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
+    },
+    "insufficient_data": false
+  }
 }
