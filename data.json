@@ -1,17 +1,22 @@
 {
-  "updated": "2026-06-23",
+  "updated": "2026-06-26",
   "summary": {
-    "confirmedDRC": 1003,
-    "confirmedDeaths": 254,
+    "confirmedDRC": 1155,
+    "confirmedDeaths": 304,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 25.0
+    "cfrPercent": 26.0
   },
   "timeline": [
     {
       "date": "2026-06-23",
       "cases": 1023,
       "deaths": 256
+    },
+    {
+      "date": "2026-06-26",
+      "cases": 1175,
+      "deaths": 306
     }
   ],
   "events": [],
