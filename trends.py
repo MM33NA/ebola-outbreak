@@ -15,7 +15,7 @@ import json
 import re
 import time
 from collections import Counter
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from pytrends.request import TrendReq
 
@@ -50,29 +50,41 @@ def load_data():
         }
 
 def get_active_period(updated_str):
-    """Maps an ISO date string to the dashboard's active epidemiological period."""
+    """
+    Maps an ISO date string to a rolling weekly period bucket, e.g. '2026-06-22'
+    for the Monday that starts the week containing that date.
+
+    REPLACES the old hardcoded lookup table (2026-03-30/04-20/05-15/05-24),
+    which had a finite list of boundaries and silently stopped producing new
+    periods once the outbreak ran past the last one - every run for over a
+    month was landing in the same '2026-05-24' bucket. Weekly buckets derived
+    directly from the calendar never go stale.
+    """
     try:
         dt = datetime.strptime(updated_str, "%Y-%m-%d").date()
     except Exception:
         dt = date.today()
+    monday = dt - timedelta(days=dt.weekday())
+    return monday.strftime("%Y-%m-%d")
 
-    if dt >= date(2026, 5, 24):
-        return "2026-05-24"
-    elif dt >= date(2026, 5, 15):
-        return "2026-05-15"
-    elif dt >= date(2026, 4, 20):
-        return "2026-04-20"
-    else:
-        return "2026-03-30"
-
-def process_word_cloud(surveillance, rising_searches):
+def process_word_cloud(surveillance, rising_searches, today_str, is_fresh_fetch):
     """
     Tokenizes raw query strings, filters stop words, and updates
     all-time and period-specific frequency matrices.
-    
-    FIX: now operates on the surveillance dict directly so word_cloud
-    lands inside google_trends_surveillance — where the dashboard expects it.
+
+    FIX (double-counting): previously this ran on whatever `rising_searches`
+    happened to be in memory, including the *stale* fallback used when
+    Section 2's fetch failed (e.g. a 429). That meant a failed fetch caused
+    the exact same 5 queries from days ago to get re-tokenized and added to
+    the word cloud counts again, inflating frequencies for words that hadn't
+    actually trended again. Now: if today's fetch wasn't fresh, skip word
+    cloud aggregation entirely for this run rather than re-counting old data.
     """
+    if not is_fresh_fetch:
+        print("Skipping word cloud aggregation — today's rising-search fetch was not fresh "
+              "(reused stale data), so nothing new to count.")
+        return
+
     raw_text = " ".join([item["query"] for item in rising_searches])
     words = re.findall(r'\b[a-zA-Z]{3,}\b', raw_text.lower())
 
@@ -85,7 +97,7 @@ def process_word_cloud(surveillance, rising_searches):
         surveillance["word_cloud"] = {"all_time": {}, "periods": {}}
 
     wc = surveillance["word_cloud"]
-    active_period = get_active_period(date.today().strftime("%Y-%m-%d"))
+    active_period = get_active_period(today_str)
 
     if active_period not in wc["periods"]:
         wc["periods"][active_period] = {}
@@ -107,6 +119,52 @@ def get_existing_dates(data):
         return {entry["time"] for entry in existing}
     except Exception:
         return set()
+
+
+# Keep roughly 6 months of daily rising-search snapshots. At one entry per
+# day this stays small (a few hundred KB at most), but caps growth so the
+# file doesn't grow forever on an outbreak that runs for years.
+RISING_SEARCH_HISTORY_RETENTION_DAYS = 180
+
+
+def record_rising_searches_history(surveillance, today_str, rising_searches):
+    """
+    Stores today's rising-search snapshot under its own date key, instead of
+    overwriting the single 'rising_searches' field every run. This is the
+    fix for the actual bug being reported: previously each run replaced
+    yesterday's top-5 queries with today's, so there was no way to see what
+    people were searching for on any past date - only "right now."
+
+    Schema:
+      surveillance["rising_searches_history"] = {
+        "2026-06-28": [{"query": ..., "breakout_value": ...}, ...],
+        "2026-06-27": [...],
+        ...
+      }
+
+    'rising_searches' (no _history suffix) is kept as-is for backward
+    compatibility with index.html, and is always set to today's snapshot.
+    """
+    if "rising_searches_history" not in surveillance:
+        surveillance["rising_searches_history"] = {}
+
+    history = surveillance["rising_searches_history"]
+
+    # Idempotent: re-running the same day overwrites only today's entry,
+    # never duplicates or appends extra copies.
+    history[today_str] = rising_searches
+
+    # Prune anything older than the retention window.
+    cutoff = date.today() - timedelta(days=RISING_SEARCH_HISTORY_RETENTION_DAYS)
+    for old_date in list(history.keys()):
+        try:
+            if datetime.strptime(old_date, "%Y-%m-%d").date() < cutoff:
+                del history[old_date]
+        except ValueError:
+            continue  # leave malformed keys alone rather than guessing
+
+    surveillance["rising_searches"] = rising_searches
+    return surveillance
 
 
 # ── Main update function ───────────────────────────────────────────────────────
@@ -185,6 +243,11 @@ def update_trends_in_json():
 
     # ── SECTION 2: Rising searches ────────────────────────────────────────────
     print("Fetching anomalous rising search queries...")
+    today_str = date.today().strftime("%Y-%m-%d")
+    rising_searches_fetch_succeeded = False
+
+    if "fetch_status" not in surveillance:
+        surveillance["fetch_status"] = {}
 
     try:
         pytrends.build_payload(["Ebola"], cat=0, timeframe=timeframe)
@@ -199,7 +262,16 @@ def update_trends_in_json():
                     "breakout_value": str(row["value"])
                 })
 
-        surveillance["rising_searches"] = rising_searches
+        # FIX: was a flat overwrite (surveillance["rising_searches"] = rising_searches),
+        # which silently discarded every previous day's snapshot. Now appends into
+        # a dated history map so past days remain inspectable.
+        surveillance = record_rising_searches_history(surveillance, today_str, rising_searches)
+        surveillance["fetch_status"]["rising_searches"] = {
+            "last_success": today_str,
+            "last_attempt": today_str,
+            "ok": True,
+        }
+        rising_searches_fetch_succeeded = True
         print(f"Rising searches updated — {len(rising_searches)} queries found.")
 
         # FIX: save immediately after section 2 succeeds
@@ -209,6 +281,19 @@ def update_trends_in_json():
 
     except Exception as e:
         print(f"Rising searches fetch failed: {e}. Keeping existing rising searches intact.")
+        # FIX: record the failed attempt so staleness is visible instead of silent.
+        # Previously a 429 here just printed a line to a log nobody reads; the
+        # dashboard had no way to show "this hasn't updated in N days because
+        # Google is rate-limiting us" versus "nothing new is trending."
+        prev_status = surveillance["fetch_status"].get("rising_searches", {})
+        surveillance["fetch_status"]["rising_searches"] = {
+            "last_success": prev_status.get("last_success"),  # unchanged
+            "last_attempt": today_str,
+            "ok": False,
+            "error": str(e)[:200],
+        }
+        data["google_trends_surveillance"] = surveillance
+        save_data(data)
         # Don't return — word cloud can still be built from existing rising_searches
         rising_searches = surveillance.get("rising_searches", [])
 
@@ -220,7 +305,7 @@ def update_trends_in_json():
     print("Aggregating search queries into the cross-period word cloud...")
 
     try:
-        process_word_cloud(surveillance, rising_searches)
+        process_word_cloud(surveillance, rising_searches, today_str, rising_searches_fetch_succeeded)
 
         # FIX: word_cloud now lives inside google_trends_surveillance
         data["google_trends_surveillance"] = surveillance

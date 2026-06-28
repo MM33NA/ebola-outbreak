@@ -284,7 +284,12 @@ function renderSummary(data) {
               <div style="height:200px;position:relative;"><canvas id="trendsChart"></canvas></div>
            </div>
            <div style="background:var(--bg);padding:15px;border-radius:var(--radius-md);border:1px solid var(--border);overflow-y:auto;height:260px;">
-              <h4 style="font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:10px;">Surging Search Inquiries</h4>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px;">
+                <h4 style="font-size:12px;color:var(--text-2);font-weight:600;margin:0;">Surging Search Inquiries</h4>
+                <select id="rising-search-date-select" onchange="renderRisingQueriesForDate(this.value)"
+                        style="font-size:11px;padding:2px 4px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);color:var(--text);max-width:90px;"></select>
+              </div>
+              <div id="rising-search-staleness" style="font-size:11px;margin-bottom:8px;"></div>
               <div id="rising-queries-list"></div>
            </div>
         </div>
@@ -384,19 +389,22 @@ function renderGoogleTrends(data) {
   const trendsData = data.google_trends_surveillance;
   if (!trendsData) return;
 
-  const queriesContainer = document.getElementById('rising-queries-list');
-  if (queriesContainer) {
-    if (trendsData.rising_searches && trendsData.rising_searches.length > 0) {
-      let block = `<ul style="margin:0;padding-left:15px;list-style-type:square;line-height:1.6;">`;
-      trendsData.rising_searches.forEach(q => {
-        const displayVal = q.breakout_value === 'Breakout' ? '🔥 Breakout' : `+${q.breakout_value}%`;
-        block += `<li style="margin-bottom:4px;font-size:12px;">"${q.query}" <span style="color:#BA7517;font-weight:bold;">(${displayVal})</span></li>`;
-      });
-      block += '</ul>';
-      queriesContainer.innerHTML = block;
-    } else {
-      queriesContainer.innerHTML = `<p style="color:#777;font-size:12px;margin:0;">No query surges detected.</p>`;
-    }
+  // Stash globally so the date-select handler and staleness badge can reach it
+  // without re-walking the data object on every interaction.
+  window.risingSearchHistory = trendsData.rising_searches_history || {};
+  window.risingSearchFetchStatus = trendsData.fetch_status?.rising_searches || null;
+
+  populateRisingSearchDateOptions(trendsData);
+  renderRisingSearchStaleness();
+
+  // Default to the most recent date with real history, falling back to the
+  // legacy single-snapshot field if no history exists yet (e.g. right after
+  // upgrading from the old trends.py that didn't keep history).
+  const historyDates = Object.keys(window.risingSearchHistory).sort().reverse();
+  if (historyDates.length > 0) {
+    renderRisingQueriesForDate(historyDates[0]);
+  } else {
+    renderRisingQueriesList(trendsData.rising_searches || []);
   }
 
   const trendsCanvas = document.getElementById('trendsChart');
@@ -430,6 +438,79 @@ function renderGoogleTrends(data) {
       }
     }
   });
+}
+
+// ─── RISING SEARCH HISTORY — date dropdown ───────────────────────────────────
+function populateRisingSearchDateOptions(trendsData) {
+  const select = document.getElementById('rising-search-date-select');
+  if (!select) return;
+  select.innerHTML = '';
+
+  const dates = Object.keys(trendsData.rising_searches_history || {}).sort().reverse();
+
+  if (dates.length === 0) {
+    // No history yet (e.g. data.json predates this feature) — fall back to
+    // a single "Latest" option backed by the legacy snapshot field.
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'Latest';
+    select.appendChild(opt);
+    return;
+  }
+
+  dates.forEach(dateStr => {
+    const opt = document.createElement('option');
+    opt.value = dateStr;
+    const dObj = new Date(dateStr + 'T00:00:00');
+    opt.textContent = isNaN(dObj) ? dateStr
+      : dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    select.appendChild(opt);
+  });
+}
+
+// ─── RISING SEARCH HISTORY — render a specific date's snapshot ──────────────
+function renderRisingQueriesForDate(dateStr) {
+  const history = window.risingSearchHistory || {};
+  const queries = dateStr && history[dateStr] ? history[dateStr] : [];
+  renderRisingQueriesList(queries);
+}
+
+function renderRisingQueriesList(queries) {
+  const queriesContainer = document.getElementById('rising-queries-list');
+  if (!queriesContainer) return;
+
+  if (queries && queries.length > 0) {
+    let block = `<ul style="margin:0;padding-left:15px;list-style-type:square;line-height:1.6;">`;
+    queries.forEach(q => {
+      const displayVal = q.breakout_value === 'Breakout' ? '🔥 Breakout' : `+${q.breakout_value}%`;
+      block += `<li style="margin-bottom:4px;font-size:12px;">"${q.query}" <span style="color:#BA7517;font-weight:bold;">(${displayVal})</span></li>`;
+    });
+    block += '</ul>';
+    queriesContainer.innerHTML = block;
+  } else {
+    queriesContainer.innerHTML = `<p style="color:#777;font-size:12px;margin:0;">No query surges recorded for this date.</p>`;
+  }
+}
+
+// ─── RISING SEARCH HISTORY — staleness badge ─────────────────────────────────
+// Makes a stuck/rate-limited fetch visible instead of silently showing old
+// data with no indication anything is wrong. Without this, a multi-day
+// Google Trends 429 streak looks identical to "nothing new is trending."
+function renderRisingSearchStaleness() {
+  const el = document.getElementById('rising-search-staleness');
+  if (!el) return;
+  const status = window.risingSearchFetchStatus;
+  if (!status || !status.last_attempt) { el.innerHTML = ''; return; }
+
+  if (status.ok) {
+    el.innerHTML = `<span style="color:var(--text-3);">✓ updated ${status.last_success}</span>`;
+    return;
+  }
+
+  const lastGood = status.last_success
+    ? `last successful fetch: ${status.last_success}`
+    : `no successful fetch recorded yet`;
+  el.innerHTML = `<span style="color:var(--amber);">⚠ fetch failing since ${status.last_attempt} — ${lastGood}</span>`;
 }
 
 // ─── EPIDEMIOLOGICAL TIME-SERIES CHART HELPERS ───────────────────────────────
