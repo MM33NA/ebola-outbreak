@@ -2,6 +2,7 @@ import re
 import requests
 import sys
 import json
+from pathlib import Path
 
 def scrape_cdc_ebola():
     url = "https://www.cdc.gov/ebola/situation-summary/index.html"
@@ -61,7 +62,6 @@ def scrape_cdc_ebola():
         if ug_deaths: 
             extracted['uganda_deaths'] = int(ug_deaths.group(1).replace(',', ''))
 
-# 3. Your original feature validation and error-exit logic
     total_metrics = (
         extracted['confirmed'] + 
         extracted['confirmed_deaths'] + 
@@ -71,69 +71,70 @@ def scrape_cdc_ebola():
     
     if total_metrics == 0:
         print("WARNING: All zeros — CDC page structure may have changed.")
-        print("Check scrape.py regex patterns.")
-        print("Error: Process completed with exit code 1.")
         sys.exit(1)
         
-    # ==================== ADD THIS TO WRITE FILE ====================
-    with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(extracted, f, indent=2)
-    print("Successfully saved data to data.json")
-    # ================================================================
-        
-    print("Scrape completed successfully.")
-    return extracted
-
     print(f"Extracted Metrics from Table Layout: {extracted}")
     
-    if (extracted['confirmed'] + extracted['confirmed_deaths'] + extracted['uganda_cases'] + extracted['uganda_deaths']) == 0:
-        print("WARNING: All zeros — CDC page structure might have broken completely.")
-        sys.exit(1)
-        
     # ========================================================
     # AUTOMATICALLY UPDATE YOUR DATA.JSON FILE STRUCTURE
     # ========================================================
-    json_filename = "data.json"
-    try:
-        with open(json_filename, "r", encoding="utf-8") as f:
-            dashboard_data = json.load(f)
-        
-        dashboard_data["updated"] = extracted["updated"]
-        dashboard_data["summary"]["confirmedDRC"] = extracted["confirmed"]
-        dashboard_data["summary"]["confirmedDeaths"] = extracted["confirmed_deaths"]
-        dashboard_data["summary"]["ugandaCases"] = extracted["uganda_cases"]
-        dashboard_data["summary"]["ugandaDeaths"] = extracted["uganda_deaths"]
-        
-        total_cases = extracted["confirmed"] + extracted["uganda_cases"]
-        total_deaths = extracted["confirmed_deaths"] + extracted["uganda_deaths"]
-        if total_cases > 0:
-            dashboard_data["summary"]["cfrPercent"] = round((total_deaths / total_cases) * 100, 1)
-        
-        today_date = extracted["updated"]
-        
-        # Check if today's entry already exists to prevent duplicate timeline rendering nodes
-        existing_node = next((item for item in dashboard_data["timeline"] if item["date"] == today_date), None)
-        if existing_node:
-            existing_node["cases"] = total_cases
-            existing_node["deaths"] = total_deaths
-        else:
-            dashboard_data["timeline"].append({
-                "date": today_date,
-                "cases": total_cases,
-                "deaths": total_deaths
-            })
-            print(f"Added a new timeline node item for {today_date}!")
+    json_file = Path("data.json")
+    
+    # Initialize baseline structure if missing or corrupt
+    dashboard_data = {
+        "updated": extracted["updated"],
+        "summary": {},
+        "timeline": [],
+        "events": [],
+        "google_trends_surveillance": {}
+    }
 
-        with open(json_filename, "w", encoding="utf-8") as f:
-            json.dump(dashboard_data, f, indent=2)
-            
-        print(f"Success: Cleanly updated and overwrote local file storage: {json_filename}!")
-        
-    except FileNotFoundError:
-        print(f"Error: Could not locate '{json_filename}' in your active project workspace folder.")
-    except Exception as e:
-        print(f"Error parsing or saving data to JSON: {e}")
+    if json_file.exists():
+        try:
+            with open(json_file, "r", encoding="utf-8") as f:
+                loaded_data = json.load(f)
+                # Safeguard: ensure essential keys exist in loaded file
+                if isinstance(loaded_data, dict) and "summary" in loaded_data:
+                    dashboard_data = loaded_data
+        except Exception:
+            print("⚠️ Existing data.json corrupted or unreadable. Building clean structure...")
 
+    # Inject parsed updates into nested dictionary layout
+    dashboard_data["updated"] = extracted["updated"]
+    if "summary" not in dashboard_data or not isinstance(dashboard_data["summary"], dict):
+        dashboard_data["summary"] = {}
+
+    dashboard_data["summary"]["confirmedDRC"] = extracted["confirmed"]
+    dashboard_data["summary"]["confirmedDeaths"] = extracted["confirmed_deaths"]
+    dashboard_data["summary"]["ugandaCases"] = extracted["uganda_cases"]
+    dashboard_data["summary"]["ugandaDeaths"] = extracted["uganda_deaths"]
+    
+    total_cases = extracted["confirmed"] + extracted["uganda_cases"]
+    total_deaths = extracted["confirmed_deaths"] + extracted["uganda_deaths"]
+    if total_cases > 0:
+        dashboard_data["summary"]["cfrPercent"] = round((total_deaths / total_cases) * 100, 1)
+    
+    today_date = extracted["updated"]
+    
+    if "timeline" not in dashboard_data:
+        dashboard_data["timeline"] = []
+        
+    existing_node = next((item for item in dashboard_data["timeline"] if item["date"] == today_date), None)
+    if existing_node:
+        existing_node["cases"] = total_cases
+        existing_node["deaths"] = total_deaths
+    else:
+        dashboard_data["timeline"].append({
+            "date": today_date,
+            "cases": total_cases,
+            "deaths": total_deaths
+        })
+        print(f"Added a new timeline node item for {today_date}!")
+
+    with open(json_file, "w", encoding="utf-8") as f:
+        json.dump(dashboard_data, f, indent=2)
+        
+    print(f"Success: Cleanly updated and saved data to: {json_file}")
     return extracted
 
 if __name__ == "__main__":
