@@ -147,6 +147,7 @@ async function initDashboard() {
     }
     
     // 3. Populate default initial word cloud view
+    populateWordCloudPeriodOptions(data);
     updateWordCloudView('all');
     
   } catch (error) {
@@ -157,6 +158,23 @@ async function initDashboard() {
         <span style="font-size:12px;color:var(--text-2);">Make sure data.json exists and both scrapers have run!</span>
       </div>`;
   }
+}
+
+// ─── WORD CLOUD PERIOD DROPDOWN — built from real data, not hardcoded ────────
+function populateWordCloudPeriodOptions(data) {
+  const select = document.getElementById('word-cloud-period-select');
+  const periods = data?.google_trends_surveillance?.word_cloud?.periods;
+  if (!select || !periods) return;
+
+  Object.keys(periods).sort().reverse().forEach(periodKey => {
+    const opt = document.createElement('option');
+    opt.value = periodKey;
+    const dateObj = new Date(periodKey + 'T00:00:00');
+    const label = isNaN(dateObj) ? periodKey
+      : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    opt.textContent = `Period starting ${label}`;
+    select.appendChild(opt);
+  });
 }
 
 // ─── EPIDEMIOLOGICAL DATA SUMMARY RENDER ─────────────────────────────────────
@@ -255,7 +273,6 @@ function renderSummary(data) {
             <h4 style="font-size:13px;color:var(--text-2);font-weight:600;">Active Symptom Inquiry Profile</h4>
             <select id="word-cloud-period-select" onchange="updateWordCloudView(this.value)">
               <option value="all">All Periods (Combined View)</option>
-              <option value="2026-06-23">Latest Peak Outbreak (June 23)</option>
             </select>
           </div>
           <div id="symptom-word-cloud" class="word-cloud-container"></div>
@@ -294,8 +311,8 @@ function updateWordCloudView(selectedDate) {
 
   if (selectedDate === 'all' || !selectedDate) {
     rawWordsObject = targetCloud.all_time || {};
-  } else if (targetCloud.daily_history) {
-    rawWordsObject = targetCloud.daily_history[selectedDate] || {};
+  } else if (targetCloud.periods) {
+    rawWordsObject = targetCloud.periods[selectedDate] || {};
   }
 
   if (!rawWordsObject || Object.keys(rawWordsObject).length === 0) {

@@ -24,9 +24,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Added pytrends here so the workflow environment can handle Google connection queries
+      # pytrends powers trends.py's Google Trends queries; requests powers scrape.py's ECDC fetch
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 pytrends
+        run: pip install requests pytrends
 
       - name: Run CDC Web Scraper
         run: python scrape.py
