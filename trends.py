@@ -34,19 +34,45 @@ def load_data():
     if not DATA_FILE.exists():
         print("ERROR: data.json missing. Run scrape.py first.")
         return None
-    
+
     try:
         with DATA_FILE.open('r') as f:
             return json.load(f)
-    except json.JSONDecodeError:
-        print("⚠️ WARNING: data.json is corrupted! Attempting automatic repair...")
-        # Return an empty baseline structure so trends.py can still run and overwrite it
+    except json.JSONDecodeError as e:
+        # FIX: the old fallback structure was missing google_trends_surveillance's
+        # inner keys (search_timeline, rising_searches, word_cloud), which caused
+        # a KeyError crash in Section 1 the moment this fallback was used. This
+        # is also the bug that triggered the user's actual error: data.json was
+        # invalid JSON, the fallback below kicked in, the fallback was incomplete,
+        # and the script crashed trying to use it.
+        #
+        # This does NOT explain *why* data.json became invalid JSON in the first
+        # place - that's almost always one of: a run got killed mid-write
+        # (Ctrl+C, terminal closed, laptop slept) leaving a half-written file, a
+        # manual edit left a trailing comma / unclosed bracket, or a git merge
+        # left conflict markers (<<<<<<<) in the file. Printing the exact parse
+        # error and location below should make the actual cause visible instead
+        # of papering over it with a guess.
+        print(f"⚠️ WARNING: data.json is corrupted ({e}).")
+        print(f"   Error at line {e.lineno}, column {e.colno} (character {e.pos}).")
+        print("   This usually means a previous run was interrupted mid-write,")
+        print("   a manual edit left invalid syntax, or a git merge left conflict")
+        print("   markers in the file. Open data.json and check around that line.")
+        print("   Building a clean baseline structure so this run can still proceed —")
+        print("   but summary/timeline/events from before the corruption will be lost")
+        print("   unless you recover them from git history.")
         return {
-            "updated": "2026-06-23",
+            "updated": None,
             "summary": {},
             "timeline": [],
             "events": [],
-            "google_trends_surveillance": {"daily_history": {}}
+            "google_trends_surveillance": {
+                "search_timeline": {"Ebola": [], "Symptoms": [], "Transmission": []},
+                "rising_searches": [],
+                "rising_searches_history": {},
+                "fetch_status": {},
+                "word_cloud": {"all_time": {}, "periods": {}},
+            },
         }
 
 def get_active_period(updated_str):
@@ -188,19 +214,26 @@ def update_trends_in_json():
     timeframe      = f"{start_date} {today_date}"
     existing_dates = get_existing_dates(data)
 
-    # Ensure surveillance structure exists and preserves word_cloud across runs
-    if "google_trends_surveillance" not in data:
-        data["google_trends_surveillance"] = {
-            "search_timeline": {"Ebola": [], "Symptoms": [], "Transmission": []},
-            "rising_searches": [],
-            "word_cloud": {"all_time": {}, "periods": {}}
-        }
+    # FIX: this used to be `if "google_trends_surveillance" not in data:` — an
+    # all-or-nothing check. That let a *partially* formed surveillance dict
+    # (e.g. the old corrupted-file fallback, which had the key present but
+    # missing search_timeline/rising_searches inside it) slip through
+    # untouched, causing a KeyError crash later. Defaulting each inner key
+    # individually means it's now structurally impossible for this object to
+    # be missing a field this script depends on, regardless of where `data`
+    # came from (a fresh file, scrape.py's output, or a corruption fallback).
+    if "google_trends_surveillance" not in data or not isinstance(data["google_trends_surveillance"], dict):
+        data["google_trends_surveillance"] = {}
 
     surveillance = data["google_trends_surveillance"]
-
-    # Preserve existing word_cloud if present — don't reset it on each run
-    if "word_cloud" not in surveillance:
-        surveillance["word_cloud"] = {"all_time": {}, "periods": {}}
+    surveillance.setdefault("search_timeline", {})
+    surveillance["search_timeline"].setdefault("Ebola", [])
+    surveillance["search_timeline"].setdefault("Symptoms", [])
+    surveillance["search_timeline"].setdefault("Transmission", [])
+    surveillance.setdefault("rising_searches", [])
+    surveillance.setdefault("rising_searches_history", {})
+    surveillance.setdefault("fetch_status", {})
+    surveillance.setdefault("word_cloud", {"all_time": {}, "periods": {}})
 
     # ── SECTION 1: Historical timeline ────────────────────────────────────────
     keywords = ["Ebola", "Ebola symptoms", "Ebola transmission"]

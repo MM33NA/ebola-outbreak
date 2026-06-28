@@ -1,7 +1,5 @@
 {
   "updated": "2026-06-26",
-<<<<<<< HEAD
-=======
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -889,16 +887,24 @@
     },
     "rising_searches": [
       {
-        "query": "ebola outbreak ituri",
-        "breakout_value": "250"
+        "query": "ebola update in uganda today",
+        "breakout_value": "11950"
       },
       {
-        "query": "ebola death toll congo",
-        "breakout_value": "Breakout"
+        "query": "ebola ausbruch aktuell",
+        "breakout_value": "9500"
       },
       {
-        "query": "ebola travel restrictions",
-        "breakout_value": "180"
+        "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
+        "breakout_value": "7450"
+      },
+      {
+        "query": "ebola symtom",
+        "breakout_value": "5700"
+      },
+      {
+        "query": "que es el ebola y como se transmite",
+        "breakout_value": "5250"
       }
     ],
     "word_cloud": {
@@ -908,16 +914,22 @@
         "cagliari": 1,
         "hantavirus": 2,
         "symptoms": 1,
-        "update": 2,
-        "uganda": 1,
-        "today": 1,
+        "update": 3,
+        "uganda": 2,
+        "today": 2,
         "outbreak": 1,
         "ituri": 1,
         "death": 1,
         "toll": 1,
         "congo": 1,
         "travel": 1,
-        "restrictions": 1
+        "restrictions": 1,
+        "ausbruch": 1,
+        "aktuell": 1,
+        "symtom": 1,
+        "que": 1,
+        "como": 1,
+        "transmite": 1
       },
       "periods": {
         "2026-05-24": {
@@ -937,7 +949,16 @@
           "toll": 1,
           "congo": 1,
           "travel": 1,
-          "restrictions": 1
+          "restrictions": 1,
+          "update": 1,
+          "uganda": 1,
+          "today": 1,
+          "ausbruch": 1,
+          "aktuell": 1,
+          "symtom": 1,
+          "que": 1,
+          "como": 1,
+          "transmite": 1
         }
       }
     },
@@ -951,16 +972,24 @@
     "rising_searches_history": {
       "2026-06-28": [
         {
-          "query": "ebola outbreak ituri",
-          "breakout_value": "250"
+          "query": "ebola update in uganda today",
+          "breakout_value": "11950"
         },
         {
-          "query": "ebola death toll congo",
-          "breakout_value": "Breakout"
+          "query": "ebola ausbruch aktuell",
+          "breakout_value": "9500"
         },
         {
-          "query": "ebola travel restrictions",
-          "breakout_value": "180"
+          "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
+          "breakout_value": "7450"
+        },
+        {
+          "query": "ebola symtom",
+          "breakout_value": "5700"
+        },
+        {
+          "query": "que es el ebola y como se transmite",
+          "breakout_value": "5250"
         }
       ]
     }
@@ -1027,7 +1056,6 @@
       "title": "ECDC reports 1,155 DRC cases and 304 deaths, plus 20 Uganda cases and 2 deaths"
     }
   ],
->>>>>>> 3159eef (Updating the google trends data, key events milestones)
   "summary": {
     "confirmedDRC": 1155,
     "confirmedDeaths": 304,
