@@ -1,267 +1,11 @@
 {
+  "suspected": 0,
+  "confirmed": 1003,
+  "suspected_deaths": 0,
+  "confirmed_deaths": 254,
+  "uganda_cases": 20,
+  "uganda_deaths": 2,
   "updated": "2026-06-23",
-  "summary": {
-    "confirmedDRC": 1003,
-    "confirmedDeaths": 254,
-    "ugandaCases": 20,
-    "ugandaDeaths": 2,
-    "cfrPercent": 25.0
-  },
-  "timeline": [
-    {
-      "date": "Jun 5",
-      "cases": 378,
-      "deaths": 64,
-      "drcConfirmed": 363,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 6",
-      "cases": 467,
-      "deaths": 84,
-      "drcConfirmed": 452,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 7",
-      "cases": 467,
-      "deaths": 84,
-      "drcConfirmed": 452,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 8",
-      "cases": 565,
-      "deaths": 102,
-      "drcConfirmed": 550,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 9",
-      "cases": 565,
-      "deaths": 102,
-      "drcConfirmed": 550,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 10",
-      "cases": 613,
-      "deaths": 120,
-      "drcConfirmed": 598,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "Jun 11",
-      "cases": 650,
-      "deaths": 134,
-      "drcConfirmed": 635,
-      "ugandaConfirmed": 15
-    },
-    {
-      "date": "2026-06-23",
-      "cases": 1023,
-      "deaths": 256
-    }
-  ],
-  "healthZones": [
-    {
-      "name": "Rwampara (Ituri)",
-      "areasAffected": 6,
-      "status": "Confirmed"
-    },
-    {
-      "name": "Mongbwalu (Ituri)",
-      "areasAffected": 3,
-      "status": "Confirmed"
-    },
-    {
-      "name": "Bunia (Ituri)",
-      "areasAffected": null,
-      "status": "Confirmed"
-    },
-    {
-      "name": "Goma (Nord-Kivu)",
-      "areasAffected": null,
-      "status": "Confirmed"
-    },
-    {
-      "name": "Sud-Kivu Province",
-      "areasAffected": null,
-      "status": "Confirmed \u00e2\u20ac\u201d travel-linked"
-    },
-    {
-      "name": "Tsopo Province",
-      "areasAffected": null,
-      "status": "Under investigation"
-    }
-  ],
-  "events": [
-    {
-      "date": "April 24, 2026",
-      "red": false,
-      "desc": "First known suspected case \u00e2\u20ac\u201d a health worker \u00e2\u20ac\u201d reports onset of symptoms including fever, hemorrhaging, vomiting and intense malaise. The case died at a medical centre in Bunia."
-    },
-    {
-      "date": "May 5, 2026",
-      "red": false,
-      "desc": "WHO alerted of a high-mortality outbreak of unknown illness in Mongbwalu Health Zone, Ituri Province, DRC. Four health workers died within 4 days."
-    },
-    {
-      "date": "May 13, 2026",
-      "red": false,
-      "desc": "Rapid response team investigation in Mongbwalu and Rwampara health zones confirms Bundibugyo virus disease (BVD) caused by Bundibugyo virus (BDBV)."
-    },
-    {
-      "date": "May 14, 2026",
-      "red": false,
-      "desc": "INRB Kinshasa analyzed 13 blood samples from Rwampara Health Zone, Ituri Province."
-    },
-    {
-      "date": "May 15, 2026",
-      "red": true,
-      "desc": "Laboratory analysis confirmed BVD in 8 of 13 samples. DRC Ministry of Health officially declares the 17th Ebola outbreak. 246 suspected cases and 80 deaths across Rwampara, Mongbwalu, and Bunia. Uganda confirms first imported case \u00e2\u20ac\u201d an elderly man admitted May 11, died May 14."
-    },
-    {
-      "date": "May 16, 2026",
-      "red": true,
-      "desc": "WHO Director-General declares a Public Health Emergency of International Concern (PHEIC) under IHR. Uganda confirms 2nd imported case from DRC. No licensed vaccine or therapeutics exist for Bundibugyo virus."
-    },
-    {
-      "date": "May 17, 2026",
-      "red": true,
-      "desc": "1 American healthcare worker exposed in DRC tests positive and is medically evacuated to Germany for treatment. 6 high-risk contacts also transferred to Germany for monitoring."
-    },
-    {
-      "date": "May 18, 2026",
-      "red": true,
-      "desc": "US CDC and DHS implement enhanced travel screening and entry restrictions. Africa CDC declares Public Health Emergency of Continental Security."
-    },
-    {
-      "date": "May 21, 2026",
-      "red": true,
-      "desc": "Outbreak spreads to Nord-Kivu Province \u00e2\u20ac\u201d cases reported in Goma. Over 1,000 contacts under follow-up in Ituri."
-    },
-    {
-      "date": "May 22, 2026",
-      "red": true,
-      "desc": "Outbreak expands to 3rd province \u00e2\u20ac\u201d Sud-Kivu confirmed in a person who travelled from Tsopo Province. Uganda announces 3 additional cases, all linked to previously confirmed DRC travellers."
-    },
-    {
-      "date": "May 24, 2026",
-      "red": true,
-      "desc": "DRC Ministry of Health reports 90 confirmed cases and 10 confirmed deaths across Ituri, Nord-Kivu, and Sud-Kivu provinces. Uganda: 5 confirmed cases, 1 confirmed death \u00e2\u20ac\u201d all linked to DRC travel, no local spread."
-    },
-    {
-      "date": "May 25, 2026",
-      "red": true,
-      "desc": "DRC reports 105 confirmed cases (10 deaths). Uganda: 7 confirmed cases, 1 death. Two suspected cases reported in Italy \u00e2\u20ac\u201d travellers from Uganda hospitalised in isolation in Milan, Lombardy. Italy under investigation."
-    }
-  ],
-  "network": {
-    "nodes": [
-      {
-        "id": "rwampara",
-        "label": "Rwampara HZ",
-        "type": "origin",
-        "country": "DRC \u00c2\u00b7 Ituri",
-        "cases": -1,
-        "deaths": -1,
-        "detail": "6 health areas affected \u00c2\u00b7 confirmed outbreak origin \u00c2\u00b7 per-zone breakdown not reported by CDC"
-      },
-      {
-        "id": "mongbwalu",
-        "label": "Mongbwalu HZ",
-        "type": "origin",
-        "country": "DRC \u00c2\u00b7 Ituri",
-        "cases": -1,
-        "deaths": -1,
-        "detail": "3 health areas affected \u00c2\u00b7 4 HCWs dead by May 9 \u00c2\u00b7 per-zone breakdown not reported by CDC"
-      },
-      {
-        "id": "bunia",
-        "label": "Bunia HZ",
-        "type": "hub",
-        "country": "DRC \u00c2\u00b7 Ituri",
-        "cases": 359,
-        "deaths": 60,
-        "detail": "Epicentre hub \u00c2\u00b7 359 confirmed cases \u00c2\u00b7 60 confirmed deaths \u00c2\u00b7 3 provinces active"
-      },
-      {
-        "id": "uganda",
-        "label": "Kampala, Uganda",
-        "type": "export",
-        "country": "Uganda",
-        "cases": 15,
-        "deaths": 7,
-        "detail": "15 confirmed cases \u00c2\u00b7 7 confirmed death \u00c2\u00b7 Kampala \u00c2\u00b7 5 linked to first 2 cases"
-      },
-      {
-        "id": "italy",
-        "label": "Milan, Italy",
-        "type": "suspect",
-        "country": "Italy",
-        "cases": 2,
-        "deaths": 0,
-        "detail": "2 suspected cases \u00c2\u00b7 travellers from Uganda \u00c2\u00b7 hospitalised in isolation in Milan \u00c2\u00b7 May 25"
-      },
-      {
-        "id": "germany",
-        "label": "Germany",
-        "type": "contact",
-        "country": "Germany",
-        "cases": 1,
-        "deaths": 0,
-        "detail": "1 American HCW (confirmed) + 6 high-risk contacts evacuated \u00c2\u00b7 May 17 \u00c2\u00b7 no local transmission"
-      },
-      {
-        "id": "usa",
-        "label": "United States",
-        "type": "alert",
-        "country": "USA",
-        "cases": 0,
-        "deaths": 0,
-        "detail": "Enhanced screening at entry points \u00c2\u00b7 May 18 \u00c2\u00b7 risk assessed as low"
-      }
-    ],
-    "links": [
-      {
-        "source": "rwampara",
-        "target": "bunia",
-        "type": "confirmed",
-        "label": "Confirmed transmission"
-      },
-      {
-        "source": "mongbwalu",
-        "target": "bunia",
-        "type": "confirmed",
-        "label": "Confirmed transmission"
-      },
-      {
-        "source": "bunia",
-        "target": "uganda",
-        "type": "confirmed",
-        "label": "Confirmed export \u00c2\u00b7 travellers"
-      },
-      {
-        "source": "uganda",
-        "target": "italy",
-        "type": "suspect",
-        "label": "Suspected \u00c2\u00b7 under investigation"
-      },
-      {
-        "source": "bunia",
-        "target": "germany",
-        "type": "contact",
-        "label": "Medical evacuation \u00c2\u00b7 May 17"
-      },
-      {
-        "source": "bunia",
-        "target": "usa",
-        "type": "alert",
-        "label": "Enhanced screening \u00c2\u00b7 no cases"
-      }
-    ]
-  },
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -303,7 +47,7 @@
         },
         {
           "time": "2026-04-26",
-          "score": 2
+          "score": 3
         },
         {
           "time": "2026-04-27",
@@ -355,7 +99,7 @@
         },
         {
           "time": "2026-05-09",
-          "score": 3
+          "score": 4
         },
         {
           "time": "2026-05-10",
@@ -383,15 +127,15 @@
         },
         {
           "time": "2026-05-16",
-          "score": 14
+          "score": 13
         },
         {
           "time": "2026-05-17",
-          "score": 80
+          "score": 87
         },
         {
           "time": "2026-05-18",
-          "score": 88
+          "score": 92
         },
         {
           "time": "2026-05-19",
@@ -399,103 +143,103 @@
         },
         {
           "time": "2026-05-20",
-          "score": 82
+          "score": 84
         },
         {
           "time": "2026-05-21",
-          "score": 78
+          "score": 85
         },
         {
           "time": "2026-05-22",
-          "score": 82
+          "score": 85
         },
         {
           "time": "2026-05-23",
-          "score": 71
+          "score": 72
         },
         {
           "time": "2026-05-24",
-          "score": 52
+          "score": 55
         },
         {
           "time": "2026-05-25",
-          "score": 61
+          "score": 62
         },
         {
           "time": "2026-05-26",
-          "score": 47
+          "score": 52
         },
         {
           "time": "2026-05-27",
-          "score": 48
+          "score": 56
         },
         {
           "time": "2026-05-28",
-          "score": 42
+          "score": 50
         },
         {
           "time": "2026-05-29",
-          "score": 36
+          "score": 44
         },
         {
           "time": "2026-05-30",
-          "score": 34
+          "score": 40
         },
         {
           "time": "2026-05-31",
-          "score": 38
+          "score": 48
         },
         {
           "time": "2026-06-01",
-          "score": 36
+          "score": 42
         },
         {
           "time": "2026-06-02",
-          "score": 31
+          "score": 37
         },
         {
           "time": "2026-06-03",
-          "score": 24
+          "score": 28
         },
         {
           "time": "2026-06-04",
-          "score": 20
+          "score": 24
         },
         {
           "time": "2026-06-05",
-          "score": 17
+          "score": 21
         },
         {
           "time": "2026-06-06",
-          "score": 16
+          "score": 19
         },
         {
           "time": "2026-06-07",
-          "score": 14
+          "score": 16
         },
         {
           "time": "2026-06-08",
-          "score": 12
+          "score": 15
         },
         {
           "time": "2026-06-09",
-          "score": 10
+          "score": 14
         },
         {
           "time": "2026-06-10",
-          "score": 12
+          "score": 14
         },
         {
           "time": "2026-06-11",
-          "score": 9
+          "score": 12
         },
         {
           "time": "2026-06-12",
-          "score": 11
+          "score": 12
         },
         {
           "time": "2026-06-13",
-          "score": 9
+          "score": 12
         },
         {
           "time": "2026-06-14",
@@ -531,27 +275,31 @@
         },
         {
           "time": "2026-06-22",
-          "score": 7
+          "score": 8
         },
         {
           "time": "2026-06-23",
-          "score": 6
-        },
-        {
-          "time": "2026-06-24",
           "score": 7
         },
         {
+          "time": "2026-06-24",
+          "score": 24
+        },
+        {
           "time": "2026-06-25",
-          "score": 16
+          "score": 17
         },
         {
           "time": "2026-06-26",
-          "score": 9
+          "score": 11
         },
         {
           "time": "2026-06-27",
           "score": 9
+        },
+        {
+          "time": "2026-06-28",
+          "score": 8
         }
       ],
       "Symptoms": [
@@ -701,7 +449,7 @@
         },
         {
           "time": "2026-05-23",
-          "score": 3
+          "score": 4
         },
         {
           "time": "2026-05-24",
@@ -717,11 +465,11 @@
         },
         {
           "time": "2026-05-27",
-          "score": 2
+          "score": 3
         },
         {
           "time": "2026-05-28",
-          "score": 2
+          "score": 3
         },
         {
           "time": "2026-05-29",
@@ -729,19 +477,19 @@
         },
         {
           "time": "2026-05-30",
-          "score": 1
+          "score": 2
         },
         {
           "time": "2026-05-31",
-          "score": 1
+          "score": 2
         },
         {
           "time": "2026-06-01",
-          "score": 1
+          "score": 2
         },
         {
           "time": "2026-06-02",
-          "score": 1
+          "score": 2
         },
         {
           "time": "2026-06-03",
@@ -765,19 +513,19 @@
         },
         {
           "time": "2026-06-08",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-09",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-10",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-11",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-12",
@@ -785,7 +533,7 @@
         },
         {
           "time": "2026-06-13",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-14",
@@ -841,6 +589,10 @@
         },
         {
           "time": "2026-06-27",
+          "score": 0
+        },
+        {
+          "time": "2026-06-28",
           "score": 0
         }
       ],
@@ -1003,35 +755,35 @@
         },
         {
           "time": "2026-05-26",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-05-27",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-05-28",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-05-29",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-05-30",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-05-31",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-01",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-02",
-          "score": 0
+          "score": 1
         },
         {
           "time": "2026-06-03",
@@ -1132,125 +884,58 @@
         {
           "time": "2026-06-27",
           "score": 0
+        },
+        {
+          "time": "2026-06-28",
+          "score": 0
         }
       ]
     },
     "rising_searches": [
       {
         "query": "malattia da virus ebola",
-        "breakout_value": "43550"
+        "breakout_value": "43300"
       },
       {
         "query": "ebola cagliari",
-        "breakout_value": "14350"
+        "breakout_value": "14250"
+      },
+      {
+        "query": "hantavirus symptoms",
+        "breakout_value": "13500"
       },
       {
         "query": "ebola update in uganda today",
-        "breakout_value": "12150"
+        "breakout_value": "11900"
       },
       {
         "query": "hantavirus update",
-        "breakout_value": "10350"
-      },
-      {
-        "query": "ebola ausbruch aktuell",
-        "breakout_value": "9600"
+        "breakout_value": "10300"
       }
     ],
     "word_cloud": {
       "all_time": {
-        "brote": 4,
-        "krwotoczna": 3,
-        "ausbruch": 13,
-        "aktuell": 13,
-        "hantavirus": 11,
-        "update": 17,
-        "que": 23,
-        "como": 11,
-        "transmite": 8,
-        "malattia": 20,
-        "virus": 10,
-        "symptoms": 5,
-        "uganda": 9,
-        "today": 9,
-        "bundibugyo": 3,
-        "mkuu": 7,
-        "luku": 7,
-        "sintomas": 27,
-        "del": 11,
-        "marburg": 3,
-        "syndrome": 3,
-        "incubation": 1,
-        "period": 1,
-        "mexico": 2,
-        "curable": 1,
-        "where": 1,
-        "did": 1,
-        "come": 1,
-        "death": 2,
-        "rate": 2,
-        "enola": 1,
-        "congo": 2,
-        "contagia": 3,
-        "river": 1,
-        "cagliari": 3
+        "malattia": 1,
+        "virus": 1,
+        "cagliari": 1,
+        "hantavirus": 2,
+        "symptoms": 1,
+        "update": 2,
+        "uganda": 1,
+        "today": 1
       },
       "periods": {
         "2026-05-24": {
-          "brote": 3,
-          "krwotoczna": 3,
-          "ausbruch": 12,
-          "aktuell": 12,
-          "hantavirus": 11,
-          "update": 17,
-          "que": 7,
-          "como": 9,
-          "transmite": 7,
-          "malattia": 10,
-          "virus": 10,
-          "symptoms": 3,
-          "uganda": 8,
-          "today": 8,
-          "bundibugyo": 2,
-          "cagliari": 3,
-          "contagia": 2
-        }
-      },
-      "daily_history": {
-        "2026-06-23": {
+          "malattia": 1,
+          "virus": 1,
+          "cagliari": 1,
+          "hantavirus": 2,
+          "symptoms": 1,
+          "update": 2,
           "uganda": 1,
-          "today": 1,
-          "ausbruch": 1,
-          "aktuell": 1,
-          "que": 16,
-          "como": 2,
-          "transmite": 1,
-          "malattia": 10,
-          "bundibugyo": 1,
-          "mkuu": 7,
-          "luku": 7,
-          "sintomas": 27,
-          "del": 11,
-          "marburg": 3,
-          "syndrome": 3,
-          "incubation": 1,
-          "period": 1,
-          "brote": 1,
-          "symptoms": 2,
-          "mexico": 2,
-          "curable": 1,
-          "where": 1,
-          "did": 1,
-          "come": 1,
-          "death": 2,
-          "rate": 2,
-          "enola": 1,
-          "congo": 2,
-          "contagia": 1,
-          "river": 1
+          "today": 1
         }
       }
     }
-  },
-  "last_trends_sync": "2026-05-31 09:46 UTC"
+  }
 }
