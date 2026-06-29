@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-26",
+  "updated": "2026-06-29",
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -1026,11 +1026,11 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 1155,
-    "confirmedDeaths": 304,
+    "confirmedDRC": 1274,
+    "confirmedDeaths": 360,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 26.0
+    "cfrPercent": 28.0
   },
   "timeline": [
     {
@@ -1087,10 +1087,15 @@
       "date": "2026-06-26",
       "cases": 1175,
       "deaths": 306
+    },
+    {
+      "date": "2026-06-29",
+      "cases": 1294,
+      "deaths": 362
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-06-28",
+    "computed_at": "2026-06-29",
     "cfr_trend": {
       "points": [
         {
@@ -1136,27 +1141,31 @@
         {
           "date": "2026-06-26",
           "cfr_percent": 26.04
+        },
+        {
+          "date": "2026-06-29",
+          "cfr_percent": 27.98
         }
       ],
       "summary": {
-        "current_cfr_percent": 26.04,
+        "current_cfr_percent": 27.98,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
-        "recent_avg_percent": 24.76,
+        "recent_avg_percent": 26.37,
         "direction": "rising"
       }
     },
     "growth_rate": {
       "start_date": "2026-05-16",
-      "end_date": "2026-06-26",
-      "growth_rate_per_day": 0.0966,
-      "doubling_time_days": 7.2,
+      "end_date": "2026-06-29",
+      "growth_rate_per_day": 0.0892,
+      "doubling_time_days": 7.8,
       "doubling_time_ci": {
-        "doubling_time_low": 5.5,
-        "doubling_time_high": 10.3
+        "doubling_time_low": 6.0,
+        "doubling_time_high": 10.9
       },
-      "r_squared": 0.8238,
-      "n_points": 11
+      "r_squared": 0.8222,
+      "n_points": 12
     },
     "search_correlation": {
       "n": 44,
