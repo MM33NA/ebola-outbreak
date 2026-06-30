@@ -93,30 +93,54 @@ def get_active_period(updated_str):
     monday = dt - timedelta(days=dt.weekday())
     return monday.strftime("%Y-%m-%d")
 
-def process_word_cloud(surveillance, rising_searches, today_str, is_fresh_fetch):
+def process_word_cloud(surveillance, rising_searches, topic_entries, today_str, is_fresh_fetch):
     """
-    Tokenizes raw query strings, filters stop words, and updates
-    all-time and period-specific frequency matrices.
+    Tokenizes raw query strings AND related topic titles, filters stop words,
+    and updates all-time and period-specific frequency matrices.
 
-    FIX (double-counting): previously this ran on whatever `rising_searches`
-    happened to be in memory, including the *stale* fallback used when
-    Section 2's fetch failed (e.g. a 429). That meant a failed fetch caused
-    the exact same 5 queries from days ago to get re-tokenized and added to
-    the word cloud counts again, inflating frequencies for words that hadn't
-    actually trended again. Now: if today's fetch wasn't fresh, skip word
-    cloud aggregation entirely for this run rather than re-counting old data.
+    EXPANDED: previously only tokenized rising_searches (up to 5 queries),
+    giving ~8-12 usable words. Now also tokenizes related_topics titles
+    (e.g. "Democratic Republic of the Congo", "Public health emergency")
+    which add richer, more meaningful vocabulary. Stop words list expanded
+    substantially to filter generic noise that's plentiful when you have
+    50+ source strings instead of 5.
+
+    FIX (double-counting): if today's fetch wasn't fresh, skip aggregation
+    entirely rather than re-counting stale data from a previous run.
     """
     if not is_fresh_fetch:
-        print("Skipping word cloud aggregation — today's rising-search fetch was not fresh "
+        print("Skipping word cloud aggregation — today's fetch was not fresh "
               "(reused stale data), so nothing new to count.")
         return
 
-    raw_text = " ".join([item["query"] for item in rising_searches])
+    # Combine query strings and topic titles into one text corpus
+    query_text = " ".join([item["query"] for item in rising_searches])
+    topic_text = " ".join([item["title"] for item in topic_entries if item.get("title")])
+    raw_text = f"{query_text} {topic_text}"
+
     words = re.findall(r'\b[a-zA-Z]{3,}\b', raw_text.lower())
 
-    stop_words = {'the', 'and', 'for', 'with', 'from', 'this', 'that', 'ebola'}
+    # Expanded stop words: generic terms that appear constantly in health/news
+    # queries regardless of the specific outbreak, plus pytrends artifacts.
+    stop_words = {
+        # English function words
+        'the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'was',
+        'has', 'have', 'had', 'not', 'but', 'they', 'his', 'her', 'its',
+        'been', 'who', 'what', 'when', 'how', 'all', 'one', 'can', 'more',
+        'will', 'than', 'also', 'into', 'out', 'about', 'their', 'which',
+        # Too generic in a disease-outbreak context to be informative
+        'ebola', 'virus', 'disease', 'outbreak', 'case', 'cases', 'death',
+        'deaths', 'news', 'update', 'latest', 'new', 'today', 'week',
+        'health', 'public', 'report', 'reported', 'africa',
+        # Google taxonomy noise
+        'topic', 'search', 'query', 'trending', 'related',
+    }
     filtered = [w for w in words if w not in stop_words]
     daily_counts = Counter(filtered)
+
+    if not daily_counts:
+        print("Word cloud: no new words after filtering — nothing to add.")
+        return
 
     # Ensure word_cloud structure exists inside surveillance
     if "word_cloud" not in surveillance:
@@ -131,6 +155,9 @@ def process_word_cloud(surveillance, rising_searches, today_str, is_fresh_fetch)
     for word, count in daily_counts.items():
         wc["all_time"][word] = wc["all_time"].get(word, 0) + count
         wc["periods"][active_period][word] = wc["periods"][active_period].get(word, 0) + count
+
+    print(f"Word cloud: added {len(daily_counts)} distinct words "
+          f"({sum(daily_counts.values())} total tokens) to period {active_period}.")
 
 
 def get_existing_dates(data):
@@ -274,8 +301,15 @@ def update_trends_in_json():
     print("Pausing 15s before next request...")
     time.sleep(15)
 
-    # ── SECTION 2: Rising searches ────────────────────────────────────────────
-    print("Fetching anomalous rising search queries...")
+    # ── SECTION 2: Rising + top queries ──────────────────────────────────────
+    # EXPANDED: previously only pulled top 5 rising queries, which gave ~8-12
+    # words to tokenize after stop-word filtering — far too thin for a useful
+    # word cloud. Now pulls up to 25 rising AND up to 25 top queries from the
+    # same related_queries() call (one API request, two dataframes in the
+    # response). "Rising" = recently accelerating searches; "top" = consistently
+    # high-volume searches over the period. Together they give a fuller picture
+    # of both sustained interest and emerging topics.
+    print("Fetching related queries (rising + top, up to 25 each)...")
     today_str = date.today().strftime("%Y-%m-%d")
     rising_searches_fetch_succeeded = False
 
@@ -287,58 +321,133 @@ def update_trends_in_json():
         related_queries = pytrends.related_queries()
 
         rising_searches = []
-        if "Ebola" in related_queries and related_queries["Ebola"]["rising"] is not None:
-            df_rising = related_queries["Ebola"]["rising"].head(5)
-            for _, row in df_rising.iterrows():
-                rising_searches.append({
-                    "query": row["query"],
-                    "breakout_value": str(row["value"])
-                })
+        if "Ebola" in related_queries:
+            # Rising queries — up from head(5) to head(25)
+            if related_queries["Ebola"]["rising"] is not None:
+                df_rising = related_queries["Ebola"]["rising"].head(25)
+                for _, row in df_rising.iterrows():
+                    rising_searches.append({
+                        "query": row["query"],
+                        "breakout_value": str(row["value"]),
+                        "type": "rising"
+                    })
 
-        # FIX: was a flat overwrite (surveillance["rising_searches"] = rising_searches),
-        # which silently discarded every previous day's snapshot. Now appends into
-        # a dated history map so past days remain inspectable.
+            # Top queries — new addition, same response object, no extra API call
+            if related_queries["Ebola"]["top"] is not None:
+                df_top = related_queries["Ebola"]["top"].head(25)
+                for _, row in df_top.iterrows():
+                    rising_searches.append({
+                        "query": row["query"],
+                        "breakout_value": str(row["value"]),
+                        "type": "top"
+                    })
+
         surveillance = record_rising_searches_history(surveillance, today_str, rising_searches)
         surveillance["fetch_status"]["rising_searches"] = {
             "last_success": today_str,
             "last_attempt": today_str,
             "ok": True,
+            "rising_count": sum(1 for q in rising_searches if q.get("type") == "rising"),
+            "top_count": sum(1 for q in rising_searches if q.get("type") == "top"),
         }
         rising_searches_fetch_succeeded = True
-        print(f"Rising searches updated — {len(rising_searches)} queries found.")
+        rising_count = sum(1 for q in rising_searches if q.get("type") == "rising")
+        top_count = sum(1 for q in rising_searches if q.get("type") == "top")
+        print(f"Queries updated — {rising_count} rising + {top_count} top = {len(rising_searches)} total.")
 
-        # FIX: save immediately after section 2 succeeds
         data["google_trends_surveillance"] = surveillance
         save_data(data)
-        print("✓ Rising searches saved to data.json.")
+        print("✓ Rising + top queries saved to data.json.")
 
     except Exception as e:
-        print(f"Rising searches fetch failed: {e}. Keeping existing rising searches intact.")
-        # FIX: record the failed attempt so staleness is visible instead of silent.
-        # Previously a 429 here just printed a line to a log nobody reads; the
-        # dashboard had no way to show "this hasn't updated in N days because
-        # Google is rate-limiting us" versus "nothing new is trending."
+        print(f"Related queries fetch failed: {e}. Keeping existing queries intact.")
         prev_status = surveillance["fetch_status"].get("rising_searches", {})
         surveillance["fetch_status"]["rising_searches"] = {
-            "last_success": prev_status.get("last_success"),  # unchanged
+            "last_success": prev_status.get("last_success"),
             "last_attempt": today_str,
             "ok": False,
             "error": str(e)[:200],
         }
         data["google_trends_surveillance"] = surveillance
         save_data(data)
-        # Don't return — word cloud can still be built from existing rising_searches
         rising_searches = surveillance.get("rising_searches", [])
 
-    # Cooldown before next request
-    print("Pausing 10s before word cloud aggregation...")
-    time.sleep(10)
+    # Cooldown before topics request
+    print("Pausing 15s before related topics fetch...")
+    time.sleep(15)
 
-    # ── SECTION 3: Word cloud ─────────────────────────────────────────────────
-    print("Aggregating search queries into the cross-period word cloud...")
+    # ── SECTION 2b: Related topics ────────────────────────────────────────────
+    # related_topics() returns broader semantic entities (e.g. "Democratic
+    # Republic of the Congo", "Public health emergency", "Bundibugyo virus")
+    # rather than raw query strings. These enrich the word cloud with
+    # vocabulary that users wouldn't type verbatim but that represents the
+    # actual subject matter people are reading about. Saved separately so
+    # the dashboard can distinguish "what people searched" from "what topics
+    # those searches are about."
+    print("Fetching related topics...")
+    topics_fetch_succeeded = False
 
     try:
-        process_word_cloud(surveillance, rising_searches, today_str, rising_searches_fetch_succeeded)
+        pytrends.build_payload(["Ebola"], cat=0, timeframe=timeframe)
+        related_topics_result = pytrends.related_topics()
+
+        topic_entries = []
+        if "Ebola" in related_topics_result:
+            for topic_type in ["rising", "top"]:
+                df_t = related_topics_result["Ebola"].get(topic_type)
+                if df_t is not None and not df_t.empty:
+                    for _, row in df_t.head(15).iterrows():
+                        # topic_title is the human-readable name;
+                        # topic_type is the Google taxonomy type (e.g. "Health")
+                        title = str(row.get("topic_title", "")).strip()
+                        if title:
+                            topic_entries.append({
+                                "title": title,
+                                "type": topic_type,
+                                "value": str(row.get("value", "")),
+                            })
+
+        surveillance.setdefault("related_topics", {})
+        surveillance["related_topics"][today_str] = topic_entries
+        surveillance["fetch_status"]["related_topics"] = {
+            "last_success": today_str,
+            "last_attempt": today_str,
+            "ok": True,
+            "count": len(topic_entries),
+        }
+        topics_fetch_succeeded = True
+        print(f"Related topics updated — {len(topic_entries)} entries.")
+
+        data["google_trends_surveillance"] = surveillance
+        save_data(data)
+        print("✓ Related topics saved to data.json.")
+
+    except Exception as e:
+        print(f"Related topics fetch failed: {e}. Keeping existing topics intact.")
+        prev_status = surveillance["fetch_status"].get("related_topics", {})
+        surveillance["fetch_status"]["related_topics"] = {
+            "last_success": prev_status.get("last_success"),
+            "last_attempt": today_str,
+            "ok": False,
+            "error": str(e)[:200],
+        }
+        data["google_trends_surveillance"] = surveillance
+        save_data(data)
+        topic_entries = []
+
+    # ── SECTION 3: Word cloud ─────────────────────────────────────────────────
+    # Now fed by both queries (rising + top, up to 50 strings) AND topic
+    # titles (up to 30 entities) — substantially richer than the original
+    # 5-query-only source.
+    print("Pausing 10s before word cloud aggregation...")
+    time.sleep(10)
+    print("Aggregating queries + topics into the cross-period word cloud...")
+
+    try:
+        process_word_cloud(
+            surveillance, rising_searches, topic_entries,
+            today_str, rising_searches_fetch_succeeded
+        )
 
         # FIX: word_cloud now lives inside google_trends_surveillance
         data["google_trends_surveillance"] = surveillance
