@@ -1661,7 +1661,7 @@
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-06-30",
+    "computed_at": "2026-07-01",
     "cfr_trend": {
       "points": [
         {
@@ -1734,8 +1734,8 @@
       "n_points": 12
     },
     "search_correlation": {
-      "n": 44,
-      "rho": -0.865,
+      "n": 46,
+      "rho": -0.88,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
