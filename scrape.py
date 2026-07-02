@@ -56,11 +56,16 @@ from datetime import datetime, timezone
 
 ECDC_URL = "https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda"
 
-# WHO DON608 is the most recent Disease Outbreak News with exact confirmed
-# case/death counts in parseable sentence form. The WHO emergencies/alert-and-response
-# page updates daily but uses different sentence patterns — DON pages are
-# more consistent for parsing. WHO.int does not use Cloudflare.
-WHO_DON_URL = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON608"
+# WHO DON pages use a sequential numbering scheme. Rather than hardcoding a
+# specific DON number (which goes stale as new reports are published), we
+# try a small window of recent DON numbers in descending order and take the
+# first one that fetches and parses successfully. This way the scraper stays
+# current across new Thursday DON publications without any code changes.
+# DON608 was current as of 19 June 2026 — start search 5 above to catch
+# any new ones, fall back up to 5 below to handle gaps.
+WHO_DON_BASE = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON"
+WHO_DON_SEARCH_START = 613  # try from here downward
+WHO_DON_SEARCH_RANGE = 10   # how many to try before giving up
 
 JSON_FILE = Path(__file__).parent / "data.json"
 
@@ -97,76 +102,94 @@ def _get(url):
 
 def is_cloudflare_block(response):
     """
-    Detect a Cloudflare challenge/block page reliably.
-
-    IMPORTANT: the previous version used a character-count check
-    (< 20,000 chars) which failed because ECDC's Cloudflare managed
-    challenge page is ~120KB — the same size as the real page — so the
-    size check never fired. The correct signals are:
-
-      1. 'cf-mitigated: challenge' response HEADER — the single most
-         reliable signal, set by Cloudflare on managed challenges even
-         when they return HTTP 200. Check headers first.
-      2. 'challenges.cloudflare.com' in the page BODY — present in the
-         JS challenge script src that Cloudflare injects.
-      3. 'just a moment' in the page title/body — Cloudflare's loading
-         message on the interstitial page.
-
-    Any one of these is sufficient to declare a block.
+    Detect a Cloudflare challenge page. These return HTTP 200 but contain
+    JS-challenge boilerplate. Three reliable signals, any one is sufficient:
+      1. cf-mitigated: challenge header
+      2. challenges.cloudflare.com in body
+      3. 'just a moment' in body
     """
-    # Signal 1: response header (most reliable, doesn't require body parsing)
     cf_mitigated = response.headers.get("cf-mitigated", "").lower()
     if "challenge" in cf_mitigated:
-        print(f"  Cloudflare block detected via cf-mitigated header: {cf_mitigated}")
+        print(f"  Cloudflare block: cf-mitigated={cf_mitigated}")
         return True
-
     body = response.text.lower()
-
-    # Signal 2: Cloudflare's challenge script domain in the body
     if "challenges.cloudflare.com" in body:
-        print("  Cloudflare block detected via challenges.cloudflare.com in body.")
+        print("  Cloudflare block: challenges.cloudflare.com in body.")
         return True
-
-    # Signal 3: Cloudflare's interstitial loading message
     if "just a moment" in body:
-        print("  Cloudflare block detected via 'just a moment' in body.")
+        print("  Cloudflare block: 'just a moment' in body.")
         return True
-
     return False
+
+
+def fetch_who_don():
+    """
+    Try WHO DON pages from WHO_DON_SEARCH_START downward, returning the
+    first one that (a) fetches successfully and (b) contains parseable
+    DRC case/death numbers. This auto-discovers the latest DON without
+    hardcoding a specific number.
+    """
+    import requests
+    for don_num in range(WHO_DON_SEARCH_START, WHO_DON_SEARCH_START - WHO_DON_SEARCH_RANGE, -1):
+        url = f"{WHO_DON_BASE}{don_num}"
+        try:
+            resp = _get(url)
+            if resp.status_code == 404:
+                continue
+            if is_cloudflare_block(resp):
+                print(f"  WHO DON{don_num} Cloudflare-blocked, trying next...")
+                continue
+            # Quick check that this DON is about this outbreak and has parseable numbers
+            clean = to_clean_text(resp.text)
+            if parse_drc(clean) is not None:
+                print(f"  WHO DON{don_num}: parseable outbreak data found.")
+                return resp.text, f"WHO_DON{don_num}"
+            else:
+                print(f"  WHO DON{don_num}: fetched but no DRC data found "
+                      f"(may be a different outbreak or format). Trying next...")
+        except Exception as e:
+            status = getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None
+            if status == 404:
+                continue  # expected for DON numbers that don't exist yet
+            print(f"  WHO DON{don_num} fetch error: {e}")
+    return None, None
 
 
 def fetch_page():
     """
-    Fetch ECDC first. On Cloudflare block, fall back to WHO DON608.
-    Returns (html_text, source_label).
-    """
-    import requests
+    WHO is tried FIRST — no Cloudflare, consistent sentence patterns, no
+    wording changes between updates. ECDC is fallback only.
 
-    # --- Try ECDC ---
-    print(f"Fetching ECDC: {ECDC_URL} ...")
+    WHY WHO IS NOW PRIMARY:
+      ECDC has two persistent problems from GitHub Actions runners:
+      1. Cloudflare managed-challenge blocks (HTTP 200 but JS-challenge
+         content), which our detection has missed twice because ECDC's
+         challenge page is ~120KB — the same size as the real page.
+      2. ECDC also changed their sentence wording on 1 July 2026:
+         OLD: 'DRC Ministry of Health reported a total of X confirmed
+              cases, including Y confirmed related deaths'
+         NEW: 'National Institute of Public Health reported a total of
+              X confirmed cases and Y total related deaths'
+         This broke the regex regardless of Cloudflare status.
+      WHO DON pages: no Cloudflare, consistent sentence patterns, and
+      published every Thursday so they stay current within a week.
+    """
+    print("Trying WHO DON (primary source)...")
+    html, source = fetch_who_don()
+    if html is not None:
+        print(f"  Using {source} as data source.")
+        return html, source
+
+    print("WHO DON unavailable. Trying ECDC (fallback)...")
     try:
         resp = _get(ECDC_URL)
-        print(f"  ECDC responded — {len(resp.text):,} characters, "
-              f"status {resp.status_code}.")
+        print(f"  ECDC responded — {len(resp.text):,} chars, status {resp.status_code}.")
         if is_cloudflare_block(resp):
-            print("  ECDC is Cloudflare-blocked. Falling back to WHO DON...")
-        else:
-            return resp.text, "ECDC"
-    except Exception as e:
-        print(f"  ECDC fetch failed: {e}. Falling back to WHO DON...")
-
-    # --- Fall back to WHO DON608 ---
-    print(f"Fetching WHO DON: {WHO_DON_URL} ...")
-    try:
-        resp = _get(WHO_DON_URL)
-        print(f"  WHO DON responded — {len(resp.text):,} characters, "
-              f"status {resp.status_code}.")
-        if is_cloudflare_block(resp):
-            print("FATAL: WHO DON also appears blocked. No sources available.")
+            print("FATAL: ECDC is Cloudflare-blocked and WHO DON unavailable.")
             sys.exit(1)
-        return resp.text, "WHO_DON"
+        return resp.text, "ECDC"
     except Exception as e:
-        print(f"FATAL: WHO DON fetch also failed: {e}")
+        print(f"FATAL: ECDC also failed: {e}")
         sys.exit(1)
 
 
@@ -219,14 +242,24 @@ def parse_last_updated(clean_text):
 
 def parse_drc(clean_text):
     """
-    Matches sentences like:
+    Matches DRC case/death sentences from WHO DON and ECDC pages.
+
+    WHO DON / old ECDC wording (pre-July 2026):
       "the DRC Ministry of Health reported a total of 1 155 confirmed
        cases, including 304 confirmed related deaths"
-    Numbers may contain a space as a thousands separator, hence [\\d ]+.
+
+    New ECDC wording (July 2026 onward):
+      "National Institute of Public Health reported a total of 1 333
+       confirmed cases and 399 total related deaths"
+
+    Both patterns are matched by a single regex with alternation.
+    Numbers may contain a space as a thousands separator (e.g. '1 155').
     """
     m = re.search(
-        r'DRC Ministry of Health reported a total of\s+([\d ]+?)\s+confirmed cases,'
-        r'\s+including\s+([\d ]+?)\s+confirmed\s+(?:related\s+)?deaths',
+        r'(?:DRC Ministry of Health|National Institute of Public Health)\s+reported'
+        r'\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
+        r'(?:\s*,\s*including|\s+and)\s+([\d ,]+?)\s+'
+        r'(?:total\s+)?(?:confirmed\s+)?(?:related\s+)?deaths',
         clean_text, re.IGNORECASE
     )
     if not m:
