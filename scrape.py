@@ -55,24 +55,23 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 ECDC_URL = "https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda"
+
+# WHO DON608 is the most recent Disease Outbreak News with exact confirmed
+# case/death counts in parseable sentence form. The WHO emergencies/alert-and-response
+# page updates daily but uses different sentence patterns — DON pages are
+# more consistent for parsing. WHO.int does not use Cloudflare.
 WHO_DON_URL = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON608"
+
 JSON_FILE = Path(__file__).parent / "data.json"
 
-# Words written out by ECDC/WHO instead of digits, only needed for small numbers
-# (e.g. "including two deaths"). Extend if a future update uses a new word.
 WORD_NUMBERS = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
     "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
 }
 
-# Minimum character count we'd expect from a real outbreak page.
-# A Cloudflare challenge page is typically 5-15KB of JS; the real ECDC
-# page is ~120KB but even a short WHO DON is ~30KB of actual content.
-MIN_REAL_PAGE_CHARS = 20_000
-
 
 def _get(url):
-    """Fetch a URL with full browser-like headers to reduce bot-detection blocks."""
+    """Fetch a URL with full browser-like headers."""
     import requests
     headers = {
         "User-Agent": (
@@ -93,74 +92,79 @@ def _get(url):
     }
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
-    return response.text
+    return response
 
 
-def is_cloudflare_block(html, url):
+def is_cloudflare_block(response):
     """
-    Detect a Cloudflare challenge/block page. These return HTTP 200 but
-    contain JS-challenge boilerplate instead of real content — which is
-    exactly what caused the 'FATAL: could not find the DRC case/death
-    sentence' error: the regex ran against ~12KB of Cloudflare JS that
-    looked like a successful fetch (HTTP 200, non-zero content length)
-    but contained none of the actual outbreak numbers.
+    Detect a Cloudflare challenge/block page reliably.
+
+    IMPORTANT: the previous version used a character-count check
+    (< 20,000 chars) which failed because ECDC's Cloudflare managed
+    challenge page is ~120KB — the same size as the real page — so the
+    size check never fired. The correct signals are:
+
+      1. 'cf-mitigated: challenge' response HEADER — the single most
+         reliable signal, set by Cloudflare on managed challenges even
+         when they return HTTP 200. Check headers first.
+      2. 'challenges.cloudflare.com' in the page BODY — present in the
+         JS challenge script src that Cloudflare injects.
+      3. 'just a moment' in the page title/body — Cloudflare's loading
+         message on the interstitial page.
+
+    Any one of these is sufficient to declare a block.
     """
-    text_lower = html.lower()
-    cloudflare_signals = [
-        "checking if the site connection is secure",
-        "enable javascript and cookies",
-        "cf-browser-verification",
-        "ray id",
-        "__cf_chl",
-        "challenge-platform",
-        "cloudflare",
-    ]
-    if any(sig in text_lower for sig in cloudflare_signals):
+    # Signal 1: response header (most reliable, doesn't require body parsing)
+    cf_mitigated = response.headers.get("cf-mitigated", "").lower()
+    if "challenge" in cf_mitigated:
+        print(f"  Cloudflare block detected via cf-mitigated header: {cf_mitigated}")
         return True
-    if len(html) < MIN_REAL_PAGE_CHARS:
-        print(f"  WARNING: response is only {len(html):,} chars — "
-              f"suspiciously small for a real page (expected >{MIN_REAL_PAGE_CHARS:,}).")
+
+    body = response.text.lower()
+
+    # Signal 2: Cloudflare's challenge script domain in the body
+    if "challenges.cloudflare.com" in body:
+        print("  Cloudflare block detected via challenges.cloudflare.com in body.")
         return True
+
+    # Signal 3: Cloudflare's interstitial loading message
+    if "just a moment" in body:
+        print("  Cloudflare block detected via 'just a moment' in body.")
+        return True
+
     return False
 
 
 def fetch_page():
     """
-    Fetch ECDC first. If Cloudflare blocks it (HTTP 200 but JS-challenge
-    content), fall back to WHO DON608, which doesn't sit behind Cloudflare
-    and uses the same parseable sentence patterns.
-
-    This is the fix for the GitHub Actions failure: Azure/GitHub runner IPs
-    accumulate Cloudflare flags much faster than residential IPs, causing
-    ECDC to return a challenge page instead of real content. The regex then
-    runs against Cloudflare JS and finds nothing, triggering the hard-fail.
-    Adding WHO as a fallback means one blocked IP range can't permanently
-    break the daily scrape.
+    Fetch ECDC first. On Cloudflare block, fall back to WHO DON608.
+    Returns (html_text, source_label).
     """
     import requests
 
-    # --- Try ECDC first ---
+    # --- Try ECDC ---
     print(f"Fetching ECDC: {ECDC_URL} ...")
     try:
-        html = _get(ECDC_URL)
-        print(f"  ECDC responded — {len(html):,} characters.")
-        if is_cloudflare_block(html, ECDC_URL):
-            print("  ECDC response looks like a Cloudflare block page. "
-                  "Falling back to WHO DON...")
+        resp = _get(ECDC_URL)
+        print(f"  ECDC responded — {len(resp.text):,} characters, "
+              f"status {resp.status_code}.")
+        if is_cloudflare_block(resp):
+            print("  ECDC is Cloudflare-blocked. Falling back to WHO DON...")
         else:
-            return html, "ECDC"
+            return resp.text, "ECDC"
     except Exception as e:
         print(f"  ECDC fetch failed: {e}. Falling back to WHO DON...")
 
     # --- Fall back to WHO DON608 ---
     print(f"Fetching WHO DON: {WHO_DON_URL} ...")
     try:
-        html = _get(WHO_DON_URL)
-        print(f"  WHO DON responded — {len(html):,} characters.")
-        if is_cloudflare_block(html, WHO_DON_URL):
-            print("FATAL: WHO DON also appears blocked. Both sources unavailable.")
+        resp = _get(WHO_DON_URL)
+        print(f"  WHO DON responded — {len(resp.text):,} characters, "
+              f"status {resp.status_code}.")
+        if is_cloudflare_block(resp):
+            print("FATAL: WHO DON also appears blocked. No sources available.")
             sys.exit(1)
-        return html, "WHO_DON"
+        return resp.text, "WHO_DON"
     except Exception as e:
         print(f"FATAL: WHO DON fetch also failed: {e}")
         sys.exit(1)
