@@ -242,19 +242,23 @@ def parse_last_updated(clean_text):
 
 def parse_drc(clean_text):
     """
-    Matches DRC case/death sentences from WHO DON and ECDC pages.
+    Matches DRC case/death sentences. Three confirmed real-world patterns:
 
-    WHO DON / old ECDC wording (pre-July 2026):
+    PATTERN A — ECDC and early WHO DONs (DON603-605):
       "the DRC Ministry of Health reported a total of 1 155 confirmed
        cases, including 304 confirmed related deaths"
 
-    New ECDC wording (July 2026 onward):
+    PATTERN B — WHO DON608 (June 19 2026):
+      "a cumulative of 896 confirmed cases, including 232 deaths, have
+       been reported from the Democratic Republic of the Congo"
+
+    PATTERN C — New ECDC wording (seen July 2026 in search snippet):
       "National Institute of Public Health reported a total of 1 333
        confirmed cases and 399 total related deaths"
 
-    Both patterns are matched by a single regex with alternation.
-    Numbers may contain a space as a thousands separator (e.g. '1 155').
+    Numbers may use space or comma as thousands separator.
     """
+    # Pattern A: Ministry/Institute reported a total of X... including/and Y deaths
     m = re.search(
         r'(?:DRC Ministry of Health|National Institute of Public Health)\s+reported'
         r'\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
@@ -262,24 +266,35 @@ def parse_drc(clean_text):
         r'(?:total\s+)?(?:confirmed\s+)?(?:related\s+)?deaths',
         clean_text, re.IGNORECASE
     )
-    if not m:
-        return None
-    return {
-        "cases": parse_int_token(m.group(1)),
-        "deaths": parse_int_token(m.group(2)),
-    }
+    if m:
+        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
+
+    # Pattern B: cumulative of X confirmed cases, including Y deaths ... DRC
+    m = re.search(
+        r'cumulative\s+of\s+([\d ,]+?)\s+confirmed\s+cases,?\s+including\s+([\d ,]+?)\s+deaths',
+        clean_text, re.IGNORECASE
+    )
+    if m:
+        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
+
+    return None
 
 
 def parse_uganda(clean_text):
     """
-    Matches sentences like:
-      "Uganda had reported a total of 20 confirmed cases, including
-       two deaths"
-    Death count is often spelled out as a word for small numbers.
+    Matches Uganda case/death sentences. Two confirmed real-world patterns:
+
+    ECDC:
+      "Uganda had reported a total of 20 confirmed cases, including two deaths"
+
+    WHO DON608:
+      "Uganda has reported 19 confirmed cases including two deaths"
+
+    Death count is often a written-out word for small numbers.
     """
     m = re.search(
-        r'Uganda had reported a total of\s+([\d ]+?)\s+confirmed cases,'
-        r'\s+including\s+(\w+)\s+deaths?',
+        r'Uganda\s+(?:had\s+|has\s+)?reported(?:\s+a\s+total\s+of)?\s+([\d ,]+?)\s+confirmed\s+cases'
+        r',?\s+including\s+(\w+)\s+deaths?',
         clean_text, re.IGNORECASE
     )
     if not m:
