@@ -459,6 +459,5 @@ def update_trends_in_json():
 
     print("\nAll sections complete. data.json is up to date.")
 
-
 if __name__ == "__main__":
     update_trends_in_json()

@@ -55,31 +55,115 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 ECDC_URL = "https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda"
+WHO_DON_URL = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON608"
 JSON_FILE = Path(__file__).parent / "data.json"
 
-# Words written out by ECDC instead of digits, only needed for small numbers
+# Words written out by ECDC/WHO instead of digits, only needed for small numbers
 # (e.g. "including two deaths"). Extend if a future update uses a new word.
 WORD_NUMBERS = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
     "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
 }
 
+# Minimum character count we'd expect from a real outbreak page.
+# A Cloudflare challenge page is typically 5-15KB of JS; the real ECDC
+# page is ~120KB but even a short WHO DON is ~30KB of actual content.
+MIN_REAL_PAGE_CHARS = 20_000
 
-def fetch_ecdc_page():
+
+def _get(url):
+    """Fetch a URL with full browser-like headers to reduce bot-detection blocks."""
     import requests
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/125.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;"
+            "q=0.9,image/avif,image/webp,*/*;q=0.8"
+        ),
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.google.com/",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
     }
-    print(f"Fetching {ECDC_URL} ...")
-    try:
-        response = requests.get(ECDC_URL, headers=headers, timeout=20)
-        response.raise_for_status()
-    except Exception as e:
-        print(f"FATAL: failed to fetch ECDC page: {e}")
-        sys.exit(1)
-    print(f"Page fetched — {len(response.text):,} characters.")
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
     return response.text
+
+
+def is_cloudflare_block(html, url):
+    """
+    Detect a Cloudflare challenge/block page. These return HTTP 200 but
+    contain JS-challenge boilerplate instead of real content — which is
+    exactly what caused the 'FATAL: could not find the DRC case/death
+    sentence' error: the regex ran against ~12KB of Cloudflare JS that
+    looked like a successful fetch (HTTP 200, non-zero content length)
+    but contained none of the actual outbreak numbers.
+    """
+    text_lower = html.lower()
+    cloudflare_signals = [
+        "checking if the site connection is secure",
+        "enable javascript and cookies",
+        "cf-browser-verification",
+        "ray id",
+        "__cf_chl",
+        "challenge-platform",
+        "cloudflare",
+    ]
+    if any(sig in text_lower for sig in cloudflare_signals):
+        return True
+    if len(html) < MIN_REAL_PAGE_CHARS:
+        print(f"  WARNING: response is only {len(html):,} chars — "
+              f"suspiciously small for a real page (expected >{MIN_REAL_PAGE_CHARS:,}).")
+        return True
+    return False
+
+
+def fetch_page():
+    """
+    Fetch ECDC first. If Cloudflare blocks it (HTTP 200 but JS-challenge
+    content), fall back to WHO DON608, which doesn't sit behind Cloudflare
+    and uses the same parseable sentence patterns.
+
+    This is the fix for the GitHub Actions failure: Azure/GitHub runner IPs
+    accumulate Cloudflare flags much faster than residential IPs, causing
+    ECDC to return a challenge page instead of real content. The regex then
+    runs against Cloudflare JS and finds nothing, triggering the hard-fail.
+    Adding WHO as a fallback means one blocked IP range can't permanently
+    break the daily scrape.
+    """
+    import requests
+
+    # --- Try ECDC first ---
+    print(f"Fetching ECDC: {ECDC_URL} ...")
+    try:
+        html = _get(ECDC_URL)
+        print(f"  ECDC responded — {len(html):,} characters.")
+        if is_cloudflare_block(html, ECDC_URL):
+            print("  ECDC response looks like a Cloudflare block page. "
+                  "Falling back to WHO DON...")
+        else:
+            return html, "ECDC"
+    except Exception as e:
+        print(f"  ECDC fetch failed: {e}. Falling back to WHO DON...")
+
+    # --- Fall back to WHO DON608 ---
+    print(f"Fetching WHO DON: {WHO_DON_URL} ...")
+    try:
+        html = _get(WHO_DON_URL)
+        print(f"  WHO DON responded — {len(html):,} characters.")
+        if is_cloudflare_block(html, WHO_DON_URL):
+            print("FATAL: WHO DON also appears blocked. Both sources unavailable.")
+            sys.exit(1)
+        return html, "WHO_DON"
+    except Exception as e:
+        print(f"FATAL: WHO DON fetch also failed: {e}")
+        sys.exit(1)
 
 
 def to_clean_text(html_content):
@@ -230,10 +314,10 @@ def update_timeline(timeline, date_str, cases, deaths):
 
 def scrape_ebola_data():
     print("========================================")
-    print("Ebola Scraper — ECDC Source")
+    print("Ebola Scraper — ECDC + WHO DON fallback")
     print("========================================")
 
-    html_content = fetch_ecdc_page()
+    html_content, source = fetch_page()
     clean_text = to_clean_text(html_content)
 
     updated_date = parse_last_updated(clean_text)
@@ -241,15 +325,14 @@ def scrape_ebola_data():
     uganda = parse_uganda(clean_text)
 
     if drc is None:
-        print("FATAL: could not find the DRC case/death sentence on the ECDC page.")
-        print("This means ECDC changed its wording. The scraper needs its regex updated —")
-        print("refusing to write fabricated numbers instead.")
+        print(f"FATAL: could not find the DRC case/death sentence on the {source} page.")
+        print("Both sources tried. Either both are blocked or both changed their wording.")
+        print("Check the raw HTML by adding a debug print in fetch_page() to diagnose.")
         sys.exit(1)
 
     if uganda is None:
-        print("FATAL: could not find the Uganda case/death sentence on the ECDC page.")
-        print("This means ECDC changed its wording. The scraper needs its regex updated —")
-        print("refusing to write fabricated numbers instead.")
+        print(f"FATAL: could not find the Uganda case/death sentence on the {source} page.")
+        print("Both sources tried. Either both are blocked or both changed their wording.")
         sys.exit(1)
 
     confirmed_drc = drc["cases"]
@@ -266,6 +349,7 @@ def scrape_ebola_data():
 
     cfr_percent = round((total_deaths / total_cases) * 100, 1) if total_cases else 0.0
 
+    print(f"Source used: {source}")
     print(f"Parsed — DRC: {confirmed_drc} cases / {confirmed_deaths} deaths | "
           f"Uganda: {uganda_cases} cases / {uganda_deaths} deaths | "
           f"CFR: {cfr_percent}% | as of {updated_date}")
@@ -278,6 +362,7 @@ def scrape_ebola_data():
     dashboard_data["summary"]["ugandaCases"] = uganda_cases
     dashboard_data["summary"]["ugandaDeaths"] = uganda_deaths
     dashboard_data["summary"]["cfrPercent"] = cfr_percent
+    dashboard_data["summary"]["dataSource"] = source
 
     dashboard_data["timeline"] = update_timeline(
         dashboard_data["timeline"], updated_date, total_cases, total_deaths
