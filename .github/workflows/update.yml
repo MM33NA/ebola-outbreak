@@ -24,9 +24,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      # pytrends powers trends.py's Google Trends queries; requests powers scrape.py's ECDC fetch
+      # cloudscraper handles Cloudflare challenges that block plain requests on ECDC
       - name: Install dependencies
-        run: pip install requests pytrends
+        run: pip install requests cloudscraper pytrends
 
       - name: Run CDC Web Scraper
         run: python scrape.py
