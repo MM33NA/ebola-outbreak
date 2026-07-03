@@ -8,9 +8,8 @@ WHY ECDC:
 
 WHY cloudscraper:
   ECDC sits behind Cloudflare. GitHub Actions runners use Azure datacenter
-  IPs that Cloudflare consistently blocks with a managed JS challenge —
-  returning HTTP 200 with ~120KB of challenge HTML instead of real content.
-  Plain requests can't solve the JS challenge. cloudscraper executes it.
+  IPs that Cloudflare consistently blocks with a managed JS challenge.
+  Plain requests can't solve it. cloudscraper executes the challenge JS.
 
 Run: python scrape.py
 Requires: pip install requests cloudscraper pytrends  (see update.yml)
@@ -32,10 +31,6 @@ WORD_NUMBERS = {
 
 
 def fetch_page():
-    """
-    Fetch the ECDC outbreak page using cloudscraper, which handles
-    Cloudflare managed challenges that plain requests cannot bypass.
-    """
     try:
         import cloudscraper
     except ImportError:
@@ -51,24 +46,22 @@ def fetch_page():
         response = scraper.get(ECDC_URL, timeout=30)
         response.raise_for_status()
         print(f"  Responded — {len(response.text):,} characters, status {response.status_code}.")
-        return response.text, "ECDC"
+        return response.text
     except Exception as e:
         print(f"FATAL: ECDC fetch failed: {e}")
         sys.exit(1)
 
 
 def to_clean_text(html_content):
-    """Strip tags/scripts down to plain text, collapse whitespace."""
+    """Strip tags/scripts, normalize whitespace."""
     no_scripts = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html_content,
-                         flags=re.IGNORECASE | re.DOTALL)
+                        flags=re.IGNORECASE | re.DOTALL)
     no_tags = re.sub(r'<[^>]+>', ' ', no_scripts)
-    # Normalize the non-breaking space ECDC uses inside numbers like "1 155"
     no_tags = no_tags.replace('\xa0', ' ').replace('&nbsp;', ' ')
     return re.sub(r'\s+', ' ', no_tags).strip()
 
 
 def parse_int_token(token):
-    """Parse a number that may use space/comma as thousands separator or be a word."""
     token = token.strip().lower()
     if token in WORD_NUMBERS:
         return WORD_NUMBERS[token]
@@ -76,22 +69,16 @@ def parse_int_token(token):
 
 
 def parse_last_updated(clean_text):
-    """
-    ECDC states this near the top:
-      "It was last updated 2 July at 15:00."
-    Falls back to today's date if not found.
-    """
+    """Extract 'last updated DD Month' from ECDC page header."""
     m = re.search(
         r'last updated\s+(\d{1,2}\s+\w+)(?:\s+\d{4})?\s+at\s+\d{1,2}:\d{2}',
         clean_text, re.IGNORECASE
     )
     if not m:
         return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
     day_month = m.group(1).strip()
     year_match = re.search(r'As of\s+\d{1,2}\s+\w+\s+(\d{4})', clean_text)
     year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
-
     try:
         dt = datetime.strptime(f"{day_month} {year}", "%d %B %Y")
         return dt.strftime("%Y-%m-%d")
@@ -101,55 +88,54 @@ def parse_last_updated(clean_text):
 
 def parse_drc(clean_text):
     """
-    Matches DRC case/death sentences. Multiple confirmed real-world patterns:
+    Match DRC case/death count from ECDC's sentence.
 
-    PATTERN A — ECDC wording (pre-July 2026):
-      "DRC Ministry of Health reported a total of 1 155 confirmed
-       cases, including 304 confirmed related deaths"
+    Three known ECDC wordings, tried in order:
 
-    PATTERN B — ECDC wording (July 2026):
-      "Democratic Republic of the Congo (DRC) reported a total of
-       1 406 confirmed cases ... A total 438 related deaths"
+    A) "DRC Ministry of Health reported a total of 1 155 confirmed cases,
+        including 304 confirmed related deaths"
 
-    PATTERN C — ECDC wording variant (seen in search snippet):
-      "National Institute of Public Health reported a total of 1 333
-       confirmed cases and 399 total related deaths"
+    B) "DRC reported a total of 1 406 confirmed cases ... A total 438
+        related deaths"  (July 2026 wording with split sentence)
 
-    Numbers may use space or comma as thousands separator (e.g. "1 406" or "1,406").
+    C) "National Institute of Public Health reported a total of 1 333
+        confirmed cases and 399 total related deaths"
     """
-    # Pattern A/C: Ministry/Institute/DRC reported a total of X cases... Y deaths
+    # Pattern A — inline: "X cases, including Y deaths"
     m = re.search(
-        r'(?:DRC Ministry of Health|National Institute of Public Health|'
-        r'Democratic Republic of the Congo\s*\([^)]*\))\s+reported\s+a\s+total\s+of'
-        r'\s+([\d ,]+?)\s+confirmed\s+cases'
-        r'(?:\s*[,(].*?(?:\)|,))?\s*'
-        r'(?:,\s*including|\s+and|\.\s*A\s+total)\s+([\d ,]+?)\s+'
-        r'(?:total\s+)?(?:confirmed\s+)?(?:related\s+)?deaths',
-        clean_text, re.IGNORECASE | re.DOTALL
+        r'(?:DRC Ministry of Health|DRC)\s+(?:Ministry of Health\s+)?reported'
+        r'\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
+        r'\s*,\s*including\s+([\d ,]+?)\s+confirmed\s+related\s+deaths',
+        clean_text, re.IGNORECASE
     )
     if m:
         return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
 
-    # Pattern B fallback: simpler split approach for "X confirmed cases...Y...deaths"
+    # Pattern B — split sentence: "X confirmed cases ... A total Y related deaths"
     m = re.search(
-        r'([\d ,]{3,})\s+confirmed\s+cases.*?'
-        r'([\d ,]{3,})\s+(?:total\s+)?(?:confirmed\s+)?(?:related\s+)?deaths',
-        clean_text[:2000], re.IGNORECASE | re.DOTALL
+        r'reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
+        r'[^.]*?\.\s*A\s+total\s+([\d ,]+?)\s+related\s+deaths',
+        clean_text, re.IGNORECASE
     )
     if m:
-        cases = parse_int_token(m.group(1))
-        deaths = parse_int_token(m.group(2))
-        if cases > 0 and deaths > 0 and cases > deaths:
-            return {"cases": cases, "deaths": deaths}
+        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
+
+    # Pattern C — "and Y total related deaths"
+    m = re.search(
+        r'(?:National Institute of Public Health)\s+reported\s+a\s+total\s+of'
+        r'\s+([\d ,]+?)\s+confirmed\s+cases\s+and\s+([\d ,]+?)\s+total\s+related\s+deaths',
+        clean_text, re.IGNORECASE
+    )
+    if m:
+        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
 
     return None
 
 
 def parse_uganda(clean_text):
     """
-    Matches Uganda case/death sentences:
-      "Uganda had reported a total of 20 confirmed cases, including two deaths"
-      "Uganda has reported 19 confirmed cases including two deaths"
+    Match Uganda case/death count from ECDC's sentence.
+    Handles 'had reported' and 'has reported', with or without 'a total of'.
     """
     m = re.search(
         r'Uganda\s+(?:had\s+|has\s+)?reported(?:\s+a\s+total\s+of)?\s+([\d ,]+?)\s+confirmed\s+cases'
@@ -165,35 +151,26 @@ def parse_uganda(clean_text):
 
 
 def load_existing_data():
-    """Load data.json preserving events/trends; start clean on corruption."""
     baseline = {
-        "updated": None,
-        "summary": {},
-        "timeline": [],
-        "events": [],
-        "google_trends_surveillance": {},
+        "updated": None, "summary": {}, "timeline": [],
+        "events": [], "google_trends_surveillance": {},
     }
     if not JSON_FILE.exists():
         return baseline
-
     try:
         with open(JSON_FILE, "r", encoding="utf-8") as f:
             loaded = json.load(f)
     except Exception as e:
         print(f"⚠️ data.json unreadable ({e}). Starting clean.")
         return baseline
-
     if not isinstance(loaded, dict):
         return baseline
-
     for key in ("summary", "timeline", "events"):
         loaded.setdefault(key, baseline[key])
     loaded.setdefault("google_trends_surveillance", {})
-
     for legacy_key in ("suspected", "confirmed", "suspected_deaths",
                        "confirmed_deaths", "uganda_cases", "uganda_deaths"):
         loaded.pop(legacy_key, None)
-
     return loaded
 
 
@@ -218,7 +195,7 @@ def scrape_ebola_data():
     print("Ebola Scraper — ECDC via cloudscraper")
     print("========================================")
 
-    html_content, source = fetch_page()
+    html_content = fetch_page()
     clean_text = to_clean_text(html_content)
 
     updated_date = parse_last_updated(clean_text)
@@ -227,14 +204,15 @@ def scrape_ebola_data():
 
     if drc is None:
         print("FATAL: could not parse DRC case/death numbers from ECDC page.")
-        print("ECDC may have changed their wording again — update parse_drc().")
-        print("First 500 chars of clean text for diagnosis:")
-        print(clean_text[:500])
+        print("ECDC may have changed their wording — check parse_drc().")
+        print("First 800 chars of clean text for diagnosis:")
+        print(clean_text[:800])
         sys.exit(1)
 
     if uganda is None:
         print("FATAL: could not parse Uganda case/death numbers from ECDC page.")
-        print("ECDC may have changed their wording — update parse_uganda().")
+        print("First 800 chars of clean text for diagnosis:")
+        print(clean_text[:800])
         sys.exit(1)
 
     confirmed_drc = drc["cases"]
@@ -250,7 +228,6 @@ def scrape_ebola_data():
 
     cfr_percent = round((total_deaths / total_cases) * 100, 1) if total_cases else 0.0
 
-    print(f"Source: {source}")
     print(f"Parsed — DRC: {confirmed_drc} cases / {confirmed_deaths} deaths | "
           f"Uganda: {uganda_cases} cases / {uganda_deaths} deaths | "
           f"CFR: {cfr_percent}% | as of {updated_date}")
@@ -262,7 +239,7 @@ def scrape_ebola_data():
     dashboard_data["summary"]["ugandaCases"] = uganda_cases
     dashboard_data["summary"]["ugandaDeaths"] = uganda_deaths
     dashboard_data["summary"]["cfrPercent"] = cfr_percent
-    dashboard_data["summary"]["dataSource"] = source
+    dashboard_data["summary"]["dataSource"] = "ECDC"
 
     dashboard_data["timeline"] = update_timeline(
         dashboard_data["timeline"], updated_date, total_cases, total_deaths
