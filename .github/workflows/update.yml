@@ -24,14 +24,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      # requests is all scrape.py needs now — ScraperAPI handles Cloudflare bypass
       - name: Install dependencies
-        run: pip install requests pytrends
+        run: pip install requests cloudscraper pytrends
 
       - name: Run CDC Web Scraper
         run: python scrape.py
-        env:
-          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
 
       # Added trends.py execution right after the CDC numbers update
       - name: Run Google Trends Scraper
