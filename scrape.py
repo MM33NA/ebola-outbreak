@@ -31,24 +31,44 @@ WORD_NUMBERS = {
 
 
 def fetch_page():
-    try:
-        import cloudscraper
-    except ImportError:
-        print("FATAL: cloudscraper is not installed.")
-        print("Add it to update.yml: pip install requests cloudscraper pytrends")
+    """
+    Fetch the ECDC outbreak page via ScraperAPI, which routes requests
+    through residential IPs that Cloudflare does not block.
+
+    WHY ScraperAPI:
+      ECDC sits behind Cloudflare which permanently blocks GitHub Actions'
+      Azure datacenter IP ranges at the network level. No Python library
+      (requests, cloudscraper, selenium) can fix an IP-level block —
+      the only solution is routing through a non-datacenter IP.
+      ScraperAPI's free tier (1,000 requests/month) is sufficient for
+      one daily scrape. The API key is stored in GitHub Secrets as
+      SCRAPER_API_KEY and passed in as an environment variable.
+
+    SETUP (one-time):
+      1. Sign up at https://www.scraperapi.com (free tier)
+      2. Copy your API key from the dashboard
+      3. In your GitHub repo: Settings → Secrets → Actions →
+         New repository secret → Name: SCRAPER_API_KEY, Value: your key
+      4. update.yml already passes it as an env var (see that file)
+    """
+    import requests
+    import os
+
+    api_key = os.environ.get("SCRAPER_API_KEY", "")
+    if not api_key:
+        print("FATAL: SCRAPER_API_KEY environment variable is not set.")
+        print("Add it to GitHub Secrets and update.yml (see scrape.py docstring).")
         sys.exit(1)
 
-    print(f"Fetching ECDC: {ECDC_URL} ...")
+    proxy_url = f"https://api.scraperapi.com?api_key={api_key}&url={ECDC_URL}"
+    print(f"Fetching ECDC via ScraperAPI ...")
     try:
-        scraper = cloudscraper.create_scraper(
-            browser={"browser": "chrome", "platform": "windows", "mobile": False}
-        )
-        response = scraper.get(ECDC_URL, timeout=30)
+        response = requests.get(proxy_url, timeout=60)
         response.raise_for_status()
         print(f"  Responded — {len(response.text):,} characters, status {response.status_code}.")
         return response.text
     except Exception as e:
-        print(f"FATAL: ECDC fetch failed: {e}")
+        print(f"FATAL: ScraperAPI fetch failed: {e}")
         sys.exit(1)
 
 
