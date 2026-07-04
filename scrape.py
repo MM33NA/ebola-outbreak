@@ -211,8 +211,17 @@ def scrape_ebola_data():
 
     if uganda is None:
         print("FATAL: could not parse Uganda case/death numbers from ECDC page.")
-        print("First 800 chars of clean text for diagnosis:")
-        print(clean_text[:800])
+        print("DRC parsed fine so page loaded. Uganda sentence may have changed wording.")
+        # Print a targeted slice around 'Uganda' to see the exact sentence
+        idx = clean_text.lower().find('uganda had') 
+        if idx == -1:
+            idx = clean_text.lower().find('uganda')
+        if idx != -1:
+            print(f"Text around 'Uganda' (chars {idx-50} to {idx+200}):")
+            print(repr(clean_text[max(0,idx-50):idx+200]))
+        else:
+            print("'Uganda' not found anywhere in clean text — page may be incomplete.")
+            print("First 1000 chars:", clean_text[:1000])
         sys.exit(1)
 
     confirmed_drc = drc["cases"]
