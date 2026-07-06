@@ -25,10 +25,12 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests cloudscraper pytrends
+        run: pip install requests cloudscraper pytrends google-genai
 
       - name: Run CDC Web Scraper
         run: python scrape.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       # Added trends.py execution right after the CDC numbers update
       - name: Run Google Trends Scraper

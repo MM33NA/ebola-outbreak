@@ -77,22 +77,18 @@ def parse_last_updated(clean_text):
 
 def parse_drc(clean_text):
     """
-    All confirmed ECDC sentence patterns for DRC:
+    All confirmed ECDC sentence patterns for DRC (wording changes frequently):
 
-    PATTERN A (pre-July 2026):
-      "DRC Ministry of Health reported a total of 1 155 confirmed cases,
-       including 304 confirmed related deaths"
-
-    PATTERN B (July 3 2026 onward — split sentence):
-      "Democratic Republic of the Congo (DRC) reported a total of 1 460
-       confirmed cases (from data up until 30 June)...
-       A total 452 related deaths have been confirmed so far."
-
-    PATTERN C (variant seen in search snippet):
-      "National Institute of Public Health reported a total of 1 333
-       confirmed cases and 399 total related deaths"
+    A (pre-July):   "DRC Ministry of Health reported a total of X confirmed
+                     cases, including Y confirmed related deaths"
+    B (July 3):     "DRC) reported a total of X confirmed cases (from data...)
+                     ...A total Y related deaths have been confirmed so far."
+    C (variant):    "National Institute of Public Health reported a total of
+                     X confirmed cases and Y total related deaths"
+    D (July 5):     "DRC) reported a total of X confirmed cases (based on
+                     data until...), including Y confirmed deaths."
     """
-    # Pattern A: inline "X cases, including Y deaths"
+    # Pattern A: "Ministry of Health reported ... X cases, including Y confirmed related deaths"
     m = re.search(
         r'(?:DRC Ministry of Health|DRC)\s+(?:Ministry of Health\s+)?'
         r'reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
@@ -102,7 +98,17 @@ def parse_drc(clean_text):
     if m:
         return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
 
-    # Pattern B: split sentence — cases first, then "A total X related deaths"
+    # Pattern D: "DRC) reported a total of X confirmed cases (...), including Y confirmed deaths"
+    # Anchored to "DRC)" to avoid matching "thirty-three new confirmed cases, including six deaths"
+    m = re.search(
+        r'DRC\)\s+reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
+        r'[^,]*,\s+including\s+([\d ,]+?)\s+confirmed\s+deaths',
+        clean_text, re.IGNORECASE
+    )
+    if m:
+        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
+
+    # Pattern B: split sentence — "DRC) reported X cases ... A total Y related deaths"
     m = re.search(
         r'DRC\)\s+reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
         r'.*?A\s+total\s+([\d ,]+?)\s+related\s+deaths',
@@ -111,7 +117,7 @@ def parse_drc(clean_text):
     if m:
         return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
 
-    # Pattern C: "National Institute" variant
+    # Pattern C: National Institute variant
     m = re.search(
         r'National Institute of Public Health\s+reported\s+a\s+total\s+of'
         r'\s+([\d ,]+?)\s+confirmed\s+cases\s+and\s+([\d ,]+?)\s+total\s+related\s+deaths',
