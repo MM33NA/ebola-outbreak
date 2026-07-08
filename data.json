@@ -326,6 +326,14 @@
         {
           "time": "2026-07-06",
           "score": 5
+        },
+        {
+          "time": "2026-07-07",
+          "score": 4
+        },
+        {
+          "time": "2026-07-08",
+          "score": 4
         }
       ],
       "Symptoms": [
@@ -652,6 +660,14 @@
         {
           "time": "2026-07-06",
           "score": 0
+        },
+        {
+          "time": "2026-07-07",
+          "score": 0
+        },
+        {
+          "time": "2026-07-08",
+          "score": 0
         }
       ],
       "Transmission": [
@@ -977,6 +993,14 @@
         },
         {
           "time": "2026-07-06",
+          "score": 0
+        },
+        {
+          "time": "2026-07-07",
+          "score": 0
+        },
+        {
+          "time": "2026-07-08",
           "score": 0
         }
       ]
@@ -1337,14 +1361,13 @@
     "fetch_status": {
       "rising_searches": {
         "last_success": "2026-07-06",
-        "last_attempt": "2026-07-06",
-        "ok": true,
-        "rising_count": 22,
-        "top_count": 25
+        "last_attempt": "2026-07-08",
+        "ok": false,
+        "error": "The request failed: Google returned a response with code 429"
       },
       "related_topics": {
         "last_success": null,
-        "last_attempt": "2026-07-06",
+        "last_attempt": "2026-07-08",
         "ok": false,
         "error": "list index out of range"
       }
@@ -2472,7 +2495,7 @@
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-07-07",
+    "computed_at": "2026-07-08",
     "cfr_trend": {
       "points": [
         {
@@ -2553,8 +2576,8 @@
       "n_points": 14
     },
     "search_correlation": {
-      "n": 52,
-      "rho": -0.909,
+      "n": 54,
+      "rho": -0.918,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
