@@ -26,7 +26,21 @@ jobs:
 
       - name: Install dependencies
         run: pip install requests cloudscraper pytrends google-genai
+      - name: Debug secrets
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY is NOT set"
+          else
+            echo "GEMINI_API_KEY is set (length: ${#GEMINI_API_KEY})"
+          fi
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
+      - name: Run Scraper
+        run: python scrape.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          
       - name: Run Scraper
         run: python scrape.py
         env:
