@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: pip install requests cloudscraper pytrends google-genai
 
-      - name: Run CDC Web Scraper
+      - name: Run Scraper
         run: python scrape.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
