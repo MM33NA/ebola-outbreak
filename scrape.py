@@ -1,12 +1,29 @@
 """
 scrape.py - Ebola outbreak data scraper (ECDC source)
 
-Source: ECDC outbreak page, fetched via cloudscraper (handles Cloudflare).
-The ECDC page wording has changed multiple times during this outbreak.
-All known sentence patterns are handled by parse_drc() and parse_uganda().
+Uses Gemini Flash (free tier, no credit card) to extract case/death numbers
+from the ECDC page, replacing brittle regex that broke every time ECDC
+changed their sentence wording.
+
+FREE TIER SETUP (2 minutes, no credit card):
+  1. Go to https://aistudio.google.com
+  2. Sign in with your Google account
+  3. Click "Get API key" → "Create API key"
+  4. Copy the key
+  5. GitHub repo → Settings → Secrets → Actions → New secret:
+       Name:  GEMINI_API_KEY
+       Value: your key
+
+FREE TIER LIMITS (more than enough):
+  - 1,500 requests/day — we use 1/day
+  - 15 requests/minute
+  - No credit card required, never expires
+  NOTE: on the free tier, Google may use prompts to improve their models.
+  Since we're sending public outbreak data from a public webpage this
+  is not a concern.
 
 Run: python scrape.py
-Requires: pip install requests cloudscraper pytrends
+Requires: pip install requests cloudscraper google-genai
 """
 
 import re
@@ -18,11 +35,8 @@ from datetime import datetime, timezone
 ECDC_URL = "https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda"
 JSON_FILE = Path(__file__).parent / "data.json"
 
-WORD_NUMBERS = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-}
 
+# ── Page fetch ─────────────────────────────────────────────────────────────────
 
 def fetch_page():
     try:
@@ -30,7 +44,7 @@ def fetch_page():
     except ImportError:
         print("FATAL: cloudscraper not installed. Run: pip install cloudscraper")
         sys.exit(1)
-    print(f"Fetching ECDC via cloudscraper...")
+    print("Fetching ECDC page via cloudscraper...")
     try:
         scraper = cloudscraper.create_scraper(
             browser={"browser": "chrome", "platform": "windows", "mobile": False}
@@ -40,11 +54,12 @@ def fetch_page():
         print(f"  {len(r.text):,} chars, status {r.status_code}.")
         return r.text
     except Exception as e:
-        print(f"FATAL: {e}")
+        print(f"FATAL: page fetch failed: {e}")
         sys.exit(1)
 
 
 def to_clean_text(html):
+    """Strip HTML tags and normalize whitespace."""
     no_scripts = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html,
                         flags=re.IGNORECASE | re.DOTALL)
     no_tags = re.sub(r'<[^>]+>', ' ', no_scripts)
@@ -52,114 +67,100 @@ def to_clean_text(html):
     return re.sub(r'\s+', ' ', no_tags).strip()
 
 
-def parse_int_token(token):
-    token = token.strip().lower()
-    if token in WORD_NUMBERS:
-        return WORD_NUMBERS[token]
-    return int(token.replace(',', '').replace(' ', ''))
+def get_content_excerpt(clean_text, max_chars=3000):
+    """
+    Return only the relevant section of the page to minimize token usage.
+    The outbreak numbers always appear after 'As of' or 'reported a total'.
+    Sending the full 120KB page would waste tokens unnecessarily.
+    """
+    for marker in ["As of", "reported a total", "confirmed cases"]:
+        idx = clean_text.find(marker)
+        if idx != -1:
+            return clean_text[max(0, idx - 100): idx + max_chars]
+    return clean_text[:max_chars]
 
 
-def parse_last_updated(clean_text):
-    m = re.search(
-        r'last updated\s+(\d{1,2}\s+\w+)(?:\s+\d{4})?\s+at\s+\d{1,2}:\d{2}',
-        clean_text, re.IGNORECASE
-    )
-    if not m:
-        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    day_month = m.group(1).strip()
-    year_match = re.search(r'As of\s+\d{1,2}\s+\w+\s+(\d{4})', clean_text)
-    year = year_match.group(1) if year_match else str(datetime.now(timezone.utc).year)
+# ── Gemini extraction ──────────────────────────────────────────────────────────
+
+EXTRACTION_PROMPT = """Extract the CURRENT CUMULATIVE outbreak totals from this ECDC page text.
+Return ONLY valid JSON, no explanation, no markdown:
+
+{
+  "drc_cases": <integer>,
+  "drc_deaths": <integer>,
+  "uganda_cases": <integer>,
+  "uganda_deaths": <integer>,
+  "updated_date": "<YYYY-MM-DD>"
+}
+
+Rules:
+- CUMULATIVE totals only, not daily new cases.
+- Convert word numbers to integers (e.g. "two" → 2).
+- updated_date = the date the data refers to (not today).
+- If a value is not in the text, use null.
+
+PAGE TEXT:
+"""
+
+
+def extract_with_gemini(page_excerpt):
+    """
+    Use Gemini Flash (free tier) to extract case/death numbers.
+    Returns dict with drc_cases, drc_deaths, uganda_cases, uganda_deaths, updated_date.
+    """
+    import os
+    api_key = os.environ.get("EBOLA_ECDC", "") #EBOLA_ECDC is the environment variable for the Gemini API key   
+    if not api_key:
+        print("FATAL: GEMINI_API_KEY environment variable not set.")
+        print("Get a free key at https://aistudio.google.com")
+        print("Then add to GitHub Secrets as GEMINI_API_KEY.")
+        sys.exit(1)
+
     try:
-        return datetime.strptime(f"{day_month} {year}", "%d %B %Y").strftime("%Y-%m-%d")
-    except ValueError:
-        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        from google import genai
+    except ImportError:
+        print("FATAL: google-genai not installed. Run: pip install google-genai")
+        sys.exit(1)
+
+    print("Extracting numbers via Gemini Flash (free tier)...")
+    client = genai.Client(api_key=api_key)
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=EXTRACTION_PROMPT + page_excerpt,
+        )
+        response_text = response.text.strip()
+    except Exception as e:
+        print(f"FATAL: Gemini API call failed: {e}")
+        sys.exit(1)
+
+    print(f"  Gemini response: {response_text}")
+
+    # Parse the JSON response
+    try:
+        # Strip markdown code fences if Gemini added them
+        clean_response = re.sub(r'```(?:json)?\s*', '', response_text).strip()
+        data = json.loads(clean_response)
+    except json.JSONDecodeError:
+        m = re.search(r'\{.*\}', response_text, re.DOTALL)
+        if m:
+            data = json.loads(m.group(0))
+        else:
+            print(f"FATAL: Gemini returned non-JSON: {response_text}")
+            sys.exit(1)
+
+    # Validate required fields
+    for key in ["drc_cases", "drc_deaths", "uganda_cases", "uganda_deaths"]:
+        if data.get(key) is None:
+            print(f"FATAL: Gemini could not extract '{key}' from the page.")
+            print("ECDC page may be Cloudflare-blocked (check page size vs 120KB expected).")
+            sys.exit(1)
+
+    return data
 
 
-def parse_drc(clean_text):
-    """
-    All confirmed ECDC sentence patterns for DRC (wording changes frequently):
-
-    A (pre-July):   "DRC Ministry of Health reported a total of X confirmed
-                     cases, including Y confirmed related deaths"
-    B (July 3):     "DRC) reported a total of X confirmed cases (from data...)
-                     ...A total Y related deaths have been confirmed so far."
-    C (variant):    "National Institute of Public Health reported a total of
-                     X confirmed cases and Y total related deaths"
-    D (July 5):     "DRC) reported a total of X confirmed cases (based on
-                     data until...), including Y confirmed deaths."
-    """
-    # Pattern A: "Ministry of Health reported ... X cases, including Y confirmed related deaths"
-    m = re.search(
-        r'(?:DRC Ministry of Health|DRC)\s+(?:Ministry of Health\s+)?'
-        r'reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
-        r'\s*,\s*including\s+([\d ,]+?)\s+confirmed\s+related\s+deaths',
-        clean_text, re.IGNORECASE
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    # Pattern D: "DRC) reported a total of X confirmed cases (...), including Y confirmed deaths"
-    # Anchored to "DRC)" to avoid matching "thirty-three new confirmed cases, including six deaths"
-    m = re.search(
-        r'DRC\)\s+reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
-        r'[^,]*,\s+including\s+([\d ,]+?)\s+confirmed\s+deaths',
-        clean_text, re.IGNORECASE
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    # Pattern B: split sentence — "DRC) reported X cases ... A total Y related deaths"
-    m = re.search(
-        r'DRC\)\s+reported\s+a\s+total\s+of\s+([\d ,]+?)\s+confirmed\s+cases'
-        r'.*?A\s+total\s+([\d ,]+?)\s+related\s+deaths',
-        clean_text, re.IGNORECASE | re.DOTALL
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    # Pattern C: National Institute variant
-    m = re.search(
-        r'National Institute of Public Health\s+reported\s+a\s+total\s+of'
-        r'\s+([\d ,]+?)\s+confirmed\s+cases\s+and\s+([\d ,]+?)\s+total\s+related\s+deaths',
-        clean_text, re.IGNORECASE
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    return None
-
-
-def parse_uganda(clean_text):
-    """
-    All confirmed ECDC sentence patterns for Uganda:
-
-    PATTERN A (pre-July 2026):
-      "Uganda had reported a total of 20 confirmed cases, including two deaths"
-
-    PATTERN B (July 3 2026 onward):
-      "a total of 20 confirmed cases, including two deaths, have been
-       reported by the Ministry of Health in Uganda"
-    """
-    # Pattern A: "Uganda had/has reported ... X cases, including Y deaths"
-    m = re.search(
-        r'Uganda\s+(?:had\s+|has\s+)?reported(?:\s+a\s+total\s+of)?\s+([\d ,]+?)\s+confirmed\s+cases'
-        r',?\s+including\s+(\w+)\s+deaths?',
-        clean_text, re.IGNORECASE
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    # Pattern B: "total of X confirmed cases, including Y deaths ... Uganda"
-    m = re.search(
-        r'total\s+of\s+([\d ,]+?)\s+confirmed\s+cases,\s+including\s+(\w+)\s+deaths'
-        r'.*?Ministry\s+of\s+Health\s+in\s+Uganda',
-        clean_text, re.IGNORECASE | re.DOTALL
-    )
-    if m:
-        return {"cases": parse_int_token(m.group(1)), "deaths": parse_int_token(m.group(2))}
-
-    return None
-
+# ── Data persistence ───────────────────────────────────────────────────────────
 
 def load_existing_data():
     baseline = {
@@ -201,54 +202,47 @@ def update_timeline(timeline, date_str, cases, deaths):
     return timeline
 
 
+# ── Main ───────────────────────────────────────────────────────────────────────
+
 def scrape_ebola_data():
     print("========================================")
-    print("Ebola Scraper — ECDC via cloudscraper")
+    print("Ebola Scraper — ECDC + Gemini extraction")
     print("========================================")
 
-    html = fetch_page()
-    clean = to_clean_text(html)
+    html      = fetch_page()
+    clean     = to_clean_text(html)
+    excerpt   = get_content_excerpt(clean)
+    extracted = extract_with_gemini(excerpt)
 
-    updated_date = parse_last_updated(clean)
-    drc = parse_drc(clean)
-    uganda = parse_uganda(clean)
+    drc_cases  = int(extracted["drc_cases"])
+    drc_deaths = int(extracted["drc_deaths"])
+    ug_cases   = int(extracted["uganda_cases"])
+    ug_deaths  = int(extracted["uganda_deaths"])
+    updated    = extracted.get("updated_date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # Debug: show the relevant section if parsing fails
-    if drc is None or uganda is None:
-        # Find the main content section (skip navigation)
-        idx = clean.find("reported a total of")
-        snippet = clean[max(0, idx-100):idx+400] if idx != -1 else clean[1000:1800]
-        print("PARSE DEBUG — relevant page section:")
-        print(repr(snippet))
-
-    if drc is None:
-        print("FATAL: could not parse DRC numbers. See debug snippet above.")
-        sys.exit(1)
-    if uganda is None:
-        print("FATAL: could not parse Uganda numbers. See debug snippet above.")
-        sys.exit(1)
-
-    total_cases = drc["cases"] + uganda["cases"]
-    total_deaths = drc["deaths"] + uganda["deaths"]
+    total_cases  = drc_cases + ug_cases
+    total_deaths = drc_deaths + ug_deaths
 
     if total_cases == 0:
-        print("FATAL: parsed zeros — treating as parse failure.")
+        print("FATAL: extracted zero total cases — likely a blocked/empty page.")
         sys.exit(1)
 
     cfr = round(100 * total_deaths / total_cases, 1)
-    print(f"DRC: {drc['cases']} cases / {drc['deaths']} deaths | "
-          f"Uganda: {uganda['cases']} cases / {uganda['deaths']} deaths | "
-          f"CFR: {cfr}% | as of {updated_date}")
+    print(f"DRC: {drc_cases} cases / {drc_deaths} deaths | "
+          f"Uganda: {ug_cases} cases / {ug_deaths} deaths | "
+          f"CFR: {cfr}% | as of {updated}")
 
     data = load_existing_data()
-    data["updated"] = updated_date
-    data["summary"]["confirmedDRC"] = drc["cases"]
-    data["summary"]["confirmedDeaths"] = drc["deaths"]
-    data["summary"]["ugandaCases"] = uganda["cases"]
-    data["summary"]["ugandaDeaths"] = uganda["deaths"]
-    data["summary"]["cfrPercent"] = cfr
-    data["summary"]["dataSource"] = "ECDC"
-    data["timeline"] = update_timeline(data["timeline"], updated_date, total_cases, total_deaths)
+    data["updated"] = updated
+    data["summary"]["confirmedDRC"]    = drc_cases
+    data["summary"]["confirmedDeaths"] = drc_deaths
+    data["summary"]["ugandaCases"]     = ug_cases
+    data["summary"]["ugandaDeaths"]    = ug_deaths
+    data["summary"]["cfrPercent"]      = cfr
+    data["summary"]["dataSource"]      = "ECDC"
+    data["timeline"] = update_timeline(
+        data["timeline"], updated, total_cases, total_deaths
+    )
 
     with open(JSON_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
