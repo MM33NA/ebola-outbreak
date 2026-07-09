@@ -15,6 +15,10 @@ jobs:
     permissions:
       contents: write
 
+    # Setting it here means ALL steps below can see the API key automatically
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -26,6 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: pip install requests cloudscraper pytrends google-genai
+
       - name: Debug secrets
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then
@@ -33,27 +38,13 @@ jobs:
           else
             echo "GEMINI_API_KEY is set (length: ${#GEMINI_API_KEY})"
           fi
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Run Scraper
         run: python scrape.py
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          
-      - name: Run Scraper
-        run: python scrape.py
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      # Added trends.py execution right after the CDC numbers update
       - name: Run Google Trends Scraper
         run: python trends.py
 
-      # Stdlib-only (no extra pip installs needed) - computes CFR trend,
-      # growth rate/doubling time, and search-interest correlation from
-      # whatever scrape.py and trends.py just wrote. Runs after both since
-      # it reads their output.
       - name: Run Outbreak Trajectory Analysis
         run: python analysis.py
 
