@@ -35,7 +35,6 @@ from datetime import datetime, timezone
 ECDC_URL = "https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda"
 JSON_FILE = Path(__file__).parent / "data.json"
 
-
 # ── Page fetch ─────────────────────────────────────────────────────────────────
 
 def fetch_page():
@@ -57,7 +56,6 @@ def fetch_page():
         print(f"FATAL: page fetch failed: {e}")
         sys.exit(1)
 
-
 def to_clean_text(html):
     """Strip HTML tags and normalize whitespace."""
     no_scripts = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html,
@@ -65,7 +63,6 @@ def to_clean_text(html):
     no_tags = re.sub(r'<[^>]+>', ' ', no_scripts)
     no_tags = no_tags.replace('\xa0', ' ').replace('&nbsp;', ' ')
     return re.sub(r'\s+', ' ', no_tags).strip()
-
 
 def get_content_excerpt(clean_text, max_chars=3000):
     """
@@ -78,7 +75,6 @@ def get_content_excerpt(clean_text, max_chars=3000):
         if idx != -1:
             return clean_text[max(0, idx - 100): idx + max_chars]
     return clean_text[:max_chars]
-
 
 # ── Gemini extraction ──────────────────────────────────────────────────────────
 
@@ -107,7 +103,10 @@ def extract_with_gemini(page_excerpt):
     Returns dict with drc_cases, drc_deaths, uganda_cases, uganda_deaths, updated_date.
     """
     import os
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    import time
+    
+    # Updated to perfectly match your GitHub Secrets configuration
+    api_key = os.environ.get("GEMINI_API_KEY", "")    
     if not api_key:
         print("FATAL: GEMINI_API_KEY environment variable not set.")
         print("Get a free key at https://aistudio.google.com")
@@ -123,30 +122,36 @@ def extract_with_gemini(page_excerpt):
     print("Extracting numbers via Gemini Flash (free tier)...")
     client = genai.Client(api_key=api_key)
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=EXTRACTION_PROMPT + page_excerpt,
-        )
-        response_text = response.text.strip()
-    except Exception as e:
-        print(f"FATAL: Gemini API call failed: {e}")
-        sys.exit(1)
+    # Retry logic configuration for 429 rate limits
+    max_retries = 3
+    retry_delay = 15  # seconds in between attempts
+
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=EXTRACTION_PROMPT + page_excerpt,
+            )
+            response_text = response.text.strip()
+            break  # Success! Break out of the retry loop
+        except Exception as e:
+            if "429" in str(e) and attempt < max_retries - 1:
+                print(f"  Rate limited (429). Retrying in {retry_delay} seconds... (Attempt {attempt + 1}/{max_retries})")
+                time.sleep(retry_delay)
+                continue
+            else:
+                print(f"FATAL: Gemini API call failed: {e}")
+                sys.exit(1)
 
     print(f"  Gemini response: {response_text}")
 
     # Parse the JSON response
     try:
         # Strip markdown code fences if Gemini added them
-        clean_response = re.sub(r'```(?:json)?\s*', '', response_text).strip()
-        data = json.loads(clean_response)
-    except json.JSONDecodeError:
-        m = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if m:
-            data = json.loads(m.group(0))
-        else:
-            print(f"FATAL: Gemini returned non-JSON: {response_text}")
-            sys.exit(1)
+        clean_response = re.sub(r'
+http://googleusercontent.com/immersive_entry_chip/0
+
+Commit this, push it up to GitHub, and give the action one more manual run. You should be completely in the clear!
 
     # Validate required fields
     for key in ["drc_cases", "drc_deaths", "uganda_cases", "uganda_deaths"]:
@@ -156,7 +161,6 @@ def extract_with_gemini(page_excerpt):
             sys.exit(1)
 
     return data
-
 
 # ── Data persistence ───────────────────────────────────────────────────────────
 
@@ -183,7 +187,6 @@ def load_existing_data():
         loaded.pop(k, None)
     return loaded
 
-
 def update_timeline(timeline, date_str, cases, deaths):
     existing = next((p for p in timeline if p.get("date") == date_str), None)
     if existing:
@@ -198,7 +201,6 @@ def update_timeline(timeline, date_str, cases, deaths):
         print(f"Added timeline entry for {date_str}.")
     timeline.sort(key=lambda x: x["date"])
     return timeline
-
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -246,7 +248,6 @@ def scrape_ebola_data():
         json.dump(data, f, indent=2)
     print(f"Success: wrote to {JSON_FILE}")
     return data
-
 
 if __name__ == "__main__":
     scrape_ebola_data()
