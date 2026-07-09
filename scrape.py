@@ -101,15 +101,13 @@ Rules:
 
 PAGE TEXT:
 """
-
-
 def extract_with_gemini(page_excerpt):
     """
     Use Gemini Flash (free tier) to extract case/death numbers.
     Returns dict with drc_cases, drc_deaths, uganda_cases, uganda_deaths, updated_date.
     """
     import os
-    api_key = os.environ.get("EBOLA_ECDC", "") #EBOLA_ECDC is the environment variable for the Gemini API key   
+    api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
         print("FATAL: GEMINI_API_KEY environment variable not set.")
         print("Get a free key at https://aistudio.google.com")
