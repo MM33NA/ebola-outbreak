@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-06",
+  "updated": "2026-07-09",
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -2415,11 +2415,11 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 1561,
-    "confirmedDeaths": 506,
+    "confirmedDRC": 1792,
+    "confirmedDeaths": 625,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 32.1,
+    "cfrPercent": 34.6,
     "dataSource": "ECDC"
   },
   "timeline": [
@@ -2492,10 +2492,15 @@
       "date": "2026-07-06",
       "cases": 1581,
       "deaths": 508
+    },
+    {
+      "date": "2026-07-09",
+      "cases": 1812,
+      "deaths": 627
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-07-08",
+    "computed_at": "2026-07-10",
     "cfr_trend": {
       "points": [
         {
@@ -2553,27 +2558,31 @@
         {
           "date": "2026-07-06",
           "cfr_percent": 32.13
+        },
+        {
+          "date": "2026-07-09",
+          "cfr_percent": 34.6
         }
       ],
       "summary": {
-        "current_cfr_percent": 32.13,
+        "current_cfr_percent": 34.6,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
-        "recent_avg_percent": 30.26,
+        "recent_avg_percent": 32.47,
         "direction": "rising"
       }
     },
     "growth_rate": {
       "start_date": "2026-05-16",
-      "end_date": "2026-07-06",
-      "growth_rate_per_day": 0.0777,
-      "doubling_time_days": 8.9,
+      "end_date": "2026-07-09",
+      "growth_rate_per_day": 0.0737,
+      "doubling_time_days": 9.4,
       "doubling_time_ci": {
-        "doubling_time_low": 7.1,
-        "doubling_time_high": 12.1
+        "doubling_time_low": 7.5,
+        "doubling_time_high": 12.6
       },
-      "r_squared": 0.8195,
-      "n_points": 14
+      "r_squared": 0.8217,
+      "n_points": 15
     },
     "search_correlation": {
       "n": 54,
@@ -2581,5 +2590,7 @@
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
-  }
+  },
+  "healthZones": [],
+  "network": {}
 }
