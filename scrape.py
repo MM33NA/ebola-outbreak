@@ -103,7 +103,7 @@ def extract_with_gemini(page_excerpt):
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash-lite",
+                model="gemini-1.5-flash-latest",
                 contents=EXTRACTION_PROMPT + page_excerpt,
             )
             response_text = response.text.strip()
