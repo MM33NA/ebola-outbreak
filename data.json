@@ -3301,11 +3301,11 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 1926,
-    "confirmedDeaths": 702,
+    "confirmedDRC": 1963,
+    "confirmedDeaths": 719,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 36.2,
+    "cfrPercent": 36.4,
     "dataSource": "ECDC"
   },
   "timeline": [
@@ -3391,12 +3391,12 @@
     },
     {
       "date": "2026-07-12",
-      "cases": 1946,
-      "deaths": 704
+      "cases": 1983,
+      "deaths": 721
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-07-14",
+    "computed_at": "2026-07-15",
     "cfr_trend": {
       "points": [
         {
@@ -3465,27 +3465,27 @@
         },
         {
           "date": "2026-07-12",
-          "cfr_percent": 36.18
+          "cfr_percent": 36.36
         }
       ],
       "summary": {
-        "current_cfr_percent": 36.18,
+        "current_cfr_percent": 36.36,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
-        "recent_avg_percent": 35.13,
+        "recent_avg_percent": 35.19,
         "direction": "rising"
       }
     },
     "growth_rate": {
       "start_date": "2026-05-16",
       "end_date": "2026-07-12",
-      "growth_rate_per_day": 0.069,
+      "growth_rate_per_day": 0.0691,
       "doubling_time_days": 10.0,
       "doubling_time_ci": {
         "doubling_time_low": 8.2,
         "doubling_time_high": 13.0
       },
-      "r_squared": 0.8294,
+      "r_squared": 0.8302,
       "n_points": 17
     },
     "search_correlation": {
