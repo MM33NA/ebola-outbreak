@@ -48,10 +48,12 @@ def to_clean_text(html):
 
 
 def get_content_excerpt(clean_text, max_chars=3000):
-    for marker in ["As of", "reported a total", "confirmed cases"]:
+    for marker in ["Democratic Republic of the Congo (DRC) reported", 
+                   "DRC reported", "confirmed cases, including",
+                   "As of", "reported a total", "confirmed cases"]:
         idx = clean_text.find(marker)
         if idx != -1:
-            return clean_text[max(0, idx - 100): idx + max_chars]
+            return clean_text[max(0, idx - 200): idx + max_chars]
     return clean_text[:max_chars]
 
 
