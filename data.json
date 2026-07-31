@@ -414,6 +414,18 @@
         {
           "time": "2026-07-28",
           "score": 8
+        },
+        {
+          "time": "2026-07-29",
+          "score": 5
+        },
+        {
+          "time": "2026-07-30",
+          "score": 4
+        },
+        {
+          "time": "2026-07-31",
+          "score": 4
         }
       ],
       "Symptoms": [
@@ -828,6 +840,18 @@
         {
           "time": "2026-07-28",
           "score": 0
+        },
+        {
+          "time": "2026-07-29",
+          "score": 0
+        },
+        {
+          "time": "2026-07-30",
+          "score": 0
+        },
+        {
+          "time": "2026-07-31",
+          "score": 0
         }
       ],
       "Transmission": [
@@ -1241,6 +1265,18 @@
         },
         {
           "time": "2026-07-28",
+          "score": 0
+        },
+        {
+          "time": "2026-07-29",
+          "score": 0
+        },
+        {
+          "time": "2026-07-30",
+          "score": 0
+        },
+        {
+          "time": "2026-07-31",
           "score": 0
         }
       ]
@@ -1668,14 +1704,13 @@
     "fetch_status": {
       "rising_searches": {
         "last_success": "2026-07-28",
-        "last_attempt": "2026-07-28",
-        "ok": true,
-        "rising_count": 22,
-        "top_count": 25
+        "last_attempt": "2026-07-31",
+        "ok": false,
+        "error": "The request failed: Google returned a response with code 429"
       },
       "related_topics": {
         "last_success": null,
-        "last_attempt": "2026-07-28",
+        "last_attempt": "2026-07-31",
         "ok": false,
         "error": "list index out of range"
       }
@@ -4220,7 +4255,7 @@
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-07-30",
+    "computed_at": "2026-07-31",
     "cfr_trend": {
       "points": [
         {
@@ -4345,8 +4380,8 @@
       "n_points": 25
     },
     "search_correlation": {
-      "n": 74,
-      "rho": -0.896,
+      "n": 77,
+      "rho": -0.9,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
