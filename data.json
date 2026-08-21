@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-16",
+  "updated": "2026-08-18",
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -5608,11 +5608,11 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 5021,
-    "confirmedDeaths": 2378,
+    "confirmedDRC": 5208,
+    "confirmedDeaths": 2476,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 47.2,
+    "cfrPercent": 47.4,
     "dataSource": "ECDC"
   },
   "timeline": [
@@ -5805,10 +5805,15 @@
       "date": "2026-08-16",
       "cases": 5041,
       "deaths": 2380
+    },
+    {
+      "date": "2026-08-18",
+      "cases": 5228,
+      "deaths": 2478
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-08-20",
+    "computed_at": "2026-08-21",
     "cfr_trend": {
       "points": [
         {
@@ -5962,31 +5967,35 @@
         {
           "date": "2026-08-16",
           "cfr_percent": 47.21
+        },
+        {
+          "date": "2026-08-18",
+          "cfr_percent": 47.4
         }
       ],
       "summary": {
-        "current_cfr_percent": 47.21,
+        "current_cfr_percent": 47.4,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
-        "recent_avg_percent": 46.91,
+        "recent_avg_percent": 47.16,
         "direction": "stable"
       }
     },
     "growth_rate": {
       "start_date": "2026-05-16",
-      "end_date": "2026-08-16",
-      "growth_rate_per_day": 0.0468,
-      "doubling_time_days": 14.8,
+      "end_date": "2026-08-18",
+      "growth_rate_per_day": 0.0461,
+      "doubling_time_days": 15.0,
       "doubling_time_ci": {
-        "doubling_time_low": 13.1,
-        "doubling_time_high": 17.1
+        "doubling_time_low": 13.3,
+        "doubling_time_high": 17.3
       },
-      "r_squared": 0.8597,
-      "n_points": 38
+      "r_squared": 0.8591,
+      "n_points": 39
     },
     "search_correlation": {
       "n": 97,
-      "rho": -0.743,
+      "rho": -0.742,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
