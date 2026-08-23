@@ -141,13 +141,19 @@ def extract_with_gemini(page_excerpt):
             sys.exit(1)
 
     # Validate required fields
-    for key in ["drc_cases", "drc_deaths", "uganda_cases", "uganda_deaths"]:
+     # DRC fields required — Uganda declared outbreak over July 28 2026
+    for key in ["drc_cases", "drc_deaths"]:
         if data.get(key) is None:
             print(f"FATAL: Gemini could not extract '{key}' from the page.")
             sys.exit(1)
 
-    return data
+    # Uganda outbreak ended — use final known count if not reported
+    if data.get("uganda_cases") is None:
+        print("Uganda not in ECDC report — outbreak declared over July 28. Using final count: 20 cases, 2 deaths.")
+        data["uganda_cases"]  = 20
+        data["uganda_deaths"] = 2
 
+    return data
 
 # ── Data persistence ───────────────────────────────────────────────────────────
 
