@@ -48,10 +48,12 @@ def to_clean_text(html):
 
 
 def get_content_excerpt(clean_text, max_chars=3000):
-    for marker in ["As of", "reported a total", "confirmed cases"]:
+    for marker in ["Democratic Republic of the Congo (DRC) reported", 
+                   "DRC reported", "confirmed cases, including",
+                   "As of", "reported a total", "confirmed cases"]:
         idx = clean_text.find(marker)
         if idx != -1:
-            return clean_text[max(0, idx - 100): idx + max_chars]
+            return clean_text[max(0, idx - 200): idx + max_chars]
     return clean_text[:max_chars]
 
 
@@ -103,7 +105,7 @@ def extract_with_gemini(page_excerpt):
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.1-flash-lite",
                 contents=EXTRACTION_PROMPT + page_excerpt,
             )
             response_text = response.text.strip()
@@ -138,18 +140,11 @@ def extract_with_gemini(page_excerpt):
             print(f"FATAL: Gemini returned non-JSON: {response_text}")
             sys.exit(1)
 
-    # DRC fields are required — Uganda declared outbreak over July 28 2026
-    # so ECDC may no longer report Uganda figures separately
-    for key in ["drc_cases", "drc_deaths"]:
+    # Validate required fields
+    for key in ["drc_cases", "drc_deaths", "uganda_cases", "uganda_deaths"]:
         if data.get(key) is None:
             print(f"FATAL: Gemini could not extract '{key}' from the page.")
             sys.exit(1)
-
-    # Uganda: use last known figures if null (20 cases, 2 deaths — final count)
-    if data.get("uganda_cases") is None:
-        print("Uganda cases not found — outbreak declared over July 28. Using final count: 20 cases, 2 deaths.")
-        data["uganda_cases"]  = 20
-        data["uganda_deaths"] = 2
 
     return data
 
