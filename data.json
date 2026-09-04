@@ -8327,7 +8327,40 @@
     {
       "date": "2026-06-26",
       "title": "ECDC reports 1,155 DRC cases and 304 deaths, plus 20 Uganda cases and 2 deaths"
+    },
+    {
+      "date": "2026-07-10",
+      "title": "A second US citizen, a humanitarian worker in DRC, tests positive for Bundibugyo virus and is medically evacuated to Germany on July 13"
+    },
+    {
+      "date": "2026-07-16",
+      "title": "Uganda discharges its last Ebola patient after two consecutive negative PCR tests - no confirmed active cases remain in Uganda; 42-day countdown begins"
+    },
+    {
+      "date": "2026-07-28",
+      "title": "Uganda officially declares end of its 2026 Ebola outbreak - final tally: 20 confirmed cases (15 imported from DRC, 5 local), 18 recoveries, 2 deaths"
+    },
+    {
+      "date": "2026-08-12",
+      "title": "WHO reports 4,665 confirmed cases and 2,184 deaths — outbreak now in 5 provinces; 986 patients recovered"
+    },
+    {
+      "date": "2026-08-18",
+      "title": "WHO IHR Emergency Committee second meeting — warns outbreak is outpacing response with 80%+ of new infections outside known contact lists; two Bundibugyo-specific vaccine candidates enter human trials"
+    },
+    {
+      "date": "2026-08-20",
+      "title": "DRC reports 5,290 confirmed cases including 2,516 deaths; 837 hospitalised, 1,152 recovered; Ituri remains most affected with 4,447 cases across 28 of 36 health zones"
+    },
+    {
+      "date": "2026-08-23",
+      "title": "100 days since outbreak declared — MSF warns communities still not receiving adequate support; this is now the fastest-growing Ebola outbreak on record, surpassing 1,000 cases within 40 days of response activation"
+    },
+    {
+      "date": "2026-09-02",
+      "title": "DRC reports 6,250 confirmed cases and 3,039 deaths as of September 1"
     }
+
   ],
   "summary": {
     "confirmedDRC": 6100,

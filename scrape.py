@@ -215,8 +215,8 @@ def scrape_ebola_data():
 
     drc_cases  = int(extracted["drc_cases"])
     drc_deaths = int(extracted["drc_deaths"])
-    ug_cases   = int(extracted["uganda_cases"])
-    ug_deaths  = int(extracted["uganda_deaths"])
+    ug_cases   = int(extracted["uganda_cases"] or 20) # if null cases fall back to 20 --> previous record
+    ug_deaths  = int(extracted["uganda_deaths"] or 2) # if null cases fall back to 2 --> previous record
     updated    = extracted.get("updated_date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     total_cases  = drc_cases + ug_cases
