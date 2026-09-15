@@ -99,7 +99,7 @@ def extract_with_gemini(page_excerpt):
     client = genai.Client(api_key=api_key)
 
     max_retries = 3
-    retry_delay = 15
+    retry_delay = 60
 
     response_text = None
     for attempt in range(max_retries):
@@ -111,7 +111,7 @@ def extract_with_gemini(page_excerpt):
             response_text = response.text.strip()
             break
         except Exception as e:
-            if "429" in str(e) and attempt < max_retries - 1:
+            if ("429" in str(e) or "503" in str(e)) and attempt < max_retries - 1:
                 print(f"  Rate limited. Retrying in {retry_delay}s... ({attempt+1}/{max_retries})")
                 time.sleep(retry_delay)
             else:
