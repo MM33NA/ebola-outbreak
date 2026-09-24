@@ -638,6 +638,14 @@
         {
           "time": "2026-09-22",
           "score": 3
+        },
+        {
+          "time": "2026-09-23",
+          "score": 2
+        },
+        {
+          "time": "2026-09-24",
+          "score": 2
         }
       ],
       "Symptoms": [
@@ -1275,6 +1283,14 @@
         },
         {
           "time": "2026-09-22",
+          "score": 0
+        },
+        {
+          "time": "2026-09-23",
+          "score": 0
+        },
+        {
+          "time": "2026-09-24",
           "score": 0
         }
       ],
@@ -1914,58 +1930,56 @@
         {
           "time": "2026-09-22",
           "score": 0
+        },
+        {
+          "time": "2026-09-23",
+          "score": 0
+        },
+        {
+          "time": "2026-09-24",
+          "score": 0
         }
       ]
     },
     "rising_searches": [
       {
-        "query": "malattia da virus ebola",
-        "breakout_value": "8400",
+        "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
+        "breakout_value": "8800",
         "type": "rising"
       },
       {
-        "query": "\u00e9pid\u00e9mie de maladie \u00e0 virus ebola en afrique de l ouest",
+        "query": "ebola ausbruch aktuell",
+        "breakout_value": "8000",
+        "type": "rising"
+      },
+      {
+        "query": "malattia da virus ebola",
+        "breakout_value": "6150",
+        "type": "rising"
+      },
+      {
+        "query": "gor\u0105czka krwotoczna ebola",
         "breakout_value": "4150",
         "type": "rising"
       },
       {
-        "query": "ebola bundibugyo",
-        "breakout_value": "2950",
+        "query": "maladie \u00e0 virus ebola",
+        "breakout_value": "3500",
         "type": "rising"
       },
       {
-        "query": "maladie \u00e0 virus ebola",
-        "breakout_value": "2350",
+        "query": "ebola bundibugyo",
+        "breakout_value": "2450",
         "type": "rising"
       },
       {
         "query": "dr congo ebola outbreak",
-        "breakout_value": "1650",
+        "breakout_value": "1400",
         "type": "rising"
       },
       {
-        "query": "ebola uganda 2026",
-        "breakout_value": "1300",
-        "type": "rising"
-      },
-      {
-        "query": "hantavirus",
-        "breakout_value": "800",
-        "type": "rising"
-      },
-      {
-        "query": "ebola outbreak 2026 map",
+        "query": "ebola frankreich",
         "breakout_value": "700",
-        "type": "rising"
-      },
-      {
-        "query": "ebola uitbraak",
-        "breakout_value": "600",
-        "type": "rising"
-      },
-      {
-        "query": "uganda",
-        "breakout_value": "550",
         "type": "rising"
       },
       {
@@ -1974,13 +1988,13 @@
         "type": "rising"
       },
       {
-        "query": "ebola ausbruch",
+        "query": "uganda",
         "breakout_value": "550",
         "type": "rising"
       },
       {
-        "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
-        "breakout_value": "550",
+        "query": "ebola ausbruch",
+        "breakout_value": "500",
         "type": "rising"
       },
       {
@@ -1989,18 +2003,18 @@
         "type": "rising"
       },
       {
-        "query": "ebola outbreak 2026",
-        "breakout_value": "400",
+        "query": "ebola rdc",
+        "breakout_value": "450",
         "type": "rising"
       },
       {
-        "query": "ebola rdc",
-        "breakout_value": "400",
+        "query": "ebola outbreak 2026",
+        "breakout_value": "450",
         "type": "rising"
       },
       {
         "query": "ebola in uganda",
-        "breakout_value": "350",
+        "breakout_value": "400",
         "type": "rising"
       },
       {
@@ -2014,33 +2028,28 @@
         "type": "rising"
       },
       {
-        "query": "como se contagia el ebola",
-        "breakout_value": "350",
-        "type": "rising"
-      },
-      {
-        "query": "kenya ebola",
-        "breakout_value": "300",
-        "type": "rising"
-      },
-      {
         "query": "ebola outbreak",
         "breakout_value": "110",
         "type": "rising"
       },
       {
-        "query": "ebola que es",
-        "breakout_value": "100",
+        "query": "ebola drc",
+        "breakout_value": "90",
         "type": "rising"
       },
       {
-        "query": "ebola drc",
-        "breakout_value": "100",
+        "query": "ebola 2026",
+        "breakout_value": "70",
         "type": "rising"
       },
       {
         "query": "ebola cases",
-        "breakout_value": "80",
+        "breakout_value": "70",
+        "type": "rising"
+      },
+      {
+        "query": "ebola update",
+        "breakout_value": "50",
         "type": "rising"
       },
       {
@@ -2055,36 +2064,26 @@
       },
       {
         "query": "ebola virus",
-        "breakout_value": "72",
-        "type": "top"
-      },
-      {
-        "query": "who ebola",
-        "breakout_value": "36",
+        "breakout_value": "71",
         "type": "top"
       },
       {
         "query": "ebola outbreak 2026",
-        "breakout_value": "35",
+        "breakout_value": "36",
         "type": "top"
       },
       {
-        "query": "who",
+        "query": "ebola who",
         "breakout_value": "34",
         "type": "top"
       },
       {
-        "query": "uganda",
-        "breakout_value": "28",
+        "query": "who",
+        "breakout_value": "33",
         "type": "top"
       },
       {
         "query": "ebola congo",
-        "breakout_value": "28",
-        "type": "top"
-      },
-      {
-        "query": "what is ebola",
         "breakout_value": "28",
         "type": "top"
       },
@@ -2095,6 +2094,16 @@
       },
       {
         "query": "congo",
+        "breakout_value": "28",
+        "type": "top"
+      },
+      {
+        "query": "uganda",
+        "breakout_value": "27",
+        "type": "top"
+      },
+      {
+        "query": "what is ebola",
         "breakout_value": "27",
         "type": "top"
       },
@@ -2105,21 +2114,16 @@
       },
       {
         "query": "ebola news",
-        "breakout_value": "20",
+        "breakout_value": "19",
         "type": "top"
       },
       {
         "query": "ebola africa",
-        "breakout_value": "18",
+        "breakout_value": "17",
         "type": "top"
       },
       {
         "query": "ebola cases",
-        "breakout_value": "16",
-        "type": "top"
-      },
-      {
-        "query": "ebola uganda 2026",
         "breakout_value": "16",
         "type": "top"
       },
@@ -2144,17 +2148,12 @@
         "type": "top"
       },
       {
-        "query": "kenya ebola",
-        "breakout_value": "9",
-        "type": "top"
-      },
-      {
-        "query": "hantavirus",
+        "query": "ebola update",
         "breakout_value": "8",
         "type": "top"
       },
       {
-        "query": "ebola update",
+        "query": "ebola vaccine",
         "breakout_value": "8",
         "type": "top"
       },
@@ -2164,35 +2163,45 @@
         "type": "top"
       },
       {
-        "query": "ebola canada",
+        "query": "ebola transmission",
         "breakout_value": "7",
+        "type": "top"
+      },
+      {
+        "query": "symptoms of ebola",
+        "breakout_value": "6",
+        "type": "top"
+      },
+      {
+        "query": "dr congo ebola outbreak",
+        "breakout_value": "6",
         "type": "top"
       }
     ],
     "word_cloud": {
       "all_time": {
-        "malattia": 46,
+        "malattia": 47,
         "virus": 1,
         "cagliari": 2,
         "hantavirus": 92,
-        "symptoms": 65,
+        "symptoms": 67,
         "update": 2,
-        "uganda": 284,
+        "uganda": 290,
         "today": 1,
         "outbreak": 1,
         "ituri": 1,
         "death": 1,
         "toll": 1,
-        "congo": 230,
+        "congo": 238,
         "travel": 1,
         "restrictions": 1,
-        "ausbruch": 63,
-        "aktuell": 27,
+        "ausbruch": 65,
+        "aktuell": 28,
         "wie": 5,
         "wird": 5,
-        "bundibugyo": 71,
-        "maladie": 49,
-        "krwotoczna": 32,
+        "bundibugyo": 73,
+        "maladie": 50,
+        "krwotoczna": 33,
         "map": 34,
         "que": 44,
         "como": 24,
@@ -2203,19 +2212,19 @@
         "hanta": 7,
         "kenya": 48,
         "spread": 10,
-        "vaccine": 34,
+        "vaccine": 35,
         "kongo": 7,
         "oms": 1,
         "canada": 24,
         "contagia": 19,
         "uitbraak": 14,
         "brote": 9,
-        "frankreich": 18,
+        "frankreich": 19,
         "frankrijk": 8,
         "cdc": 20,
-        "drc": 31,
-        "rdc": 38,
-        "transmission": 9,
+        "drc": 33,
+        "rdc": 39,
+        "transmission": 10,
         "kyle": 5,
         "busch": 5,
         "treatment": 2,
@@ -2530,42 +2539,44 @@
         },
         "2026-09-21": {
           "hantavirus": 4,
-          "malattia": 2,
-          "maladie": 3,
-          "krwotoczna": 1,
-          "uganda": 16,
-          "symptoms": 3,
-          "bundibugyo": 3,
-          "ausbruch": 2,
-          "rdc": 2,
-          "aktuell": 1,
-          "congo": 11,
+          "malattia": 3,
+          "maladie": 4,
+          "krwotoczna": 2,
+          "uganda": 22,
+          "symptoms": 5,
+          "bundibugyo": 5,
+          "ausbruch": 4,
+          "rdc": 3,
+          "aktuell": 2,
+          "congo": 19,
           "como": 2,
           "contagia": 2,
           "kenya": 4,
           "que": 3,
-          "drc": 4,
+          "drc": 6,
           "france": 2,
           "canada": 2,
-          "vaccine": 1,
+          "vaccine": 2,
           "afrique": 1,
           "ouest": 1,
           "map": 1,
-          "uitbraak": 1
+          "uitbraak": 1,
+          "frankreich": 1,
+          "transmission": 1
         }
       }
     },
     "fetch_status": {
       "rising_searches": {
-        "last_success": "2026-09-22",
-        "last_attempt": "2026-09-22",
+        "last_success": "2026-09-24",
+        "last_attempt": "2026-09-24",
         "ok": true,
-        "rising_count": 25,
+        "rising_count": 22,
         "top_count": 25
       },
       "related_topics": {
         "last_success": null,
-        "last_attempt": "2026-09-22",
+        "last_attempt": "2026-09-24",
         "ok": false,
         "error": "list index out of range"
       }
@@ -12436,6 +12447,243 @@
           "breakout_value": "7",
           "type": "top"
         }
+      ],
+      "2026-09-24": [
+        {
+          "query": "ebola vir\u00fcs\u00fc hastal\u0131\u011f\u0131",
+          "breakout_value": "8800",
+          "type": "rising"
+        },
+        {
+          "query": "ebola ausbruch aktuell",
+          "breakout_value": "8000",
+          "type": "rising"
+        },
+        {
+          "query": "malattia da virus ebola",
+          "breakout_value": "6150",
+          "type": "rising"
+        },
+        {
+          "query": "gor\u0105czka krwotoczna ebola",
+          "breakout_value": "4150",
+          "type": "rising"
+        },
+        {
+          "query": "maladie \u00e0 virus ebola",
+          "breakout_value": "3500",
+          "type": "rising"
+        },
+        {
+          "query": "ebola bundibugyo",
+          "breakout_value": "2450",
+          "type": "rising"
+        },
+        {
+          "query": "dr congo ebola outbreak",
+          "breakout_value": "1400",
+          "type": "rising"
+        },
+        {
+          "query": "ebola frankreich",
+          "breakout_value": "700",
+          "type": "rising"
+        },
+        {
+          "query": "uganda ebola",
+          "breakout_value": "550",
+          "type": "rising"
+        },
+        {
+          "query": "uganda",
+          "breakout_value": "550",
+          "type": "rising"
+        },
+        {
+          "query": "ebola ausbruch",
+          "breakout_value": "500",
+          "type": "rising"
+        },
+        {
+          "query": "congo ebola outbreak",
+          "breakout_value": "500",
+          "type": "rising"
+        },
+        {
+          "query": "ebola rdc",
+          "breakout_value": "450",
+          "type": "rising"
+        },
+        {
+          "query": "ebola outbreak 2026",
+          "breakout_value": "450",
+          "type": "rising"
+        },
+        {
+          "query": "ebola in uganda",
+          "breakout_value": "400",
+          "type": "rising"
+        },
+        {
+          "query": "ebola congo",
+          "breakout_value": "350",
+          "type": "rising"
+        },
+        {
+          "query": "congo",
+          "breakout_value": "350",
+          "type": "rising"
+        },
+        {
+          "query": "ebola outbreak",
+          "breakout_value": "110",
+          "type": "rising"
+        },
+        {
+          "query": "ebola drc",
+          "breakout_value": "90",
+          "type": "rising"
+        },
+        {
+          "query": "ebola 2026",
+          "breakout_value": "70",
+          "type": "rising"
+        },
+        {
+          "query": "ebola cases",
+          "breakout_value": "70",
+          "type": "rising"
+        },
+        {
+          "query": "ebola update",
+          "breakout_value": "50",
+          "type": "rising"
+        },
+        {
+          "query": "ebola 2026",
+          "breakout_value": "100",
+          "type": "top"
+        },
+        {
+          "query": "ebola outbreak",
+          "breakout_value": "77",
+          "type": "top"
+        },
+        {
+          "query": "ebola virus",
+          "breakout_value": "71",
+          "type": "top"
+        },
+        {
+          "query": "ebola outbreak 2026",
+          "breakout_value": "36",
+          "type": "top"
+        },
+        {
+          "query": "ebola who",
+          "breakout_value": "34",
+          "type": "top"
+        },
+        {
+          "query": "who",
+          "breakout_value": "33",
+          "type": "top"
+        },
+        {
+          "query": "ebola congo",
+          "breakout_value": "28",
+          "type": "top"
+        },
+        {
+          "query": "uganda ebola",
+          "breakout_value": "28",
+          "type": "top"
+        },
+        {
+          "query": "congo",
+          "breakout_value": "28",
+          "type": "top"
+        },
+        {
+          "query": "uganda",
+          "breakout_value": "27",
+          "type": "top"
+        },
+        {
+          "query": "what is ebola",
+          "breakout_value": "27",
+          "type": "top"
+        },
+        {
+          "query": "ebola symptoms",
+          "breakout_value": "21",
+          "type": "top"
+        },
+        {
+          "query": "ebola news",
+          "breakout_value": "19",
+          "type": "top"
+        },
+        {
+          "query": "ebola africa",
+          "breakout_value": "17",
+          "type": "top"
+        },
+        {
+          "query": "ebola cases",
+          "breakout_value": "16",
+          "type": "top"
+        },
+        {
+          "query": "ebola disease",
+          "breakout_value": "13",
+          "type": "top"
+        },
+        {
+          "query": "congo ebola outbreak",
+          "breakout_value": "12",
+          "type": "top"
+        },
+        {
+          "query": "ebola drc",
+          "breakout_value": "12",
+          "type": "top"
+        },
+        {
+          "query": "ebola in uganda",
+          "breakout_value": "9",
+          "type": "top"
+        },
+        {
+          "query": "ebola update",
+          "breakout_value": "8",
+          "type": "top"
+        },
+        {
+          "query": "ebola vaccine",
+          "breakout_value": "8",
+          "type": "top"
+        },
+        {
+          "query": "ebola bundibugyo",
+          "breakout_value": "8",
+          "type": "top"
+        },
+        {
+          "query": "ebola transmission",
+          "breakout_value": "7",
+          "type": "top"
+        },
+        {
+          "query": "symptoms of ebola",
+          "breakout_value": "6",
+          "type": "top"
+        },
+        {
+          "query": "dr congo ebola outbreak",
+          "breakout_value": "6",
+          "type": "top"
+        }
       ]
     }
   },
@@ -12819,7 +13067,7 @@
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-09-23",
+    "computed_at": "2026-09-24",
     "cfr_trend": {
       "points": [
         {
@@ -13064,8 +13312,8 @@
       "n_points": 55
     },
     "search_correlation": {
-      "n": 130,
-      "rho": -0.86,
+      "n": 132,
+      "rho": -0.866,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
