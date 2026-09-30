@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-26",
+  "updated": "2026-09-27",
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -13907,8 +13907,8 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 8067,
-    "confirmedDeaths": 3901,
+    "confirmedDRC": 8116,
+    "confirmedDeaths": 3924,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
     "cfrPercent": 48.3,
@@ -14199,10 +14199,15 @@
       "date": "2026-09-26",
       "cases": 8087,
       "deaths": 3903
+    },
+    {
+      "date": "2026-09-27",
+      "cases": 8136,
+      "deaths": 3926
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-09-29",
+    "computed_at": "2026-09-30",
     "cfr_trend": {
       "points": [
         {
@@ -14432,10 +14437,14 @@
         {
           "date": "2026-09-26",
           "cfr_percent": 48.26
+        },
+        {
+          "date": "2026-09-27",
+          "cfr_percent": 48.25
         }
       ],
       "summary": {
-        "current_cfr_percent": 48.26,
+        "current_cfr_percent": 48.25,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
         "recent_avg_percent": 48.19,
@@ -14444,19 +14453,19 @@
     },
     "growth_rate": {
       "start_date": "2026-05-16",
-      "end_date": "2026-09-26",
-      "growth_rate_per_day": 0.0336,
-      "doubling_time_days": 20.7,
+      "end_date": "2026-09-27",
+      "growth_rate_per_day": 0.0329,
+      "doubling_time_days": 21.0,
       "doubling_time_ci": {
-        "doubling_time_low": 18.4,
-        "doubling_time_high": 23.6
+        "doubling_time_low": 18.7,
+        "doubling_time_high": 24.1
       },
-      "r_squared": 0.8159,
-      "n_points": 57
+      "r_squared": 0.8128,
+      "n_points": 58
     },
     "search_correlation": {
       "n": 137,
-      "rho": -0.852,
+      "rho": -0.851,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
