@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-20",
+  "updated": "2026-10-24",
   "google_trends_surveillance": {
     "search_timeline": {
       "Ebola": [
@@ -770,6 +770,14 @@
         {
           "time": "2026-10-25",
           "score": 5
+        },
+        {
+          "time": "2026-10-26",
+          "score": 8
+        },
+        {
+          "time": "2026-10-27",
+          "score": 8
         }
       ],
       "Symptoms": [
@@ -1539,6 +1547,14 @@
         },
         {
           "time": "2026-10-25",
+          "score": 0
+        },
+        {
+          "time": "2026-10-26",
+          "score": 0
+        },
+        {
+          "time": "2026-10-27",
           "score": 0
         }
       ],
@@ -2310,6 +2326,14 @@
         {
           "time": "2026-10-25",
           "score": 0
+        },
+        {
+          "time": "2026-10-26",
+          "score": 0
+        },
+        {
+          "time": "2026-10-27",
+          "score": 0
         }
       ]
     },
@@ -2998,14 +3022,13 @@
     "fetch_status": {
       "rising_searches": {
         "last_success": "2026-10-25",
-        "last_attempt": "2026-10-25",
-        "ok": true,
-        "rising_count": 12,
-        "top_count": 23
+        "last_attempt": "2026-10-27",
+        "ok": false,
+        "error": "The request failed: Google returned a response with code 429"
       },
       "related_topics": {
         "last_success": null,
-        "last_attempt": "2026-10-25",
+        "last_attempt": "2026-10-27",
         "ok": false,
         "error": "list index out of range"
       }
@@ -18125,11 +18148,11 @@
     }
   ],
   "summary": {
-    "confirmedDRC": 9704,
-    "confirmedDeaths": 4687,
+    "confirmedDRC": 9964,
+    "confirmedDeaths": 4851,
     "ugandaCases": 20,
     "ugandaDeaths": 2,
-    "cfrPercent": 48.2,
+    "cfrPercent": 48.6,
     "dataSource": "ECDC"
   },
   "timeline": [
@@ -18467,10 +18490,15 @@
       "date": "2026-10-20",
       "cases": 9724,
       "deaths": 4689
+    },
+    {
+      "date": "2026-10-24",
+      "cases": 9984,
+      "deaths": 4853
     }
   ],
   "trajectory_analysis": {
-    "computed_at": "2026-10-26",
+    "computed_at": "2026-10-27",
     "cfr_trend": {
       "points": [
         {
@@ -18740,31 +18768,35 @@
         {
           "date": "2026-10-20",
           "cfr_percent": 48.22
+        },
+        {
+          "date": "2026-10-24",
+          "cfr_percent": 48.61
         }
       ],
       "summary": {
-        "current_cfr_percent": 48.22,
+        "current_cfr_percent": 48.61,
         "min_cfr_percent": 9.82,
         "max_cfr_percent": 50.0,
-        "recent_avg_percent": 48.17,
+        "recent_avg_percent": 48.31,
         "direction": "stable"
       }
     },
     "growth_rate": {
       "start_date": "2026-05-16",
-      "end_date": "2026-10-20",
-      "growth_rate_per_day": 0.0277,
-      "doubling_time_days": 25.0,
+      "end_date": "2026-10-24",
+      "growth_rate_per_day": 0.0272,
+      "doubling_time_days": 25.5,
       "doubling_time_ci": {
-        "doubling_time_low": 22.2,
-        "doubling_time_high": 28.7
+        "doubling_time_low": 22.6,
+        "doubling_time_high": 29.3
       },
-      "r_squared": 0.7812,
-      "n_points": 67
+      "r_squared": 0.7776,
+      "n_points": 68
     },
     "search_correlation": {
-      "n": 163,
-      "rho": -0.721,
+      "n": 165,
+      "rho": -0.692,
       "interpretation_note": "Google Trends scores are normalized to the peak within the queried window, not absolute volume. A negative rho here often reflects an early attention spike followed by decay, not declining concern - compare against the search interest chart before drawing conclusions."
     },
     "insufficient_data": false
